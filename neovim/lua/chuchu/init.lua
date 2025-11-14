@@ -19,12 +19,7 @@
 local M = {}
 
 local config = {
-  feature_cmds = {
-    elixir = { "chu", "feature-elixir" },
-    ruby   = { "chu", "feature-ruby" },
-    go     = { "chu", "feature-go" },
-    ts     = { "chu", "feature-ts" },
-  },
+  chat_cmd = { "chu", "chat" },
   keymaps = {
     code          = "<leader>cd",
     verified      = "<leader>vf",
@@ -35,7 +30,13 @@ local config = {
   memory_file = vim.fn.expand("~/.chuchu/memories.jsonl"),
 }
 
-local chat_state = { buf = nil, win = nil }
+local chat_state = { 
+  buf = nil, 
+  win = nil,
+  conversation = {},
+  lang = nil,
+  job = nil
+}
 
 --- Setup to be called from your plugin manager.
 -- Example (lazy.nvim):
@@ -273,78 +274,118 @@ function M.start_code_conversation()
     return
   end
 
-  local feature_cmd = config.feature_cmds[lang]
-  if not feature_cmd then
-    vim.notify("Chuchu: no feature_cmd configured for language: " .. lang, vim.log.levels.ERROR)
-    return
-  end
+  chat_state.lang = lang
+  chat_state.conversation = {}
 
-  open_floating_prompt("Chuchu feature (" .. lang .. ")", function(text)
+  open_floating_prompt("Chuchu (" .. lang .. ")", function(text)
     if text == "" then
-      vim.notify("Chuchu: empty feature description", vim.log.levels.WARN)
+      vim.notify("Chuchu: empty query", vim.log.levels.WARN)
       return
     end
 
-    local cmd = vim.deepcopy(feature_cmd)
-    local output = {}
-
-    local job = vim.fn.jobstart(cmd, {
-      stdout_buffered = true,
-      on_stdout = function(_, data, _)
-        if data then vim.list_extend(output, data) end
-      end,
-      on_exit = function()
-        local raw = table.concat(output, "\n")
-        M.open_layout(text, raw, lang)
-      end,
-      stdin = "pipe",
-    })
-
-    if job <= 0 then
-      vim.notify("Chuchu: failed to start feature command (" .. table.concat(cmd, " ") .. ")", vim.log.levels.ERROR)
-      return
-    end
-
-    vim.fn.chansend(job, text .. "\n")
-    vim.fn.chanclose(job, "stdin")
+    table.insert(chat_state.conversation, "User: " .. text)
+    M.send_to_llm(text)
   end)
 end
 
-function M.open_layout(prompt, raw, lang)
-  local blocks = extract_all_blocks(raw)
-  
-  if #blocks == 0 then
-    vim.notify("Chuchu: no ```tests/```impl blocks found", vim.log.levels.WARN)
-    vim.notify("Raw output: " .. raw:sub(1, 200), vim.log.levels.INFO)
+function M.send_to_llm(user_input)
+  local cmd = vim.deepcopy(config.chat_cmd)
+  local output = {}
+
+  local job = vim.fn.jobstart(cmd, {
+    stdout_buffered = true,
+    on_stdout = function(_, data, _)
+      if data then vim.list_extend(output, data) end
+    end,
+    on_exit = function()
+      local raw = table.concat(output, "\n")
+      M.handle_llm_response(raw)
+    end,
+    stdin = "pipe",
+  })
+
+  if job <= 0 then
+    vim.notify("Chuchu: failed to start command", vim.log.levels.ERROR)
     return
   end
 
+  local full_conversation = table.concat(chat_state.conversation, "\n\n---\n\n")
+  vim.fn.chansend(job, full_conversation .. "\n")
+  vim.fn.chanclose(job, "stdin")
+end
+
+function M.handle_llm_response(raw)
+  table.insert(chat_state.conversation, "Assistant: " .. raw)
+  
+  M.show_chat_panel()
+  
+  local blocks = extract_all_blocks(raw)
+  if #blocks > 0 then
+    M.create_code_tabs(blocks)
+  end
+end
+
+function M.show_chat_panel()
+  if not chat_state.buf or not vim.api.nvim_buf_is_valid(chat_state.buf) then
+    chat_state.buf = vim.api.nvim_create_buf(true, false)
+    vim.bo[chat_state.buf].filetype = "markdown"
+  end
+
+  local convo_lines = {}
+  table.insert(convo_lines, "# Chuchu (" .. (chat_state.lang or "unknown") .. ")")
+  table.insert(convo_lines, "")
+  
+  for _, line in ipairs(chat_state.conversation) do
+    for sub_line in line:gmatch("([^\n]*)\n?") do
+      table.insert(convo_lines, sub_line)
+    end
+    table.insert(convo_lines, "")
+  end
+  
+  table.insert(convo_lines, "")
+  table.insert(convo_lines, "---")
+  table.insert(convo_lines, "Press 'i' and type to continue the conversation, then <CR> to send")
+  
+  vim.api.nvim_buf_set_lines(chat_state.buf, 0, -1, false, convo_lines)
+  
+  if not chat_state.win or not vim.api.nvim_win_is_valid(chat_state.win) then
+    vim.cmd("vsplit")
+    chat_state.win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(chat_state.win, chat_state.buf)
+    vim.api.nvim_win_set_width(chat_state.win, 60)
+  end
+  
+  vim.api.nvim_buf_set_keymap(chat_state.buf, "n", "<CR>", "", {
+    callback = function()
+      M.continue_conversation()
+    end,
+    noremap = true,
+    silent = true,
+  })
+end
+
+function M.continue_conversation()
+  open_floating_prompt("Continue conversation", function(text)
+    if text == "" then return end
+    table.insert(chat_state.conversation, "User: " .. text)
+    M.send_to_llm(text)
+  end)
+end
+
+function M.create_code_tabs(blocks)
   local filetype = "plaintext"
-  if lang == "elixir" then
+  if chat_state.lang == "elixir" then
     filetype = "elixir"
-  elseif lang == "ruby" then
+  elseif chat_state.lang == "ruby" then
     filetype = "ruby"
-  elseif lang == "go" then
+  elseif chat_state.lang == "go" then
     filetype = "go"
-  elseif lang == "ts" then
+  elseif chat_state.lang == "ts" then
     filetype = "typescript"
   end
 
-  local convo = {}
-  table.insert(convo, "# Chuchu (" .. (lang or "unknown") .. ")")
-  table.insert(convo, "")
-  table.insert(convo, "## Prompt")
-  table.insert(convo, prompt)
-  table.insert(convo, "")
-  table.insert(convo, "## Output")
-  for line in raw:gmatch("([^\n]*)\n?") do
-    table.insert(convo, line)
-  end
-
   for idx, block in ipairs(blocks) do
-    if idx > 1 then
-      vim.cmd("tabnew")
-    end
+    vim.cmd("tabnew")
 
     vim.cmd("vsplit")
     
@@ -364,17 +405,14 @@ function M.open_layout(prompt, raw, lang)
 
     vim.cmd("vsplit")
     local chat_win = vim.api.nvim_get_current_win()
-    if not chat_state.buf then
-      chat_state.buf = vim.api.nvim_create_buf(true, false)
-      vim.api.nvim_buf_set_lines(chat_state.buf, 0, -1, false, convo)
-      vim.bo[chat_state.buf].filetype = "markdown"
-    end
     vim.api.nvim_win_set_buf(chat_win, chat_state.buf)
-    chat_state.win = chat_win
+    vim.api.nvim_win_set_width(chat_win, 60)
     
     vim.cmd("wincmd h")
     vim.cmd("wincmd h")
   end
+  
+  vim.notify("Created " .. #blocks .. " code tab(s)", vim.log.levels.INFO)
 end
 
   local filetype = "plaintext"
