@@ -9,9 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/term"
+
 	"chuchu/internal/agents"
 	"chuchu/internal/config"
 	"chuchu/internal/llm"
+	"chuchu/internal/output"
 	"chuchu/internal/prompt"
 )
 
@@ -105,7 +108,35 @@ func Chat(input string, args []string) {
 		return
 	}
 
-	fmt.Println(result)
+	parsed := output.ParseMarkdown(result)
+
+	rendered, err := output.RenderMarkdown(parsed.RenderedText)
+	if err != nil {
+		rendered = result
+	}
+
+	fmt.Println(output.Separator())
+	fmt.Print(rendered)
+	fmt.Println(output.Separator())
+
+	if len(parsed.CodeBlocks) > 0 {
+		for _, block := range parsed.CodeBlocks {
+			action := output.PromptCodeBlock(block, len(parsed.CodeBlocks))
+			output.HandleCodeBlock(action, block.Code)
+		}
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, output.Success("All commands processed."))
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Println(output.Separator())
+	}
+}
+
+func getTerminalWidth() int {
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil || width <= 0 {
+		return 80
+	}
+	return width
 }
 
 func showSpinner(done chan bool) {
