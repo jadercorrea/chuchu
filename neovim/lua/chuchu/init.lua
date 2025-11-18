@@ -391,7 +391,6 @@ function M.switch_model()
   
   local lines = vim.fn.readfile(setup_path)
   local backends = {}
-  local current_backend = nil
   local in_backend_section = false
   
   for _, line in ipairs(lines) do
@@ -424,58 +423,249 @@ function M.switch_model()
     local idx = tonumber(choice:match("^(%d+)"))
     local selected_backend = backends[idx]
     
-    M.get_models_for_backend(selected_backend, function(models)
-      if #models == 0 then
-        vim.notify("No models found for " .. selected_backend, vim.log.levels.WARN)
-        return
-      end
+    M.show_model_configuration_menu(selected_backend)
+  end)
+end
+
+function M.show_model_configuration_menu(backend)
+  local options = {
+    "1. Configure default model",
+    "2. Configure agent models (router/query/editor/research)",
+  }
+  
+  vim.ui.select(options, {
+    prompt = "Configuration type:",
+  }, function(choice)
+    if not choice then return end
+    local idx = tonumber(choice:match("^(%d+)"))
+    
+    if idx == 1 then
+      M.configure_default_model(backend)
+    elseif idx == 2 then
+      M.configure_agent_models(backend)
+    end
+  end)
+end
+
+function M.configure_default_model(backend)
+  M.get_models_for_backend(backend, function(models)
+    if #models == 0 then
+      vim.notify("No models found for " .. backend, vim.log.levels.WARN)
+      return
+    end
+    
+    local model_options = {}
+    for i, model in ipairs(models) do
+      table.insert(model_options, i .. ". " .. model)
+    end
+    
+    vim.ui.select(model_options, {
+      prompt = "Select default model:",
+    }, function(model_choice)
+      if not model_choice then return end
+      local model_idx = tonumber(model_choice:match("^(%d+)"))
+      local selected_model = models[model_idx]
       
-      local model_options = {}
-      for i, model in ipairs(models) do
-        table.insert(model_options, i .. ". " .. model)
-      end
-      
-      vim.ui.select(model_options, {
-        prompt = "Select model:",
-      }, function(model_choice)
-        if not model_choice then return end
-        local model_idx = tonumber(model_choice:match("^(%d+)"))
-        local selected_model = models[model_idx]
-        
-        M.update_defaults(selected_backend, selected_model)
-      end)
+      M.update_defaults(backend, selected_model)
     end)
   end)
 end
 
-function M.get_models_for_backend(backend, callback)
-  local setup_path = vim.fn.expand("~/.chuchu/setup.yaml")
-  local lines = vim.fn.readfile(setup_path)
-  local models = {}
-  local in_target_backend = false
-  local in_models = false
+function M.configure_agent_models(backend)
+  local agents = {"router", "query", "editor", "research"}
+  local agent_models = {}
   
-  for _, line in ipairs(lines) do
-    if line:match("^%s%s%s%s" .. backend .. ":") then
-      in_target_backend = true
-    elseif line:match("^%s%s%s%s[a-z]") and in_target_backend then
-      in_target_backend = false
-      in_models = false
+  local function configure_next_agent(idx)
+    if idx > #agents then
+      M.save_agent_models(backend, agent_models)
+      return
     end
     
-    if in_target_backend then
-      if line:match("^%s%s%s%s%s%s%s%smodels:") then
-        in_models = true
-      elseif in_models and line:match("^%s%s%s%s%s%s%s%s%s%s%s%s") then
-        local model = line:match("^%s%s%s%s%s%s%s%s%s%s%s%s([^:]+):")
-        if model then
-          table.insert(models, model)
-        end
+    local agent = agents[idx]
+    M.get_models_for_backend(backend, function(models)
+      if #models == 0 then
+        configure_next_agent(idx + 1)
+        return
       end
+      
+      if #models > 0 and models[1] then
+        agent_models[agent] = models[1]
+      end
+      
+      configure_next_agent(idx + 1)
+    end, agent)
+  end
+  
+  configure_next_agent(1)
+end
+
+function M.save_agent_models(backend, agent_models)
+  local setup_path = vim.fn.expand("~/.chuchu/setup.yaml")
+  local lines = vim.fn.readfile(setup_path)
+  local new_lines = {}
+  local in_target_backend = false
+  local in_models_section = false
+  local agent_models_written = false
+  
+  for i, line in ipairs(lines) do
+    if line:match("^%s%s%s%s" .. backend .. ":") then
+      in_target_backend = true
+      table.insert(new_lines, line)
+    elseif line:match("^%s%s%s%s[a-z]") and in_target_backend then
+      if not agent_models_written then
+        table.insert(new_lines, "        agent_models:")
+        for agent, model in pairs(agent_models) do
+          table.insert(new_lines, "            " .. agent .. ": " .. model)
+        end
+        agent_models_written = true
+      end
+      in_target_backend = false
+      in_models_section = false
+      table.insert(new_lines, line)
+    elseif in_target_backend then
+      if line:match("^%s%s%s%s%s%s%s%smodels:") then
+        in_models_section = true
+        table.insert(new_lines, line)
+      elseif line:match("^%s%s%s%s%s%s%s%sagent_models:") then
+        in_models_section = false
+        local j = i + 1
+        while j <= #lines and lines[j]:match("^%s%s%s%s%s%s%s%s%s%s%s%s") do
+          j = j + 1
+        end
+        table.insert(new_lines, "        agent_models:")
+        for agent, model in pairs(agent_models) do
+          table.insert(new_lines, "            " .. agent .. ": " .. model)
+        end
+        agent_models_written = true
+        for k = j, #lines do
+          if k > i then
+            break
+          end
+        end
+      else
+        table.insert(new_lines, line)
+      end
+    else
+      table.insert(new_lines, line)
     end
   end
   
-  callback(models)
+  if in_target_backend and not agent_models_written then
+    table.insert(new_lines, "        agent_models:")
+    for agent, model in pairs(agent_models) do
+      table.insert(new_lines, "            " .. agent .. ": " .. model)
+    end
+  end
+  
+  vim.fn.writefile(new_lines, setup_path)
+  vim.notify("Agent models configured for " .. backend, vim.log.levels.INFO)
+end
+
+function M.get_models_for_backend(backend, callback, agent)
+  local catalog_path = vim.fn.expand("~/.chuchu/models.json")
+  
+  if vim.fn.filereadable(catalog_path) == 0 then
+    vim.notify("Model catalog not found. Run 'chu models update'", vim.log.levels.WARN)
+    callback({})
+    return
+  end
+  
+  local catalog_json = vim.fn.readfile(catalog_path)
+  local catalog_str = table.concat(catalog_json, "\n")
+  local ok, catalog = pcall(vim.fn.json_decode, catalog_str)
+  
+  if not ok or not catalog then
+    vim.notify("Failed to parse model catalog", vim.log.levels.ERROR)
+    callback({})
+    return
+  end
+  
+  local backend_data = catalog[backend]
+  if not backend_data or not backend_data.models then
+    vim.notify("No models found for " .. backend, vim.log.levels.WARN)
+    callback({})
+    return
+  end
+  
+  local models = backend_data.models
+  
+  if agent then
+    local filtered = {}
+    for _, model in ipairs(models) do
+      for _, rec in ipairs(model.recommended_for or {}) do
+        if rec == agent then
+          table.insert(filtered, model)
+          break
+        end
+      end
+    end
+    if #filtered > 0 then
+      models = filtered
+    end
+  end
+  
+  M.show_model_picker(models, callback)
+end
+
+function M.show_model_picker(models, callback)
+  vim.ui.input({
+    prompt = "Search models (or Enter for all): ",
+  }, function(query)
+    if query == nil then
+      callback({})
+      return
+    end
+    
+    local filtered = models
+    if query and query ~= "" then
+      filtered = {}
+      local query_lower = query:lower()
+      for _, model in ipairs(models) do
+        if model.name:lower():match(query_lower) or 
+           model.id:lower():match(query_lower) or
+           M.has_tag(model.tags, query_lower) then
+          table.insert(filtered, model)
+        end
+      end
+    end
+    
+    if #filtered == 0 then
+      vim.notify("No models match '" .. query .. "'", vim.log.levels.WARN)
+      callback({})
+      return
+    end
+    
+    local options = {}
+    for i, model in ipairs(filtered) do
+      local tags_str = table.concat(model.tags or {}, ", ")
+      local line = string.format("%d. %s [%s] ($%.2f/$%.2f)", 
+        i, model.name, tags_str,
+        model.pricing_prompt_per_m_tokens or 0,
+        model.pricing_completion_per_m_tokens or 0)
+      table.insert(options, line)
+    end
+    
+    vim.ui.select(options, {
+      prompt = "Select model:",
+    }, function(choice)
+      if not choice then
+        callback({})
+        return
+      end
+      local idx = tonumber(choice:match("^(%d+)"))
+      callback({filtered[idx].id})
+    end)
+  end)
+end
+
+function M.has_tag(tags, query)
+  if not tags then return false end
+  for _, tag in ipairs(tags) do
+    if tag:lower():match(query) then
+      return true
+    end
+  end
+  return false
 end
 
 function M.update_defaults(backend, model)
