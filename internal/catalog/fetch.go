@@ -71,6 +71,7 @@ type ModelAPI struct {
 	Architecture   json.RawMessage `json:"architecture"`
 	PerplexityRate *float64        `json:"perplexity_rate"`
 	SupportsTools  bool            `json:"supports_tools"`
+	Installed      bool            `json:"-"`
 }
 
 type APIResponse struct {
@@ -106,6 +107,7 @@ type ModelOutput struct {
 	ContextWindow  int      `json:"context_window"`
 	PricingPrompt  float64  `json:"pricing_prompt_per_m_tokens"`
 	PricingComp    float64  `json:"pricing_completion_per_m_tokens"`
+	Installed      bool     `json:"installed"`
 }
 
 type ProviderOutput struct {
@@ -123,8 +125,10 @@ type OutputJSON struct {
 func FetchAndSave(outputPath string, apiKeys map[string]string) error {
 	sources := []ModelSource{}
 
-	ollamaModels, err := fetchOllamaModels()
-	if err == nil {
+	ollamaInstalled, _ := fetchOllamaInstalledModels()
+	ollamaAvailable, _ := scrapeOllamaAvailableModels()
+	ollamaModels := mergeOllamaModels(ollamaInstalled, ollamaAvailable)
+	if len(ollamaModels) > 0 {
 		sources = append(sources, ModelSource{Models: ollamaModels, Provider: "ollama"})
 	}
 
@@ -170,7 +174,7 @@ func FetchAndSave(outputPath string, apiKeys map[string]string) error {
 	return nil
 }
 
-func fetchOllamaModels() ([]ModelAPI, error) {
+func fetchOllamaInstalledModels() ([]ModelAPI, error) {
 	resp, err := http.Get(OllamaAPI)
 	if err != nil {
 		return nil, fmt.Errorf("ollama not available: %w", err)
@@ -204,6 +208,86 @@ func fetchOllamaModels() ([]ModelAPI, error) {
 	}
 
 	return models, nil
+}
+
+func scrapeOllamaAvailableModels() ([]ModelAPI, error) {
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	var modelsData []map[string]interface{}
+	err := chromedp.Run(ctx,
+		chromedp.Navigate("https://ollama.com/search"),
+		chromedp.Sleep(3*time.Second),
+		chromedp.Evaluate(`
+			(() => {
+				const cards = Array.from(document.querySelectorAll('a[href^="/library/"]'));
+				return cards.map(card => {
+					const href = card.getAttribute('href');
+					const slug = href.replace('/library/', '');
+					const nameNode = card.querySelector('h2');
+					const descNode = card.querySelector('p');
+					return {
+						id: slug,
+						name: nameNode ? nameNode.innerText.trim() : slug,
+						description: descNode ? descNode.innerText.trim() : ''
+					};
+				}).filter(m => m.id);
+			})()
+		`, &modelsData),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	models := make([]ModelAPI, 0, len(modelsData))
+	for _, data := range modelsData {
+		id, _ := data["id"].(string)
+		name, _ := data["name"].(string)
+		desc, _ := data["description"].(string)
+
+		if id != "" {
+			models = append(models, ModelAPI{
+				ID:            id,
+				Name:          name,
+				Description:   desc,
+				ContextWindow: 8192,
+				Pricing:       Pricing{Prompt: 0, Completion: 0},
+			})
+		}
+	}
+
+	return models, nil
+}
+
+func mergeOllamaModels(installed, available []ModelAPI) []ModelAPI {
+	installedMap := make(map[string]bool)
+	for _, m := range installed {
+		installedMap[m.ID] = true
+	}
+
+	merged := make([]ModelAPI, 0)
+	seenIDs := make(map[string]bool)
+
+	for _, m := range available {
+		if !seenIDs[m.ID] {
+			seenIDs[m.ID] = true
+			m.Installed = installedMap[m.ID]
+			merged = append(merged, m)
+		}
+	}
+
+	for _, m := range installed {
+		if !seenIDs[m.ID] {
+			seenIDs[m.ID] = true
+			m.Installed = true
+			merged = append(merged, m)
+		}
+	}
+
+	return merged
 }
 
 func fetchOpenRouterModels() ([]ModelAPI, error) {
@@ -448,6 +532,7 @@ func categorizeAndTagModels(sources []ModelSource) OutputJSON {
 				PricingComp:    m.Pricing.Completion,
 				Tags:           inferTags(m),
 				RecommendedFor: inferRecommendedFor(m),
+				Installed:      m.Installed,
 			}
 
 			switch source.Provider {

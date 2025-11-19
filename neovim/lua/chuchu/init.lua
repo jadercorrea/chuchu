@@ -762,8 +762,12 @@ function M.show_model_picker(models, callback, agent, backend)
     local options = {}
     for i, model in ipairs(filtered) do
       local tags_str = table.concat(model.tags or {}, ", ")
-      local line = string.format("%d. %s (%s) [%s] ($%.2f/$%.2f)", 
-        i, model.name, model.id, tags_str,
+      local install_indicator = ""
+      if backend == "ollama" then
+        install_indicator = model.installed and "✓ " or "⬇ "
+      end
+      local line = string.format("%d. %s%s (%s) [%s] ($%.2f/$%.2f)", 
+        i, install_indicator, model.name, model.id, tags_str,
         model.pricing_prompt_per_m_tokens or 0,
         model.pricing_completion_per_m_tokens or 0)
       table.insert(options, line)
@@ -778,11 +782,64 @@ function M.show_model_picker(models, callback, agent, backend)
       end
       local idx = tonumber(choice:match("^(%d+)"))
       if idx then
-        callback({filtered[idx].id})
+        local selected_model = filtered[idx]
+        
+        if backend == "ollama" and not selected_model.installed then
+          M.prompt_ollama_install(selected_model, function(success)
+            if success then
+              callback({selected_model.id})
+            else
+              callback({})
+            end
+          end)
+        else
+          callback({selected_model.id})
+        end
       else
         callback({})
       end
     end)
+  end)
+end
+
+function M.prompt_ollama_install(model, callback)
+  vim.ui.input({
+    prompt = string.format("Model '%s' not installed. Install now? (Y/n): ", model.id),
+    default = "Y"
+  }, function(response)
+    if not response or response == "" or response:lower() == "y" then
+      vim.notify(string.format("Installing %s...", model.id), vim.log.levels.INFO)
+      
+      vim.fn.jobstart({"ollama", "pull", model.id}, {
+        on_exit = function(_, exit_code)
+          if exit_code == 0 then
+            vim.schedule(function()
+              vim.notify(string.format("✓ %s installed successfully", model.id), vim.log.levels.INFO)
+              callback(true)
+            end)
+          else
+            vim.schedule(function()
+              vim.notify(string.format("✗ Failed to install %s", model.id), vim.log.levels.ERROR)
+              callback(false)
+            end)
+          end
+        end,
+        on_stdout = function(_, data)
+          if data then
+            vim.schedule(function()
+              for _, line in ipairs(data) do
+                if line ~= "" then
+                  print(line)
+                end
+              end
+            end)
+          end
+        end
+      })
+    else
+      vim.notify("Installation cancelled", vim.log.levels.WARN)
+      callback(false)
+    end
   end)
 end
 
