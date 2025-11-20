@@ -1,0 +1,71 @@
+# Exemplo de como ficará o seletor de modelos no Neovim
+
+## Ao buscar "grok" para Router:
+
+[Backend: openrouter]
+
+Router (fast intent classification) - filter or Enter: grok
+
+Price per 1M tokens (Input/Output) - ✓ Role-based recommendation
+
+[openrouter] Select model:
+1. xAI: Grok 4.1 Fast ✓                | $0.00 / $0.00
+2. xAI: Grok 4 Fast                    | $0.20 / $0.50
+3. xAI: Grok 3 Mini ✓                  | $0.30 / $0.50
+4. xAI: Grok 3 Mini Beta ✓             | $0.30 / $0.50
+5. xAI: Grok 3                         | $3.00 / $15.00
+6. xAI: Grok 3 Beta                    | $3.00 / $15.00
+7. xAI: Grok 4                         | $3.00 / $15.00
+
+## Ao apertar Enter sem buscar (mostra recomendados primeiro):
+
+[Backend: openrouter]
+
+Router (fast intent classification) - filter or Enter: 
+
+Price per 1M tokens (Input/Output) - ✓ Role-based recommendation
+
+[openrouter] Select model:
+1. xAI: Grok 4.1 Fast ✓                | $0.00 / $0.00
+2. Google: Gemini 2.0 Flash Exp ✓     | $0.00 / $0.00
+3. ArliAI: QwQ 32B RpR v1 ✓           | $0.00 / $0.00
+4. Amazon: Nova Micro 1.0 ✓           | $0.04 / $0.14
+5. xAI: Grok 3 Mini ✓                  | $0.30 / $0.50
+... (outros modelos não recomendados vêm depois, também ordenados por preço)
+
+## Features implementadas:
+
+✅ **Ordenação inteligente** (sempre aplicada):
+   1. Preço (mais barato primeiro - $0 no topo!)
+   2. Context window (maior primeiro dentro da mesma faixa de preço)
+   3. Nome alfabético (desempate)
+
+✅ **Layout limpo e profissional**:
+   - Cabeçalho explicativo: "Price per 1M tokens (Input/Output) - ✓ Role-based recommendation"
+   - Formato: Nome do modelo + ✓ (se recomendado) | Preço input / Preço output
+   - Alinhamento com padding dinâmico
+   - Símbolos minimalistas: ✓ para recomendado
+   
+✅ **Busca respeitada**:
+   - Busca por texto: Mostra TODOS os modelos que correspondem
+   - Recomendados aparecem marcados (✓) mas não são filtrados
+   - Funciona para TODOS os agentes (router, query, editor, research, review)
+   
+✅ **Enter sem buscar**:
+   - Filtra por recomendados (priorizados)
+   - Se não houver recomendados, mostra todos
+   - Sempre ordenado por preço/context
+
+✅ **Indicadores visuais**:
+   - ✓ = Recomendado para o agente atual
+   - $0.00 = Óbvio que é FREE (sem necessidade de tag extra)
+   - ✓ (Ollama) = Modelo instalado
+   - ⬇ (Ollama) = Modelo disponível para download
+
+## Benefícios:
+
+1. **Modelos FREE sempre no topo** - $0.00 aparece primeiro, fácil de identificar
+2. **Layout profissional** - Limpo, alinhado, sem poluição visual
+3. **Recomendações claras** - ✓ indica o que funciona melhor para sua tarefa
+4. **Busca intuitiva** - Respeita o que você digita, sem surpresas
+5. **Contexto maior primeiro** - Dentro da mesma faixa de preço, maior contexto é melhor

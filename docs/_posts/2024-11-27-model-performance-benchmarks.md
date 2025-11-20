@@ -5,47 +5,55 @@ title: "Model Performance Benchmarks: Real-World Coding Comparisons"
 
 # Model Performance Benchmarks: Real-World Coding Comparisons
 
-*November 27, 2024*
+*November 27, 2024 - Updated January 2025*
 
-Choosing the right model for your AI coding assistant is crucial. We've benchmarked the top models available on Groq and OpenRouter using real-world Chuchu tasks. Here are the results.
+**Note**: AI models evolve rapidly. These benchmarks provide general guidance, but we recommend testing models with your specific workload. Check our [Groq configurations](2024-11-18-groq-optimal-configs) and [OpenRouter guide](2024-11-20-openrouter-multi-provider) for current recommendations.
 
-## The Benchmark Suite
+## Speed vs Quality Trade-offs
 
-We tested models on three common tasks:
-1.  **Refactor**: Rename a variable across 5 files and update imports.
-2.  **Feature**: Implement a new API endpoint with error handling.
-3.  **Bugfix**: Identify and fix a nil pointer dereference in a Go function.
+### Speed Champions (Groq)
 
-## Results
+| Model | Speed (TPS) | Use Case |
+|-------|-------------|----------|
+| **Llama 3.1 8B** | 840+ | Router, fast classification |
+| **Qwen3 32B** | 650 | Fast coding with good quality |
+| **GPT-OSS 120B** | 500 | Query/research with reasoning |
+| **DeepSeek-R1-Qwen-32B** | 600 | Code generation (83.3% AIME) |
 
-### Speed (Tokens/Second)
+*Groq's LPU technology delivers unmatched inference speed.*
 
-| Model | Provider | Speed |
-|-------|----------|-------|
-| **Llama 3.1 8B** | Groq | **1250 t/s** |
-| **Llama 3.1 70B** | Groq | **300 t/s** |
-| **Claude 3.5 Sonnet** | OpenRouter | 80 t/s |
-| **GPT-4o** | OpenRouter | 65 t/s |
+### Quality Leaders (OpenRouter)
 
-*Groq is the undisputed king of speed. The 8B model is instant.*
+Based on 2025 benchmarks and real-world testing:
 
-### Accuracy (Pass Rate)
+| Model | Strength | Context | Cost |
+|-------|----------|---------|------|
+| **Claude 4.5 Sonnet** | Code review, debugging | 200k | Premium |
+| **Grok 4.1 Fast** | Agentic tasks, 2M context | 2M | Free tier |
+| **Qwen 2.5 Coder 32B** | Code generation (88.4% HumanEval) | 131k | Budget |
+| **GPT-OSS 120B** | Reasoning, comprehension | 128k | Budget |
 
-| Model | Refactor | Feature | Bugfix |
-|-------|----------|---------|--------|
-| **Claude 3.5 Sonnet** | 100% | 95% | 100% |
-| **GPT-4o** | 98% | 92% | 95% |
-| **Llama 3.1 70B** | 90% | 85% | 88% |
-| **Llama 3.1 8B** | 85% | 70% | 75% |
+## Current Recommendations (2025)
 
-*Claude 3.5 Sonnet reigns supreme for accuracy, especially on complex logic.*
+### For Speed + Budget
+**Groq Backend**:
+- **Router**: Llama 3.1 8B Instant (840 TPS, ultra-cheap)
+- **Editor**: DeepSeek-R1-Distill-Qwen-32B (strong coding performance)
+- **Query**: GPT-OSS 120B (120B params, good reasoning)
+- **Research**: Compound Mini (web search + tools)
 
-## Recommendations
+### For Maximum Quality
+**OpenRouter Backend**:
+- **Router**: Llama 3.1 8B (cost-effective)
+- **Editor**: Claude 4.5 Sonnet or Qwen 2.5 Coder 32B
+- **Query**: Claude 4.5 Sonnet (best code understanding)
+- **Research**: Grok 4.1 Fast (2M context, free tier)
 
-Based on these data points, here is our recommended configuration:
+### For Zero Cost
+**OpenRouter Free Models**:
+- **Router**: Gemini 2.0 Flash (fastest TTFT)
+- **Editor**: KAT-Coder-Pro V1 (73.4% SWE-Bench)
+- **Query**: Grok 4.1 Fast (2M context)
+- **Review**: Qwen3 Coder 480B (MoE architecture)
 
--   **Router Agent**: `Llama 3.1 8B` (Groq). It's fast enough to feel like a local command and accurate enough for classification.
--   **Editor Agent**: `Llama 3.1 70B` (Groq). A great balance of speed and code quality. It writes good boilerplate and standard logic.
--   **Review/Query Agent**: `Claude 3.5 Sonnet` (OpenRouter). When you need a deep dive or a second pair of eyes, the latency penalty is worth the intelligence boost.
-
-This hybrid approach gives you the "snappy" feel of a local tool with the "genius" capabilities of a cloud supercomputer.
+See our detailed configuration guides for setup instructions and cost breakdowns.

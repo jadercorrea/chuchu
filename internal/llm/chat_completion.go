@@ -3,6 +3,7 @@ package llm
 import (
 	"bufio"
 	"bytes"
+	"chuchu/internal/config"
 	"context"
 	"encoding/json"
 	"errors"
@@ -26,11 +27,7 @@ func NewChatCompletion(baseURL, backendName string) *ChatCompletionProvider {
 		baseURL = baseURL + "/chat/completions"
 	}
 
-	envVar := strings.ToUpper(backendName) + "_API_KEY"
-	apiKey := os.Getenv(envVar)
-	if apiKey == "" && backendName == "openai" {
-		apiKey = os.Getenv("OPENAI_API_KEY")
-	}
+	apiKey := config.GetAPIKey(backendName)
 
 	return &ChatCompletionProvider{
 		APIKey:  apiKey,
@@ -210,6 +207,12 @@ if isCompound {
 		return err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		fmt.Fprintf(os.Stderr, "\n[HTTP %d] %s\n", resp.StatusCode, string(body))
+		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(body))
+	}
 
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {

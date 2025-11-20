@@ -73,9 +73,9 @@ No Electron. No web UI bloat. Just your terminal and editor.
 
 Switch between models based on task:
 - **Router agent** (fast, cheap): llama-3.1-8b-instant
-- **Query agent** (smart): llama-3.3-70b-versatile
-- **Editor agent** (large context): kimi-k2-0905-1t-256k
-- **Research agent** (free): groq/compound
+- **Query agent** (reasoning): gpt-oss-120b or claude-4.5-sonnet
+- **Editor agent** (code): deepseek-r1-distill-qwen-32b or qwen-2.5-coder
+- **Research agent** (free): grok-4.1-fast (2M context!)
 
 Mix and match. Change anytime. No vendor lock-in.
 
@@ -122,3 +122,9 @@ Join us in making AI coding assistance accessible to everyone.
 ---
 
 *Have questions? Join our [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions)*
+
+## See Also
+
+- [Groq Optimal Configurations](2024-11-18-groq-optimal-configs) - Budget-friendly model setups
+- [OpenRouter Setup](2024-11-20-openrouter-multi-provider) - Access premium models like Claude 4.5 and Grok 4.1
+- [Ollama Local Setup](2024-11-19-ollama-local-setup) - Run completely offline for $0/month

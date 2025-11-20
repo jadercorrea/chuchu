@@ -19,7 +19,7 @@ Chuchu uses specialized agents for different tasks:
 - **Editor**: Writing and modifying code (needs code generation quality)
 - **Research**: Web search and documentation lookup (benefits from tool use)
 
-## Budget-Conscious Configuration ($0.05 - $0.79 per 1M tokens)
+## Budget-Conscious Configuration ($0.05 - $0.42 per 1M tokens)
 
 Best balance of cost and performance for most developers:
 
@@ -29,19 +29,19 @@ backend:
     base_url: https://api.groq.com/openai/v1
     default_model: llama-3.1-8b-instant
     agent_models:
-      router: llama-3.1-8b-instant      # $0.05/$0.08
-      query: gpt-oss-20b-128k                # $0.075/$0.30
-      editor: llama-3.3-70b-versatile    # $0.59/$0.79
-      research: groq/compound-mini           # $0.11/$0.34 (with tools!)
+      router: llama-3.1-8b-instant
+      query: gpt-oss-20b-128k
+      editor: deepseek-r1-distill-qwen-32b
+      research: groq/compound-mini
 ```
 
-**Monthly estimate** (100M tokens): ~$48
+**Monthly estimate** (100M tokens): ~$35
 
 ### Why this works:
-- Router uses cheapest/fastest model (840 TPS!)
-- Query uses efficient 20B model with good comprehension
-- Editor uses Llama 3.3 70B for quality code generation
-- Research uses Compound Mini with web search capabilities
+- **Router**: Fastest/cheapest at 840 TPS for intent classification
+- **Query**: GPT-OSS 20B efficient model with solid comprehension  
+- **Editor**: DeepSeek-R1-Distill-Qwen-32B excellent for code (83.3% AIME, 94.3% MATH-500)
+- **Research**: Compound Mini with web search at budget price
 
 ## Performance-Focused Configuration ($0.11 - $3.00 per 1M tokens)
 
@@ -51,19 +51,20 @@ For projects where code quality is critical and budget is flexible:
 backend:
   groq:
     base_url: https://api.groq.com/openai/v1
-    default_model: llama-3.3-70b-versatile
+    default_model: gpt-oss-120b-128k
     agent_models:
-      router: llama-3.1-8b-instant      # $0.05/$0.08
-      query: llama-3.3-70b-versatile    # $0.59/$0.79
-      editor: moonshotai/kimi-k2-instruct-0905          # $1.00/$3.00 (256k context!)
-      research: groq/compound                # $0.15/$0.60 (full tools)
+      router: llama-3.1-8b-instant
+      query: gpt-oss-120b-128k
+      editor: moonshotai/kimi-k2-instruct-0905
+      research: groq/compound
 ```
 
-**Monthly estimate** (100M tokens): ~$120
+**Monthly estimate** (100M tokens): ~$90
 
 ### Why this works:
-- Kimi K2 has 1 trillion parameters and 256k context window
-- Llama 3.3 70B handles query tasks with deep understanding
+- GPT-OSS 120B excels at code comprehension and reasoning (120B > 70B)
+- Nearly matches or exceeds Llama 3.3 70B on benchmarks at 75% lower cost
+- Kimi K2 has 1 trillion parameters and 256k context window for complex edits
 - Full Compound system with GPT-OSS-120B for research
 - Still uses fast router for cost efficiency
 
@@ -77,10 +78,10 @@ backend:
     base_url: https://api.groq.com/openai/v1
     default_model: gpt-oss-20b-128k
     agent_models:
-      router: llama-3.1-8b-instant      # $0.05/$0.08
-      query: gpt-oss-20b-128k                # $0.075/$0.30
-      editor: gpt-oss-120b-128k              # $0.15/$0.60
-      research: groq/compound                # $0.15/$0.60 (tools)
+      router: llama-3.1-8b-instant
+      query: gpt-oss-20b-128k
+      editor: gpt-oss-120b-128k
+      research: groq/compound
 ```
 
 **Monthly estimate** (100M tokens): ~$37
@@ -100,29 +101,30 @@ backend:
     base_url: https://api.groq.com/openai/v1
     default_model: llama-3.1-8b-instant
     agent_models:
-      router: llama-3.1-8b-instant      # 840 TPS
-      query: llama-3.1-8b-instant       # 840 TPS
-      editor: llama-3.3-70b-versatile   # 394 TPS
-      research: llama-4-scout-17bx16e-128k  # 594 TPS
+      router: llama-3.1-8b-instant
+      query: llama-3.1-8b-instant
+      editor: qwen/qwen3-32b
+      research: llama-4-scout-17bx16e-128k
 ```
 
-**Monthly estimate** (100M tokens): ~$27
+**Monthly estimate** (100M tokens): ~$20
 
 ### Why this works:
-- Prioritizes Groq's fastest models (TPS = tokens per second)
-- Llama 3.1 8B at 840 TPS for instant responses
-- Still uses 70B for editor where quality matters
-- Llama 4 Scout provides good speed for research
+- **Prioritizes speed**: 840 TPS for router and query  
+- **Qwen3 32B**: Efficient coding model with strong performance
+- **Latency-optimized**: All models selected for maximum throughput
+- **Budget-friendly**: Lowest cost configuration
 
 ## Model Specifications Reference
 
 | Model | Input | Output | Context | Speed (TPS) | Best For |
 |-------|-------|--------|---------|-------------|----------|
-| llama-31-8b-instant | $0.05 | $0.08 | 128k | 840 | Router, fast tasks |
-| gpt-oss-20b | $0.075 | $0.30 | 128k | 1000 | Query, analysis |
-| llama-33-70b-versatile | $0.59 | $0.79 | 128k | 394 | Editor, quality code |
-| kimi-k2-0905-1t | $1.00 | $3.00 | 256k | 200 | Large context, complex edits |
-| gpt-oss-120b | $0.15 | $0.60 | 128k | 500 | Research, synthesis |
+| llama-3.1-8b-instant | $0.05 | $0.08 | 128k | 840 | Router, fast tasks |
+| gpt-oss-20b-128k | $0.075 | $0.30 | 128k | 1000 | Query, analysis |
+| gpt-oss-120b-128k | $0.15 | $0.60 | 128k | 500 | Query, research, synthesis |
+| deepseek-r1-distill-qwen-32b | $0.14 | $0.42 | 128k | 600 | Editor, coding tasks |
+| qwen/qwen3-32b | $0.18 | $0.18 | 131k | 650 | Editor, fast coding |
+| kimi-k2-instruct-0905 | $1.00 | $3.00 | 256k | 200 | Large context, complex edits |
 | groq/compound | $0.15 | $0.60 | 131k | 450 | Research with tools |
 | groq/compound-mini | $0.11 | $0.34 | 131k | 500 | Budget research with tools |
 
@@ -168,31 +170,6 @@ Ctrl+X (in chat buffer)
 - Router agent is called most frequently - keep it fast and cheap
 - Editor agent output quality matters most - invest there first
 - Monitor your usage at [console.groq.com](https://console.groq.com)
-
-## Switching Between Configs
-
-You can maintain multiple backend configurations:
-
-```yaml
-backend:
-  groq-fast:
-    type: openai
-    base_url: https://api.groq.com/openai/v1
-    default_model: llama-3.1-8b-instant
-    # speed-optimized config
-  
-  groq-quality:
-    type: openai
-    base_url: https://api.groq.com/openai/v1
-    default_model: llama-3.3-70b-versatile
-    # performance-focused config
-```
-
-Switch in Neovim with `Ctrl+X` or via CLI:
-```bash
-chu chat --backend groq-fast
-chu chat --backend groq-quality
-```
 
 ---
 

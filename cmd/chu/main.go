@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -51,7 +52,11 @@ Feature generation:
 Setup:
   chu setup                - Initialize ~/.chuchu configuration
   chu key [backend]        - Add/update API key for backend
-  chu models update        - Update model catalog from OpenRouter API`,
+  chu models update        - Update model catalog from OpenRouter API
+  chu profiles list <backend>              - List profiles for backend
+  chu profiles show <backend> <profile>    - Show profile configuration
+  chu profiles create <backend> <profile>  - Create new profile
+  chu profiles set-agent <backend> <profile> <agent> <model>  - Set agent model`,
 }
 
 func init() {
@@ -156,8 +161,188 @@ var modelsUpdateCmd = &cobra.Command{
 	},
 }
 
+var modelsSearchCmd = &cobra.Command{
+	Use:   "search [term1] [term2] ...",
+	Short: "Search models in catalog with filtering and sorting",
+	Long: `Search models from a backend with multi-term filtering.
+Models are automatically sorted by price (lowest first), then by context window (largest first).
+
+Single term: filters across all backends
+  chu models search gemini
+
+Multiple terms: ANDs all terms (must match all)
+  chu models search groq llama     # groq models with "llama" in name
+  chu models search free coding     # free models tagged as coding
+
+Flags override positional backend:
+  chu models search gemini --backend openrouter`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backendFlag, _ := cmd.Flags().GetString("backend")
+		agentFlag, _ := cmd.Flags().GetString("agent")
+		
+		var queryTerms []string
+		if len(args) > 0 {
+			queryTerms = args
+		}
+		
+		models, err := catalog.SearchModelsMulti(backendFlag, queryTerms, agentFlag)
+		if err != nil {
+			return fmt.Errorf("search failed: %w", err)
+		}
+		
+		type ModelJSON struct {
+			ID            string   `json:"id"`
+			Name          string   `json:"name"`
+			Tags          []string `json:"tags"`
+			Recommended   bool     `json:"recommended"`
+			ContextWindow int      `json:"context_window"`
+			PricePrompt   float64  `json:"pricing_prompt_per_m_tokens"`
+			PriceComp     float64  `json:"pricing_completion_per_m_tokens"`
+			Installed     bool     `json:"installed"`
+		}
+		
+		result := make([]ModelJSON, 0, len(models))
+		for _, m := range models {
+			recommended := false
+			if agentFlag != "" {
+				for _, rec := range m.RecommendedFor {
+					if rec == agentFlag {
+						recommended = true
+						break
+					}
+				}
+			}
+			
+			result = append(result, ModelJSON{
+				ID:            m.ID,
+				Name:          m.Name,
+				Tags:          m.Tags,
+				Recommended:   recommended,
+				ContextWindow: m.ContextWindow,
+				PricePrompt:   m.PricingPrompt,
+				PriceComp:     m.PricingComp,
+				Installed:     m.Installed,
+			})
+		}
+		
+		encoder := json.NewEncoder(os.Stdout)
+		encoder.SetIndent("", "  ")
+		if err := encoder.Encode(result); err != nil {
+			return fmt.Errorf("failed to encode JSON: %w", err)
+		}
+		
+		return nil
+	},
+}
+
+var profilesCmd = &cobra.Command{
+	Use:   "profiles",
+	Short: "Manage backend profiles",
+}
+
+var profilesListCmd = &cobra.Command{
+	Use:   "list <backend>",
+	Short: "List profiles for a backend",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backend := args[0]
+		profiles, err := config.ListBackendProfiles(backend)
+		if err != nil {
+			return fmt.Errorf("failed to list profiles: %w", err)
+		}
+		
+		encoder := json.NewEncoder(os.Stdout)
+		if err := encoder.Encode(profiles); err != nil {
+			return fmt.Errorf("failed to encode JSON: %w", err)
+		}
+		return nil
+	},
+}
+
+var profilesShowCmd = &cobra.Command{
+	Use:   "show <backend> <profile>",
+	Short: "Show profile configuration",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backend := args[0]
+		profileName := args[1]
+		
+		profile, err := config.GetBackendProfile(backend, profileName)
+		if err != nil {
+			return fmt.Errorf("failed to get profile: %w", err)
+		}
+		
+		fmt.Printf("Profile: %s/%s\n", backend, profile.Name)
+		if len(profile.AgentModels) == 0 {
+			fmt.Println("  (no agent models configured)")
+		} else {
+			for agent, model := range profile.AgentModels {
+				fmt.Printf("  %s: %s\n", agent, model)
+			}
+		}
+		return nil
+	},
+}
+
+var profilesCreateCmd = &cobra.Command{
+	Use:   "create <backend> <profile-name>",
+	Short: "Create new profile",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backend := args[0]
+		name := args[1]
+		
+		if err := config.CreateBackendProfile(backend, name); err != nil {
+			return fmt.Errorf("failed to create profile: %w", err)
+		}
+		
+		fmt.Printf("✓ Created profile: %s/%s\n", backend, name)
+		fmt.Println("\nConfigure agent models using:")
+		fmt.Printf("  chu profiles set-agent %s %s router <model>\n", backend, name)
+		fmt.Printf("  chu profiles set-agent %s %s query <model>\n", backend, name)
+		fmt.Printf("  chu profiles set-agent %s %s editor <model>\n", backend, name)
+		fmt.Printf("  chu profiles set-agent %s %s research <model>\n", backend, name)
+		return nil
+	},
+}
+
+var profilesSetAgentCmd = &cobra.Command{
+	Use:   "set-agent <backend> <profile> <agent> <model>",
+	Short: "Set agent model in profile",
+	Long: `Set the model for a specific agent in a profile.
+
+Agent types: router, query, editor, research
+
+Example:
+  chu profiles set-agent openrouter free router google/gemini-2.0-flash-exp:free`,
+	Args:  cobra.ExactArgs(4),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backend := args[0]
+		profile := args[1]
+		agent := args[2]
+		model := args[3]
+		
+		if err := config.SetProfileAgentModel(backend, profile, agent, model); err != nil {
+			return fmt.Errorf("failed to set agent model: %w", err)
+		}
+		
+		fmt.Printf("✓ Set %s/%s %s = %s\n", backend, profile, agent, model)
+		return nil
+	},
+}
+
 func init() {
+	rootCmd.AddCommand(profilesCmd)
+	profilesCmd.AddCommand(profilesListCmd)
+	profilesCmd.AddCommand(profilesShowCmd)
+	profilesCmd.AddCommand(profilesCreateCmd)
+	profilesCmd.AddCommand(profilesSetAgentCmd)
+	
 	modelsCmd.AddCommand(modelsUpdateCmd)
+	modelsCmd.AddCommand(modelsSearchCmd)
+	
+	modelsSearchCmd.Flags().StringP("backend", "b", "openrouter", "Backend to search (openrouter, groq, ollama, etc)")
+	modelsSearchCmd.Flags().StringP("agent", "a", "", "Agent type (router, query, editor, research)")
 }
 
 var chatCmd = &cobra.Command{

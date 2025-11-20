@@ -30,8 +30,7 @@ func NewGuidedMode(provider llm.Provider, cwd string, model string) *GuidedMode 
 }
 
 func (g *GuidedMode) Execute(ctx context.Context, userMessage string) error {
-	g.events.Message("🚀 Starting guided workflow...")
-	g.events.Status("🔄 Analyzing task...")
+	g.events.Status("Analyzing task...")
 
 	draftPlan, err := g.createDraftPlan(ctx, userMessage)
 	if err != nil {
@@ -44,40 +43,23 @@ func (g *GuidedMode) Execute(ctx context.Context, userMessage string) error {
 	}
 
 	g.events.OpenPlan(draftPath)
-	g.events.Message("📋 Draft plan created. Review in opened tab.")
-	g.events.Message("✅ Guided workflow complete. To continue: chu plan → chu implement")
+	g.events.Message("Draft plan created.")
 	
-	return nil
-
-	g.events.Status("📝 Creating detailed plan...")
+	g.events.Status("Creating detailed plan...")
 	
 	fullPlan, err := g.createDetailedPlan(ctx, userMessage, draftPlan)
 	if err != nil {
 		return fmt.Errorf("failed to create plan: %w", err)
 	}
-
+	
 	planPath, err := g.savePlan(fullPlan)
 	if err != nil {
 		return fmt.Errorf("failed to save plan: %w", err)
 	}
-
+	
 	g.events.OpenPlan(planPath)
-	g.events.Message("✅ Plan ready. Review and confirm to implement.")
-
-	if !g.waitForConfirmation("Proceed with implementation?", "plan_implement") {
-		g.events.Message("❌ Implementation cancelled")
-		return nil
-	}
-
-	g.events.Status("🔨 Implementing...")
-
-	if err := g.implement(ctx, fullPlan); err != nil {
-		return fmt.Errorf("implementation failed: %w", err)
-	}
-
-	g.events.Complete()
-	g.events.Message("✅ Implementation complete. Review files and run tests.")
-
+	g.events.Message("Detailed plan ready. Send 'implement' to start implementation.")
+	
 	return nil
 }
 
@@ -170,7 +152,7 @@ Create a structured plan with:
 	return resp.Text, nil
 }
 
-func (g *GuidedMode) implement(ctx context.Context, plan string) error {
+func (g *GuidedMode) Implement(ctx context.Context, plan string) error {
 	editorAgent := agents.NewEditor(g.provider, g.cwd, g.model)
 
 	statusCallback := func(status string) {
@@ -201,7 +183,15 @@ func (g *GuidedMode) savePlan(content string) (string, error) {
 
 	timestamp := time.Now().Format("2006-01-02-150405")
 	path := fmt.Sprintf("%s/%s-plan.md", dir, timestamp)
-	return path, os.WriteFile(path, []byte(content), 0644)
+	err := os.WriteFile(path, []byte(content), 0644)
+	if err != nil {
+		return "", err
+	}
+	
+	currentPath := fmt.Sprintf("%s/.chuchu/current_plan.txt", home)
+	os.WriteFile(currentPath, []byte(content), 0644)
+	
+	return path, nil
 }
 
 func (g *GuidedMode) waitForConfirmation(prompt string, id string) bool {

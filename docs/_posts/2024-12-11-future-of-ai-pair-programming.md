@@ -7,6 +7,8 @@ title: "The Future of AI Pair Programming: Beyond Autocomplete"
 
 *December 11, 2024*
 
+**Note**: This post explores potential futures and vision, not committed roadmap features. Timelines and specific implementations may vary.
+
 We are in the early innings of AI-assisted development. Tools like GitHub Copilot showed us the value of "smart autocomplete." Chuchu represents the next phase: **Agentic Coding**. But what comes next?
 
 ## Phase 1: Autocomplete (Past)

@@ -1,59 +1,102 @@
 ---
 layout: default
-title: "Hybrid Local/Cloud Architecture: The Best of Both Worlds"
+title: "Switching Between Local and Cloud: Flexibility When You Need It"
 ---
 
-# Hybrid Local/Cloud Architecture: The Best of Both Worlds
+# Switching Between Local and Cloud: Flexibility When You Need It
 
 *December 6, 2024*
 
-The debate between "Local AI" (privacy, free) and "Cloud AI" (intelligence, speed) is a false dichotomy. The future is **Hybrid**. Chuchu's architecture allows you to seamlessly blend both.
+The debate between "Local AI" (privacy, free) and "Cloud AI" (intelligence, speed) is a false dichotomy. With Chuchu, you can **switch between both** based on your needs at any given moment.
 
-## The Hybrid Setup
+## How It Works
 
-In a hybrid setup, you route sensitive or simple tasks to a local model (Ollama) and complex reasoning tasks to the cloud (Groq/OpenRouter).
+Chuchu uses **one backend at a time**, but you can easily switch between local and cloud configurations depending on your current context:
 
-### Configuration
+- **Working on sensitive code?** Switch to Ollama (local, private)
+- **Need maximum intelligence?** Switch to OpenRouter/Groq (cloud, powerful)
+- **Offline or traveling?** Use Ollama without internet
+- **Complex task requiring best models?** Use cloud providers
+
+## Configuration Setup
+
+Maintain both configurations in your `~/.chuchu/setup.yaml`:
 
 ```yaml
-backends:
-  local_ollama:
+defaults:
+  backend: ollama  # Default to local
+
+backend:
+  ollama:
     type: ollama
     base_url: http://localhost:11434
     default_model: qwen2.5-coder:7b
+    agent_models:
+      router: llama3.1:8b
+      query: qwen2.5-coder:7b
+      editor: qwen2.5-coder:7b
+      research: llama3.1:8b
   
-  cloud_groq:
+  groq:
     type: openai
     base_url: https://api.groq.com/openai/v1
-    default_model: llama-3.1-70b-versatile
-
-agents:
-  # Router runs locally - 0 latency, 0 cost
-  router:
-    backend: local_ollama
-    model: qwen2.5-coder:7b
-  
-  # Editor runs locally for small edits
-  editor:
-    backend: local_ollama
-    model: qwen2.5-coder:7b
-  
-  # Review runs in cloud for maximum intelligence
-  review:
-    backend: cloud_groq
-    model: llama-3.1-70b-versatile
+    default_model: gpt-oss-120b-128k
+    agent_models:
+      router: llama-3.1-8b-instant
+      query: gpt-oss-120b-128k
+      editor: deepseek-r1-distill-qwen-32b
+      research: gpt-oss-120b-128k
 ```
 
-## Benefits
+```
 
-1.  **Privacy**: Your code stays on your machine for 90% of interactions (routing, simple edits). It only leaves your network when you explicitly ask for a deep review or complex generation.
-2.  **Cost**: You save money by handling the "chatter" (intent classification, small fixes) locally.
-3.  **Resilience**: If the internet goes down, you can still work (albeit with slightly less "brainpower").
+## Switching Between Backends
+
+### In Neovim
+
+Use the backend selector with `Ctrl+X` in the chat buffer to switch on the fly.
+
+### Via Config File
+
+Edit `~/.chuchu/setup.yaml` and change the `defaults.backend` value:
+
+```yaml
+defaults:
+  backend: groq  # Switch to cloud
+```
+
+Then restart your chat session.
+
+## Benefits of This Approach
+
+1.  **Privacy Control**: Keep sensitive code local by using Ollama. Switch to cloud only when needed.
+2.  **Cost Optimization**: Use free local models for routine work, pay for cloud only when you need superior intelligence.
+3.  **Offline Capability**: Continue working even without internet by switching to Ollama.
+4.  **Flexibility**: Choose the right tool for the right job - local for speed and privacy, cloud for power.
 
 ## Hardware Requirements
 
-To run this effectively, you need:
+For effective local model usage:
 -   **Mac**: M1/M2/M3 with at least 16GB RAM.
 -   **Linux/Windows**: NVIDIA GPU with 8GB+ VRAM.
 
-If you have the hardware, hybrid is the way to go. It's the most robust, private, and cost-effective way to use AI for coding.
+If you don't have powerful hardware, you can still switch between different cloud providers (Groq for speed, OpenRouter for quality) without running anything locally.
+
+## Real-World Usage Patterns
+
+**Morning routine work** (repetitive, familiar code):
+- Use Ollama locally
+- Fast, free, private
+- Perfect for refactoring, small fixes
+
+**Complex feature implementation** (new architecture, tricky logic):
+- Switch to OpenRouter with Claude 4.5 Sonnet
+- Maximum intelligence for critical decisions
+- Worth the cost for important work
+
+**Quick experiments** (learning, trying things out):
+- Use Groq for blazing fast feedback
+- Cheap enough for experimentation
+- Great for iterating quickly
+
+This flexible approach gives you the **best of all worlds**: privacy when you need it, power when you want it, and cost control always.

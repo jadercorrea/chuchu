@@ -268,6 +268,55 @@ func saveSetup(path string, setup *Setup) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
+func GetAPIKey(backendName string) string {
+	envVar := strings.ToUpper(backendName) + "_API_KEY"
+	
+	if key := os.Getenv(envVar); key != "" {
+		return key
+	}
+	
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	
+	keysPath := filepath.Join(home, ".chuchu", "keys.yaml")
+	data, err := os.ReadFile(keysPath)
+	if err != nil {
+		return ""
+	}
+	
+	var keys map[string]string
+	if err := yaml.Unmarshal(data, &keys); err != nil {
+		return ""
+	}
+	
+	return keys[backendName]
+}
+
+func saveAPIKeyToKeysFile(backendName, apiKey string) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	
+	keysPath := filepath.Join(home, ".chuchu", "keys.yaml")
+	
+	keys := make(map[string]string)
+	if data, err := os.ReadFile(keysPath); err == nil {
+		yaml.Unmarshal(data, &keys)
+	}
+	
+	keys[backendName] = apiKey
+	
+	data, err := yaml.Marshal(keys)
+	if err != nil {
+		return err
+	}
+	
+	return os.WriteFile(keysPath, data, 0o600)
+}
+
 func UpdateAPIKey(backendName string) error {
 	setup, err := LoadSetup()
 	if err != nil {
@@ -287,16 +336,12 @@ func UpdateAPIKey(backendName string) error {
 		return fmt.Errorf("API key cannot be empty")
 	}
 	
-	envVar := strings.ToUpper(backendName) + "_API_KEY"
-	os.Setenv(envVar, apiKey)
-	
-	if err := saveAPIKeyToProfile(envVar, apiKey); err != nil {
-		fmt.Fprintf(os.Stderr, "\nWarning: Could not auto-save to shell profile: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Manually add: export %s=%s\n", envVar, apiKey)
-	} else {
-		fmt.Fprintf(os.Stderr, "\n✓ API key saved to shell profile\n")
-		fmt.Fprintf(os.Stderr, "  Restart your terminal or run: source ~/.zshrc\n")
+	if err := saveAPIKeyToKeysFile(backendName, apiKey); err != nil {
+		return fmt.Errorf("failed to save API key: %w", err)
 	}
+	
+	fmt.Fprintf(os.Stderr, "\n✓ API key saved to ~/.chuchu/keys.yaml\n")
+	fmt.Fprintf(os.Stderr, "  (with 0600 permissions for security)\n")
 	
 	return nil
 }

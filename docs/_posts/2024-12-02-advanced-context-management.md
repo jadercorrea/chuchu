@@ -11,25 +11,42 @@ One of the biggest challenges in AI coding is the **Context Window**. Even with 
 
 ## How Chuchu Manages Context
 
-Chuchu doesn't just read files; it understands them.
+Chuchu uses **Retrieval-Augmented Generation (RAG)** to fetch only relevant information:
 
-1.  **Project Map**: When you start a session, Chuchu generates a tree-like map of your project structure. This fits in ~500 tokens and gives the model a "mental map" of where things are.
-2.  **Relevance Search**: When you ask a question, the `Query` agent uses `search_code` (grep) and `list_files` to find *only* the relevant files.
-3.  **Summarization**: For large files, Chuchu can read just the outline (function signatures) instead of the full implementation details.
+1.  **Project Map**: The `project_map` tool generates a tree-like view of your project structure in ~500 tokens, giving the model a "mental map" of where things are.
+
+2.  **Semantic Search**: When you ask a question, agents use:
+   - `search_code`: grep-based pattern matching to find relevant code
+   - `list_files`: discover files matching patterns (e.g., `*.go`, `test_*.py`)
+   - `read_file`: read specific files (with automatic truncation for large files)
+
+3.  **Smart Retrieval**: Instead of dumping your entire codebase into context, agents:
+   - Ask specific questions → retrieve only relevant snippets
+   - Read file summaries before full content
+   - Truncate large results automatically (first 200 lines of files, first 30 files in listings)
 
 ## Tips for Large Repos
 
 If you are working in a massive monorepo, here are some tips to help Chuchu stay focused:
 
-### 1. Use `.chuchuignore`
-Create a `.chuchuignore` file (works just like `.gitignore`) to exclude directories that the AI should never see.
+### 1. Chuchu Respects `.gitignore`
+
+Chuchu automatically respects your `.gitignore` and skips common directories:
 ```text
-# .chuchuignore
-vendor/
+# Automatically ignored:
 node_modules/
-legacy_code/
-docs/images/
+vendor/
+target/
+dist/
+build/
+.git/
+__pycache__/
+.venv/
+.idea/
+.vscode/
 ```
+
+No extra configuration needed - it just works!
 
 ### 2. Be Specific in Prompts
 Instead of "Fix the bug in the auth system", try:
@@ -37,8 +54,19 @@ Instead of "Fix the bug in the auth system", try:
 
 This guides the agent to read exactly what it needs, saving tokens and improving accuracy.
 
-### 3. Reset Context
-If a conversation gets too long, the context can get "polluted" with old information. Use the `reset` command (or just restart `chu chat`) to clear the history and start fresh with a focused goal.
+### 3. Start Fresh Sessions
+If a conversation gets too long, the context can get "polluted" with old information. Simply exit and restart `chu chat` to clear the history and start fresh with a focused goal.
 
-## The Future: RAG
-We are actively working on a local RAG (Retrieval-Augmented Generation) system for Chuchu. This will index your code into a vector database, allowing semantic search ("Find code that handles user logout") to instantly retrieve relevant snippets from millions of lines of code. Stay tuned!
+In Neovim, close the chat buffer and reopen it to start a new session.
+
+## What Makes This Effective
+
+**Chuchu already uses RAG!** The combination of:
+- `project_map` for structure overview
+- `search_code` for pattern-based retrieval  
+- `read_file` with smart truncation
+- Specialized agents that know what to fetch
+
+...means agents retrieve only what's needed, when it's needed. No bloated context, no wasted tokens.
+
+**Future enhancement**: We're exploring vector embeddings for semantic search ("Find code that handles user logout" without knowing exact function names). This would complement the existing grep-based search for even better retrieval accuracy.

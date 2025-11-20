@@ -1,0 +1,40 @@
+# OpenRouter All-Free Configuration
+# Uses FREE models from OpenRouter - Zero cost!
+
+defaults:
+  backend: openrouter
+
+backend:
+  openrouter:
+    type: openai
+    base_url: https://openrouter.ai/api/v1
+    default_model: x-ai/grok-4.1-fast
+    agent_models:
+      # Router: FREE Gemini 2.0 Flash - Fastest TTFT
+      router: google/gemini-2.0-flash-exp:free    # $0/$0 - FREE! 1.05M context
+      
+      # Query: FREE Grok 4.1 Fast - 2M context for code analysis
+      query: x-ai/grok-4.1-fast                   # $0/$0 - FREE! 2M context
+      
+      # Editor: FREE KAT-Coder-Pro V1 - 73.4% SWE-Bench
+      editor: kwaipilot/kat-coder-pro-v1:free     # $0/$0 - FREE! 256K context
+      
+      # Research: FREE Grok 4.1 Fast - Agentic with 2M context
+      research: x-ai/grok-4.1-fast                # $0/$0 - FREE! 2M context
+      
+      # Review: FREE Qwen3 Coder 480B - MoE architecture
+      review: qwen/qwen-3-coder-480b-a35b:free    # $0/$0 - FREE! 262K context
+
+# Monthly cost estimate: $0.00 - Completely FREE!
+
+# Model Highlights:
+# - Gemini 2.0 Flash: Fastest time-to-first-token for instant routing
+# - Grok 4.1 Fast: 2M context window, built for agentic workflows
+# - KAT-Coder-Pro V1: 73.4% on SWE-Bench Verified, specialized for coding
+# - Qwen3 Coder 480B: MoE architecture (480B params, 35B active)
+
+# Notes:
+# - All models are currently free on OpenRouter
+# - Free tier may have rate limits
+# - Check openrouter.ai/models for current status
+# - Grok reasoning can be enabled/disabled via API parameter

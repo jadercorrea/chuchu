@@ -7,7 +7,7 @@ author: Jader Corrêa
 
 # Context Engineering: Making AI Work in Real Codebases
 
-In the [previous post](2025-01-19-why-chuchu), we talked about **why** Chuchu exists—making AI coding assistance affordable. Now let's talk about **how** to actually make it work in production codebases.
+In the [previous post](2024-11-13-why-chuchu), we talked about **why** Chuchu exists—making AI coding assistance affordable. Now let's talk about **how** to actually make it work in production codebases.
 
 ## The Real Problem
 
@@ -158,26 +158,28 @@ Output: Working, tested code.
 Chuchu's multi-agent architecture is designed around this principle:
 
 **Router Agent** (8B model)
-- Fast intent classification
-- Minimal context needed
-- Routes to appropriate agent
+- Fast intent classification (~840 TPS)
+- Minimal context needed for routing
+- Routes to appropriate specialized agent
 
-**Query Agent** (70B model)
-- Research and analysis
-- Reads codebase, compacts findings
-- Fresh context each time
+**Query Agent** (reasoning model)
+- Research and codebase analysis
+- Reads files, searches patterns
+- Compacts findings into structured output
+- Fresh context for each analysis
 
-**Editor Agent** (256K context)
-- Has the plan from Query
-- Implements step-by-step
-- Large context for implementation details
+**Editor Agent** (code-specialized model)
+- Receives focused context from query
+- Implements changes incrementally
+- Can use larger context models when needed
 
-**Research Agent** (free Compound model)
-- Web search for documentation
-- Summarizes findings
-- Separate context from main work
+**Research Agent** (with web tools)
+- External documentation lookup
+- API reference search
+- Summarizes findings separately from main work
+- Keeps noise out of implementation context
 
-Each agent starts with a **clean, focused context** containing only what it needs.
+**Key insight**: Each agent starts with a **clean, focused context** containing only what it needs for its specific task. No agent sees the full chat history—only relevant information.
 
 ## Human Leverage: Where to Focus
 
@@ -212,50 +214,77 @@ Research/Plan/Implement artifacts solve this:
 
 ## Practical Tips for Chuchu
 
-### Start Small
+### Start With Focused Commands
 ```bash
+# Research phase - understand the codebase
 chu research "how does user auth work in this codebase"
 # Read the output, steer if needed
+
+# Plan phase - create structured plan
 chu plan "add password reset via email"
 # Review the plan before implementing
-chu implement
+
+# Implement phase - execute the plan
+chu implement ~/.chuchu/plans/2024-11-15-password-reset.md
 ```
 
-### Use Different Models for Different Phases
+**Each command starts with fresh context**, avoiding the context pollution of long chat sessions.
 
-Research (needs understanding):
+### Use Different Models for Different Tasks
+
+Chuchu lets you assign specialized models to each agent role:
+
 ```yaml
-research: llama-3.3-70b-versatile  # Smarter model
+backend:
+  groq:
+    agent_models:
+      router: llama-3.1-8b-instant         # Speed: 840 TPS
+      query: gpt-oss-120b-128k             # Reasoning: 120B params
+      editor: deepseek-r1-distill-qwen-32b # Coding: 83.3% AIME
+      research: groq/compound               # Tools: web search
 ```
 
-Routing (needs speed):
-```yaml
-router: llama-3.1-8b-instant  # Fast, cheap
-```
+**Why this works:**
+- Router needs speed, not depth → use small/fast model
+- Query needs comprehension → use reasoning model
+- Editor needs code quality → use specialized coding model
+- Research needs tools → use model with web search
 
-Implementation (needs context):
-```yaml
-editor: moonshotai/kimi-k2-instruct  # 256K context
-```
+Each agent gets the **right tool for its job**, not one-size-fits-all.
 
 ### Keep Context Tight
 
-If you notice responses getting worse:
-1. Save progress to a file
-2. Start fresh session
-3. Load the compact progress file
+If you notice responses getting worse or repetitive:
 
-### Verify Each Phase
+1. **Save your progress**: Write summary to a file
+2. **Exit current session**: Start fresh
+3. **Resume with context**: Load the compact summary
 
-Don't let AI run wild:
+Chuchu's command-based workflow naturally encourages this:
+- `chu research` → outputs findings
+- `chu plan` → reads findings, outputs plan  
+- `chu implement` → reads plan, outputs code
+
+Each step is **independently verifiable** and **resumable**.
+
+### Incremental Verification
+
+Don't try to do everything in one go:
+
 ```bash
-chu plan "feature X"
-# Review plan
-chu implement --phase 1
-# Verify phase 1 works
-chu implement --phase 2
-# etc...
+# Step 1: Understand what needs to change
+chu research "payment processing flow"
+
+# Step 2: Create detailed plan
+chu plan "add Stripe webhook handling"
+# Review plan - does it make sense?
+
+# Step 3: Implement incrementally
+chu implement plan.md
+# Review changes - does code match plan?
 ```
+
+This workflow gives you **multiple checkpoints** to catch issues early, when they're cheap to fix.
 
 ## This Is Not Magic
 

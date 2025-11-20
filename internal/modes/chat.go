@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"golang.org/x/term"
@@ -77,6 +79,36 @@ func Chat(input string, args []string) {
 	}
 
 	lastUserMessage := history.Messages[len(history.Messages)-1].Content
+
+	if strings.ToLower(strings.TrimSpace(lastUserMessage)) == "implement" {
+		fmt.Fprintln(os.Stderr, "[CHAT] Implement command detected")
+		
+		home, _ := os.UserHomeDir()
+		planPath := filepath.Join(home, ".chuchu", "current_plan.txt")
+		planContent, err := os.ReadFile(planPath)
+		if err != nil {
+			fmt.Println("No active plan found. Please create a plan first.")
+			return
+		}
+		
+		fmt.Fprintln(os.Stderr, "[CHAT] Starting implementation")
+		queryModel := backendCfg.GetModelForAgent("query")
+		guided := NewGuidedMode(orchestrator, cwd, queryModel)
+		
+		guided.events.Status("Implementing plan...")
+		if err := guided.Implement(context.Background(), string(planContent)); err != nil {
+			fmt.Fprintln(os.Stderr, "Implementation error:", err)
+			fmt.Println("Error:", err)
+		} else {
+			guided.events.Complete()
+			guided.events.Message("Implementation complete. Review files and run tests.")
+		}
+		
+		os.Stdout.Sync()
+		time.Sleep(200 * time.Millisecond)
+		io.Copy(io.Discard, os.Stdin)
+		return
+	}
 
 	if IsComplexTask(lastUserMessage) {
 		fmt.Fprintln(os.Stderr, "[CHAT] Complexity detected, using guided mode")

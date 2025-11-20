@@ -191,38 +191,48 @@ ollama run llama3.1:8b
 ollama run qwen3-coder:latest
 ```
 
-## Hybrid Setup: Local + Cloud
+## Switching Between Local and Cloud
 
-Mix local and cloud for best of both worlds:
+You can configure multiple backends and switch between them as needed:
 
+**Example setup with both Ollama and Groq** (`~/.chuchu/setup.yaml`):
 ```yaml
+defaults:
+  backend: ollama  # Currently active backend
+
 backend:
   ollama:
     type: ollama
     base_url: http://localhost:11434
     default_model: llama3.1:8b
     agent_models:
-      router: llama3.1:8b         # Local - fast
-      query: llama3.1:8b           # Local - private
-      editor: llama3.1:8b          # Local - private
-      research: llama3.1:8b        # Local - no API cost
+      router: llama3.1:8b
+      query: qwen3-coder:latest
+      editor: qwen3-coder:latest
+      research: llama3.1:8b
   
   groq:
     type: openai
     base_url: https://api.groq.com/openai/v1
-    default_model: llama-33-70b-versatile-128k
+    default_model: gpt-oss-120b-128k
     agent_models:
-      router: llama-31-8b-instant-128k
-      query: gpt-oss-20b-128k
-      editor: llama-33-70b-versatile-128k
-      research: groq-compound
+      router: llama-3.1-8b-instant
+      query: gpt-oss-120b-128k
+      editor: deepseek-r1-distill-qwen-32b
+      research: gpt-oss-120b-128k
 ```
 
-Switch between them in Neovim (`Ctrl+X`) or CLI:
-```bash
-chu chat --backend ollama    # Private, local
-chu chat --backend groq      # Fast, cloud
-```
+**To switch backends:**
+1. In Neovim: Press `Ctrl+X` in chat buffer and select different backend
+2. Manually: Edit `defaults.backend` value and restart your session
+
+**Important**: Only one backend is active at a time. Each backend has its own set of agent_models. You cannot mix models from different backends in the same session.
+
+**When to use which:**
+- **Ollama**: Privacy-sensitive code, unlimited usage, working offline
+- **Groq**: Need faster inference, larger context, better quality for critical tasks
+
+See our [Hybrid Cloud/Local guide](2024-12-06-hybrid-cloud-local) for detailed switching strategies.
 
 ## Troubleshooting
 
@@ -255,24 +265,21 @@ chu chat --backend groq      # Fast, cloud
 
 ## Model Discovery
 
-List all available Ollama models:
+To discover available Ollama models, visit [ollama.com/library](https://ollama.com/library) and install them using:
+
 ```bash
-chu ollama models
+ollama pull <model-name>
 ```
 
-*(Feature coming soon - will scrape ollama.com/library)*
-
-Install models directly:
+After pulling new models, update Chuchu's catalog:
 ```bash
-chu ollama install llama3.1:8b
+chu models update
 ```
-
-*(Feature coming soon)*
 
 ## Community Recommendations
 
-Share your Ollama configuration on [GitHub Discussions](https://github.com/yourusername/chuchu/discussions) and help others find the best setup for their hardware!
+Share your Ollama configuration on [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions) and help others find the best setup for their hardware!
 
 ---
 
-*Running into issues? Check the [troubleshooting guide](/docs/troubleshooting) or ask in [Discord](https://discord.gg/chuchu)*
+*Running into issues? Ask in [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions)*

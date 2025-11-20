@@ -633,27 +633,42 @@ func inferRecommendedFor(m ModelAPI) []string {
 	if strings.Contains(m.Description, "coding") || strings.Contains(m.Name, "Coder") {
 		recs = append(recs, "editor")
 	}
-	if strings.Contains(m.Description, "web search") || strings.Contains(m.Name, "Sonar") {
+	if strings.Contains(m.Description, "web search") || strings.Contains(m.Name, "Sonar") || strings.Contains(m.Name, "Grok") {
 		recs = append(recs, "research")
 	}
 	return recs
 }
 
 func sortOutputModels(output *OutputJSON) {
+	modelComparator := func(a, b ModelOutput) bool {
+		costA := a.PricingPrompt + a.PricingComp
+		costB := b.PricingPrompt + b.PricingComp
+		
+		if costA != costB {
+			return costA < costB
+		}
+		
+		if a.ContextWindow != b.ContextWindow {
+			return a.ContextWindow > b.ContextWindow
+		}
+		
+		return a.Name < b.Name
+	}
+	
 	sort.Slice(output.Groq.Models, func(i, j int) bool {
-		return output.Groq.Models[i].Name < output.Groq.Models[j].Name
+		return modelComparator(output.Groq.Models[i], output.Groq.Models[j])
 	})
 	sort.Slice(output.OpenRouter.Models, func(i, j int) bool {
-		return output.OpenRouter.Models[i].Name < output.OpenRouter.Models[j].Name
+		return modelComparator(output.OpenRouter.Models[i], output.OpenRouter.Models[j])
 	})
 	sort.Slice(output.Ollama.Models, func(i, j int) bool {
-		return output.Ollama.Models[i].Name < output.Ollama.Models[j].Name
+		return modelComparator(output.Ollama.Models[i], output.Ollama.Models[j])
 	})
 	sort.Slice(output.OpenAI.Models, func(i, j int) bool {
-		return output.OpenAI.Models[i].Name < output.OpenAI.Models[j].Name
+		return modelComparator(output.OpenAI.Models[i], output.OpenAI.Models[j])
 	})
 	sort.Slice(output.DeepSeek.Models, func(i, j int) bool {
-		return output.DeepSeek.Models[i].Name < output.DeepSeek.Models[j].Name
+		return modelComparator(output.DeepSeek.Models[i], output.DeepSeek.Models[j])
 	})
 }
 
