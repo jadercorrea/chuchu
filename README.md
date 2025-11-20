@@ -19,6 +19,7 @@ Chuchu (pronounced "shoo-shoo", Brazilian slang for something small and cute) is
 - **🧪 TDD-First**: Writes tests before implementation
 - **🎯 Multi-Agent Architecture**: Router, Query, Editor, and Research agents
 - **💸 Cost Control**: Mix and match cheap/free models per agent
+- **📋 Profile Management**: Switch between multiple model configurations
 - **🔌 Model Flexibility**: Groq, Ollama, OpenRouter, OpenAI, Anthropic
 - **📦 Neovim Native**: Deep integration with LSP, Tree-sitter, file navigation
 - **🌐 Web Search**: Research agent can search and summarize web content
@@ -89,6 +90,23 @@ chu plan "add user authentication with JWT"
 chu implement
 ```
 
+### Profile Management
+
+```bash
+# List profiles for a backend
+chu profiles list groq
+
+# Show profile configuration
+chu profiles show groq default
+
+# Create new profile
+chu profiles create groq speed
+
+# Configure agents
+chu profiles set-agent groq speed router llama-3.1-8b-instant
+chu profiles set-agent groq speed query llama-3.1-8b-instant
+```
+
 ## 💡 Configuration Examples
 
 ### Budget Setup ($2-5/month)
@@ -119,6 +137,30 @@ backend:
       query: qwen3-coder:latest
       editor: qwen3-coder:latest
       research: qwen3-coder:latest
+```
+
+### Multiple Profiles per Backend
+
+```yaml
+defaults:
+  backend: groq
+  profile: speed  # or: default, quality, free
+  
+backend:
+  groq:
+    profiles:
+      speed:
+        agent_models:
+          router: llama-3.1-8b-instant
+          query: llama-3.1-8b-instant
+          editor: llama-3.1-8b-instant
+          research: llama-3.1-8b-instant
+      quality:
+        agent_models:
+          router: llama-3.1-8b-instant
+          query: llama-3.3-70b-versatile
+          editor: llama-3.3-70b-versatile
+          research: groq/compound
 ```
 
 [See more configurations →](https://jadercorrea.github.io/chuchu/blog/2025-01-18-groq-optimal-configs)
