@@ -55,9 +55,21 @@ Instead of "Fix the bug in the auth system", try:
 This guides the agent to read exactly what it needs, saving tokens and improving accuracy.
 
 ### 3. Start Fresh Sessions
-If a conversation gets too long, the context can get "polluted" with old information. Simply exit and restart `chu chat` to clear the history and start fresh with a focused goal.
+If a conversation gets too long, the context can get "polluted" with old information. There are several ways to start fresh:
 
-In Neovim, close the chat buffer and reopen it to start a new session.
+**In Neovim**: Close the chat buffer with `Ctrl+D` and reopen with `<leader>cc` to start a new session.
+
+**CLI**: Exit the current `chu chat` session (Ctrl+D) and start a new one.
+
+**Better approach**: Use command-based workflow to avoid long sessions:
+```bash
+# Instead of long chat sessions, use focused commands:
+chu research "how does the auth system work"
+chu plan "add OAuth support"
+chu implement plan.md
+```
+
+Each command starts with fresh context, preventing pollution.
 
 ## What Makes This Effective
 
@@ -69,4 +81,16 @@ In Neovim, close the chat buffer and reopen it to start a new session.
 
 ...means agents retrieve only what's needed, when it's needed. No bloated context, no wasted tokens.
 
-**Future enhancement**: We're exploring vector embeddings for semantic search ("Find code that handles user logout" without knowing exact function names). This would complement the existing grep-based search for even better retrieval accuracy.
+## Future Enhancements
+
+**Vector embeddings**: We're exploring semantic search using vector embeddings ("Find code that handles user logout" without knowing exact function names). This would complement the existing grep-based search for even better retrieval accuracy.
+
+**Codebase indexing**: Pre-indexing repositories for faster symbol lookup and cross-reference navigation.
+
+**Adaptive context**: Dynamic context window management based on task complexity and available token budget.
+
+## Related Posts
+
+- [Context Engineering for Real Codebases]({% post_url 2024-11-15-context-engineering-for-real-codebases %})
+- [Profile Management]({% post_url 2024-12-15-profile-management %})
+- [Groq Optimal Configurations]({% post_url 2024-11-18-groq-optimal-configs %})

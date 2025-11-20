@@ -7,7 +7,7 @@ author: Jader Corrêa
 
 # Context Engineering: Making AI Work in Real Codebases
 
-In the [previous post](2024-11-13-why-chuchu), we talked about **why** Chuchu exists—making AI coding assistance affordable. Now let's talk about **how** to actually make it work in production codebases.
+In the [previous post]({% post_url 2024-11-13-why-chuchu %}), we talked about **why** Chuchu exists—making AI coding assistance affordable. Now let's talk about **how** to actually make it work in production codebases.
 
 ## The Real Problem
 
@@ -226,6 +226,7 @@ chu plan "add password reset via email"
 
 # Implement phase - execute the plan
 chu implement ~/.chuchu/plans/2024-11-15-password-reset.md
+# Note: Implementation reads the plan and executes phase by phase
 ```
 
 **Each command starts with fresh context**, avoiding the context pollution of long chat sessions.
@@ -238,10 +239,10 @@ Chuchu lets you assign specialized models to each agent role:
 backend:
   groq:
     agent_models:
-      router: llama-3.1-8b-instant         # Speed: 840 TPS
-      query: gpt-oss-120b-128k             # Reasoning: 120B params
-      editor: deepseek-r1-distill-qwen-32b # Coding: 83.3% AIME
-      research: groq/compound               # Tools: web search
+      router: llama-3.1-8b-instant      # Speed: 840 TPS
+      query: llama-3.3-70b-versatile    # Reasoning: 70B params
+      editor: llama-3.3-70b-versatile   # Coding: versatile
+      research: groq/compound           # Tools: web search
 ```
 
 **Why this works:**
