@@ -1029,6 +1029,34 @@ function M.send_to_llm(user_input)
   chat_state.active_tools = {}
   chat_state.tool_outputs = {}
   
+  local event_file = vim.fn.expand("~/.chuchu/events.jsonl")
+  vim.fn.writefile({}, event_file)
+  vim.notify("[DEBUG] Events file cleared: " .. event_file, vim.log.levels.INFO)
+  
+  local watch_timer = vim.loop.new_timer()
+  local last_size = 0
+  local events_processed = 0
+  watch_timer:start(0, 100, vim.schedule_wrap(function()
+    local size = vim.fn.getfsize(event_file)
+    if size > last_size then
+      last_size = size
+      local lines = vim.fn.readfile(event_file)
+      if #lines > events_processed then
+        for i = events_processed + 1, #lines do
+          local event_json = lines[i]
+          local ok, event = pcall(vim.fn.json_decode, event_json)
+          if ok and event then
+            if os.getenv("CHUCHU_DEBUG") == "1" then
+              print("[WATCHER] Processing event #" .. i .. ": " .. event.type)
+            end
+            M.handle_tool_event(event_json, #chat_state.conversation)
+            events_processed = i
+          end
+        end
+      end
+    end
+  end))
+  
   if os.getenv("CHUCHU_DEBUG") == "1" then
     print("DEBUG: conversation size = " .. #chat_state.conversation)
     for i, c in ipairs(chat_state.conversation) do
@@ -1105,6 +1133,10 @@ function M.send_to_llm(user_input)
     end,
     on_exit = function()
       M.stop_loading_animation()
+      if watch_timer then
+        watch_timer:stop()
+        watch_timer:close()
+      end
       if assistant_response == "" then
         chat_state.conversation[assistant_idx] = "Assistant: [No response]"
       else
@@ -1127,8 +1159,11 @@ function M.send_to_llm(user_input)
     return
   end
 
+  vim.notify("[DEBUG] Job started: " .. chat_state.job, vim.log.levels.INFO)
+  
   vim.schedule(function()
     vim.fn.chansend(chat_state.job, history_json .. "\n")
+    vim.notify("[DEBUG] Stdin sent, watcher active", vim.log.levels.INFO)
   end)
 end
 
@@ -1148,6 +1183,9 @@ function M.handle_tool_event(event_json, assistant_idx)
   elseif event.type == "status" then
     local status = event.data and event.data.status or ""
     chat_state.current_status = status
+    vim.schedule(function()
+      vim.notify(status, vim.log.levels.INFO)
+    end)
     
   elseif event.type == "confirm" then
     local prompt = event.data and event.data.prompt or "Proceed?"

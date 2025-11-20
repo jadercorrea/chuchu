@@ -78,6 +78,7 @@ func Chat(input string, args []string) {
 
 	if IsComplexTask(lastUserMessage) {
 		fmt.Fprintln(os.Stderr, "[CHAT] Complexity detected, using guided mode")
+		fmt.Fprintf(os.Stderr, "[CHAT] Message: %s\n", lastUserMessage)
 		queryModel := backendCfg.GetModelForAgent("query")
 		guided := NewGuidedMode(orchestrator, cwd, queryModel)
 		if err := guided.Execute(context.Background(), lastUserMessage); err != nil {
@@ -85,6 +86,8 @@ func Chat(input string, args []string) {
 			fmt.Println("Erro:", err)
 		}
 		os.Stdout.Sync()
+		
+		time.Sleep(200 * time.Millisecond)
 		
 		io.Copy(io.Discard, os.Stdin)
 		return
