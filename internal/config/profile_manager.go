@@ -1,11 +1,12 @@
 package config
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+	"sort"
+
+	"gopkg.in/yaml.v3"
 )
 
 func getSetupPath() (string, error) {
@@ -21,286 +22,192 @@ type BackendProfile struct {
 	AgentModels map[string]string
 }
 
-func ListBackendProfiles(backendName string) ([]string, error) {
+func loadSetupForProfiles() (*Setup, error) {
 	setupPath, err := getSetupPath()
 	if err != nil {
 		return nil, err
 	}
 
-	file, err := os.Open(setupPath)
+	data, err := os.ReadFile(setupPath)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+
+	var setup Setup
+	if err := yaml.Unmarshal(data, &setup); err != nil {
+		return nil, err
+	}
+
+	return &setup, nil
+}
+
+func saveSetupForProfiles(setup *Setup) error {
+	setupPath, err := getSetupPath()
+	if err != nil {
+		return err
+	}
+
+	data, err := yaml.Marshal(setup)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(setupPath, data, 0644)
+}
+
+func ListBackendProfiles(backendName string) ([]string, error) {
+	setup, err := loadSetupForProfiles()
+	if err != nil {
+		return nil, err
+	}
+
+	backend, ok := setup.Backend[backendName]
+	if !ok {
+		return nil, fmt.Errorf("backend %s not found", backendName)
+	}
 
 	profiles := []string{}
-	scanner := bufio.NewScanner(file)
-	inTargetBackend := false
-	inProfiles := false
-	hasBackendAgentModels := false
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		indent := countSpaces(line)
-
-		if indent == 4 && strings.HasPrefix(strings.TrimSpace(line), backendName+":") {
-			inTargetBackend = true
-		} else if indent == 4 && inTargetBackend && strings.TrimSpace(line) != "" && !strings.HasPrefix(strings.TrimSpace(line), " ") {
-			break
-		}
-
-		if inTargetBackend {
-			if indent == 8 && strings.HasPrefix(strings.TrimSpace(line), "agent_models:") {
-				hasBackendAgentModels = true
-			}
-			if indent == 8 && strings.HasPrefix(strings.TrimSpace(line), "profiles:") {
-				inProfiles = true
-			} else if inProfiles && indent == 12 && strings.Contains(line, ":") {
-				profileName := strings.TrimSpace(strings.Split(line, ":")[0])
-				profiles = append(profiles, profileName)
-			} else if inProfiles && indent < 12 {
-				inProfiles = false
-			}
-		}
+	if len(backend.AgentModels.Router) > 0 || len(backend.AgentModels.Query) > 0 ||
+		len(backend.AgentModels.Editor) > 0 || len(backend.AgentModels.Research) > 0 {
+		profiles = append(profiles, "default")
 	}
 
-	if hasBackendAgentModels {
-		profiles = append([]string{"default"}, profiles...)
+	for name := range backend.Profiles {
+		profiles = append(profiles, name)
 	}
+
+	sort.Strings(profiles)
 
 	if len(profiles) == 0 {
 		profiles = append(profiles, "default")
 	}
 
-	return profiles, scanner.Err()
+	return profiles, nil
 }
 
 func GetBackendProfile(backendName, profileName string) (*BackendProfile, error) {
-	setupPath, err := getSetupPath()
+	setup, err := loadSetupForProfiles()
 	if err != nil {
 		return nil, err
 	}
 
-	file, err := os.Open(setupPath)
-	if err != nil {
-		return nil, err
+	backend, ok := setup.Backend[backendName]
+	if !ok {
+		return nil, fmt.Errorf("backend %s not found", backendName)
 	}
-	defer file.Close()
 
 	profile := &BackendProfile{
 		Name:        profileName,
 		AgentModels: make(map[string]string),
 	}
 
-	scanner := bufio.NewScanner(file)
-	inTargetBackend := false
-	inProfiles := false
-	inTargetProfile := false
-	inAgentModels := false
-	inBackendAgentModels := false
+	var agentModels AgentModels
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		indent := countSpaces(line)
-		trimmed := strings.TrimSpace(line)
-
-		if indent == 4 && strings.HasPrefix(trimmed, backendName+":") {
-			inTargetBackend = true
-		} else if indent == 4 && inTargetBackend && trimmed != "" {
-			break
-		}
-
-		if !inTargetBackend {
-			continue
-		}
-
-		if indent == 8 && strings.HasPrefix(trimmed, "profiles:") {
-			inProfiles = true
-			inBackendAgentModels = false
-		} else if indent == 8 && strings.HasPrefix(trimmed, "agent_models:") && !inProfiles {
-			inBackendAgentModels = true
-		} else if inProfiles && indent == 12 && strings.HasPrefix(trimmed, profileName+":") {
-			inTargetProfile = true
-			inBackendAgentModels = false
-		} else if inTargetProfile && indent == 16 && strings.HasPrefix(trimmed, "agent_models:") {
-			inAgentModels = true
-		} else if inAgentModels && indent == 20 && strings.Contains(line, ":") {
-			parts := strings.SplitN(trimmed, ":", 2)
-			if len(parts) == 2 {
-				agent := strings.TrimSpace(parts[0])
-				model := strings.TrimSpace(parts[1])
-				profile.AgentModels[agent] = model
-			}
-		} else if inAgentModels && indent < 20 {
-			inAgentModels = false
-		} else if inBackendAgentModels && profileName == "default" && indent == 12 && strings.Contains(line, ":") {
-			parts := strings.SplitN(trimmed, ":", 2)
-			if len(parts) == 2 {
-				agent := strings.TrimSpace(parts[0])
-				model := strings.TrimSpace(parts[1])
-				profile.AgentModels[agent] = model
-			}
-		}
+	if profileName == "default" {
+		agentModels = backend.AgentModels
+	} else if profileCfg, ok := backend.Profiles[profileName]; ok {
+		agentModels = profileCfg.AgentModels
+	} else {
+		return nil, fmt.Errorf("profile %s not found in backend %s", profileName, backendName)
 	}
 
-	return profile, scanner.Err()
+	if agentModels.Router != "" {
+		profile.AgentModels["router"] = agentModels.Router
+	}
+	if agentModels.Query != "" {
+		profile.AgentModels["query"] = agentModels.Query
+	}
+	if agentModels.Editor != "" {
+		profile.AgentModels["editor"] = agentModels.Editor
+	}
+	if agentModels.Research != "" {
+		profile.AgentModels["research"] = agentModels.Research
+	}
+
+	return profile, nil
 }
 
 func CreateBackendProfile(backendName, profileName string) error {
-	setupPath, err := getSetupPath()
+	setup, err := loadSetupForProfiles()
 	if err != nil {
 		return err
 	}
 
-	file, err := os.Open(setupPath)
-	if err != nil {
-		return err
+	backend, ok := setup.Backend[backendName]
+	if !ok {
+		return fmt.Errorf("backend %s not found", backendName)
 	}
 
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	file.Close()
-
-	if err := scanner.Err(); err != nil {
-		return err
+	if backend.Profiles == nil {
+		backend.Profiles = make(map[string]ProfileConfig)
 	}
 
-	inTargetBackend := false
-	profilesLineIdx := -1
-	backendEndIdx := -1
-
-	for i, line := range lines {
-		indent := countSpaces(line)
-		trimmed := strings.TrimSpace(line)
-
-		if indent == 4 && strings.HasPrefix(trimmed, backendName+":") {
-			inTargetBackend = true
-		} else if indent == 4 && inTargetBackend && trimmed != "" {
-			backendEndIdx = i
-			break
-		}
-
-		if inTargetBackend && indent == 8 && strings.HasPrefix(trimmed, "profiles:") {
-			profilesLineIdx = i
-		}
+	if _, exists := backend.Profiles[profileName]; exists {
+		return fmt.Errorf("profile %s already exists", profileName)
 	}
 
-	if !inTargetBackend {
-		return fmt.Errorf("backend %s not found in setup.yaml", backendName)
+	backend.Profiles[profileName] = ProfileConfig{
+		AgentModels: AgentModels{},
 	}
 
-	newProfileLines := []string{
-		strings.Repeat(" ", 12) + profileName + ":",
-		strings.Repeat(" ", 16) + "agent_models:",
-		strings.Repeat(" ", 20) + "router: ",
-		strings.Repeat(" ", 20) + "query: ",
-		strings.Repeat(" ", 20) + "editor: ",
-		strings.Repeat(" ", 20) + "research: ",
-	}
+	setup.Backend[backendName] = backend
 
-	var newLines []string
-	if profilesLineIdx >= 0 {
-		newLines = append(lines[:profilesLineIdx+1], newProfileLines...)
-		newLines = append(newLines, lines[profilesLineIdx+1:]...)
-	} else {
-		insertIdx := backendEndIdx
-		if insertIdx < 0 {
-			insertIdx = len(lines)
-		}
-		
-		profilesHeader := strings.Repeat(" ", 8) + "profiles:"
-		newLines = append(lines[:insertIdx], profilesHeader)
-		newLines = append(newLines, newProfileLines...)
-		newLines = append(newLines, lines[insertIdx:]...)
-	}
-
-	output := strings.Join(newLines, "\n") + "\n"
-	return os.WriteFile(setupPath, []byte(output), 0644)
+	return saveSetupForProfiles(setup)
 }
 
 func SetProfileAgentModel(backendName, profileName, agent, model string) error {
-	setupPath, err := getSetupPath()
+	setup, err := loadSetupForProfiles()
 	if err != nil {
 		return err
 	}
 
-	file, err := os.Open(setupPath)
-	if err != nil {
-		return err
+	backend, ok := setup.Backend[backendName]
+	if !ok {
+		return fmt.Errorf("backend %s not found", backendName)
 	}
 
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	file.Close()
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	inTargetBackend := false
-	inProfiles := false
-	inTargetProfile := false
-	inAgentModels := false
-	inBackendAgentModels := false
-	agentLineIdx := -1
-
-	for i, line := range lines {
-		indent := countSpaces(line)
-		trimmed := strings.TrimSpace(line)
-
-		if indent == 4 && strings.HasPrefix(trimmed, backendName+":") {
-			inTargetBackend = true
-		} else if indent == 4 && inTargetBackend && trimmed != "" {
-			break
+	if profileName == "default" {
+		switch agent {
+		case "router":
+			backend.AgentModels.Router = model
+		case "query":
+			backend.AgentModels.Query = model
+		case "editor":
+			backend.AgentModels.Editor = model
+		case "research":
+			backend.AgentModels.Research = model
+		default:
+			return fmt.Errorf("invalid agent type: %s", agent)
+		}
+	} else {
+		if backend.Profiles == nil {
+			return fmt.Errorf("profile %s not found", profileName)
 		}
 
-		if !inTargetBackend {
-			continue
+		profileCfg, ok := backend.Profiles[profileName]
+		if !ok {
+			return fmt.Errorf("profile %s not found", profileName)
 		}
 
-		if indent == 8 && strings.HasPrefix(trimmed, "profiles:") {
-			inProfiles = true
-			inBackendAgentModels = false
-		} else if indent == 8 && strings.HasPrefix(trimmed, "agent_models:") && !inProfiles {
-			inBackendAgentModels = true
-		} else if inProfiles && indent == 12 && strings.HasPrefix(trimmed, profileName+":") {
-			inTargetProfile = true
-		} else if inTargetProfile && indent == 16 && strings.HasPrefix(trimmed, "agent_models:") {
-			inAgentModels = true
-		} else if inAgentModels && indent == 20 && strings.HasPrefix(trimmed, agent+":") {
-			agentLineIdx = i
-			break
-		} else if inBackendAgentModels && profileName == "default" && indent == 12 && strings.HasPrefix(trimmed, agent+":") {
-			agentLineIdx = i
-			break
+		switch agent {
+		case "router":
+			profileCfg.AgentModels.Router = model
+		case "query":
+			profileCfg.AgentModels.Query = model
+		case "editor":
+			profileCfg.AgentModels.Editor = model
+		case "research":
+			profileCfg.AgentModels.Research = model
+		default:
+			return fmt.Errorf("invalid agent type: %s", agent)
 		}
+
+		backend.Profiles[profileName] = profileCfg
 	}
 
-	if agentLineIdx < 0 {
-		return fmt.Errorf("agent %s not found in profile %s/%s", agent, backendName, profileName)
-	}
+	setup.Backend[backendName] = backend
 
-	indent := countSpaces(lines[agentLineIdx])
-	lines[agentLineIdx] = strings.Repeat(" ", indent) + agent + ": " + model
-
-	output := strings.Join(lines, "\n") + "\n"
-	return os.WriteFile(setupPath, []byte(output), 0644)
+	return saveSetupForProfiles(setup)
 }
 
-func countSpaces(line string) int {
-	count := 0
-	for _, ch := range line {
-		if ch == ' ' {
-			count++
-		} else {
-			break
-		}
-	}
-	return count
-}
