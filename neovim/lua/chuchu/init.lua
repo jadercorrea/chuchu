@@ -708,11 +708,11 @@ function M.delete_profile(backend, profile_name)
     default = "N"
   }, function(response)
     if response and response:lower() == "y" then
-      local result = vim.fn.system({"chu", "backend", "delete-profile", backend, profile_name})
+      local result = vim.fn.system({"chu", "profiles", "delete", backend, profile_name})
       if vim.v.shell_error == 0 then
         vim.notify(string.format("✓ Deleted profile: %s/%s", backend, profile_name), vim.log.levels.INFO)
       else
-        vim.notify("Note: Profile deletion via CLI not yet implemented. Edit setup.yaml manually.", vim.log.levels.WARN)
+        vim.notify("Failed to delete profile: " .. result, vim.log.levels.ERROR)
       end
     else
       vim.notify("Deletion cancelled", vim.log.levels.INFO)

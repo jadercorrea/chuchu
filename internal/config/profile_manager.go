@@ -156,6 +156,39 @@ func CreateBackendProfile(backendName, profileName string) error {
 	return saveSetupForProfiles(setup)
 }
 
+func DeleteBackendProfile(backendName, profileName string) error {
+	if profileName == "default" {
+		return fmt.Errorf("cannot delete default profile")
+	}
+
+	setup, err := loadSetupForProfiles()
+	if err != nil {
+		return err
+	}
+
+	backend, ok := setup.Backend[backendName]
+	if !ok {
+		return fmt.Errorf("backend %s not found", backendName)
+	}
+
+	if backend.Profiles == nil {
+		return fmt.Errorf("profile %s not found", profileName)
+	}
+
+	if _, exists := backend.Profiles[profileName]; !exists {
+		return fmt.Errorf("profile %s not found", profileName)
+	}
+
+	if setup.Defaults.Backend == backendName && setup.Defaults.Profile == profileName {
+		return fmt.Errorf("cannot delete profile %s: it is currently active", profileName)
+	}
+
+	delete(backend.Profiles, profileName)
+	setup.Backend[backendName] = backend
+
+	return saveSetupForProfiles(setup)
+}
+
 func SetProfileAgentModel(backendName, profileName, agent, model string) error {
 	setup, err := loadSetupForProfiles()
 	if err != nil {

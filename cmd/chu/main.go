@@ -534,6 +534,23 @@ Example:
 	},
 }
 
+var profilesDeleteCmd = &cobra.Command{
+	Use:   "delete <backend> <profile>",
+	Short: "Delete a profile",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backend := args[0]
+		profile := args[1]
+		
+		if err := config.DeleteBackendProfile(backend, profile); err != nil {
+			return fmt.Errorf("failed to delete profile: %w", err)
+		}
+		
+		fmt.Printf("✓ Deleted profile: %s/%s\n", backend, profile)
+		return nil
+	},
+}
+
 var feedbackCmd = &cobra.Command{
 	Use:   "feedback",
 	Short: "Record and analyze feedback for model performance",
@@ -630,6 +647,7 @@ func init() {
 	profilesCmd.AddCommand(profilesShowCmd)
 	profilesCmd.AddCommand(profilesCreateCmd)
 	profilesCmd.AddCommand(profilesSetAgentCmd)
+	profilesCmd.AddCommand(profilesDeleteCmd)
 	
 	rootCmd.AddCommand(feedbackCmd)
 	feedbackCmd.AddCommand(feedbackGoodCmd)
