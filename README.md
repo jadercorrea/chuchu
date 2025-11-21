@@ -62,11 +62,20 @@ Add to your Neovim config:
     require("chuchu").setup()
   end,
   keys = {
-    { "<leader>cc", "<cmd>lua require('chuchu').toggle()<cr>", desc = "Toggle Chuchu" },
-    { "<leader>cs", "<cmd>lua require('chuchu').send_message()<cr>", desc = "Send message" },
+    { "<C-d>", "<cmd>ChuchuChat<cr>", desc = "Toggle Chuchu Chat" },
+    { "<C-m>", "<cmd>ChuchuModels<cr>", desc = "Switch Model/Profile" },
+    { "<leader>ms", "<cmd>ChuchuModelSearch<cr>", desc = "Search & Install Models" },
   }
 }
 ```
+
+**Key Features:**
+- `<C-d>` - Open/close chat interface
+- `<C-m>` - Switch between backends and profiles
+- `<leader>ms` - Search models with filters (e.g., "ollama llama3", "groq coding fast")
+  - Shows pricing, context window, and installation status
+  - Auto-install Ollama models
+  - Set as default or use for current session
 
 ## 📖 Usage
 

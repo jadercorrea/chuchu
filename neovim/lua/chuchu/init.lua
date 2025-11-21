@@ -124,6 +124,10 @@ function M.setup(opts)
     M.switch_model()
   end, {})
 
+  vim.api.nvim_create_user_command("ChuchuModelSearch", function()
+    M.search_models()
+  end, {})
+
   local km = config.keymaps
   if km.chat and km.chat ~= "" then
     vim.keymap.set("n", km.chat, ":ChuchuChat<CR>", {
@@ -177,6 +181,11 @@ function M.setup(opts)
     silent = true,
     noremap = true,
     desc = "Chuchu: switch model",
+  })
+  vim.keymap.set("n", "<leader>ms", ":ChuchuModelSearch<CR>", {
+    silent = true,
+    noremap = true,
+    desc = "Chuchu: search models",
   })
   
   vim.api.nvim_create_autocmd("VimLeave", {
@@ -809,7 +818,7 @@ function M.prompt_ollama_install(model, callback)
     if not response or response == "" or response:lower() == "y" then
       vim.notify(string.format("Installing %s...", model.id), vim.log.levels.INFO)
       
-      vim.fn.jobstart({"ollama", "pull", model.id}, {
+      vim.fn.jobstart({"chu", "models", "install", model.id}, {
         on_exit = function(_, exit_code)
           if exit_code == 0 then
             vim.schedule(function()
@@ -838,6 +847,135 @@ function M.prompt_ollama_install(model, callback)
     else
       vim.notify("Installation cancelled", vim.log.levels.WARN)
       callback(false)
+    end
+  end)
+end
+
+function M.search_models()
+  vim.ui.input({
+    prompt = "Search models (e.g., 'ollama llama3', 'groq coding fast'): "
+  }, function(query)
+    if not query or query == "" then
+      vim.notify("Search cancelled", vim.log.levels.WARN)
+      return
+    end
+    
+    local terms = {}
+    for term in query:gmatch("%S+") do
+      table.insert(terms, term)
+    end
+    
+    local cmd = {"chu", "models", "search"}
+    for _, term in ipairs(terms) do
+      table.insert(cmd, term)
+    end
+    
+    local output = {}
+    vim.fn.jobstart(cmd, {
+      stdout_buffered = true,
+      on_stdout = function(_, data)
+        if data then
+          vim.list_extend(output, data)
+        end
+      end,
+      on_exit = function(_, exit_code)
+        if exit_code ~= 0 then
+          vim.schedule(function()
+            vim.notify("Failed to search models", vim.log.levels.ERROR)
+          end)
+          return
+        end
+        
+        local json_str = table.concat(output, "\n")
+        local ok, models = pcall(vim.fn.json_decode, json_str)
+        
+        if not ok or not models or #models == 0 then
+          vim.schedule(function()
+            vim.notify("No models found", vim.log.levels.WARN)
+          end)
+          return
+        end
+        
+        vim.schedule(function()
+          M.show_search_results(models, query)
+        end)
+      end
+    })
+  end)
+end
+
+function M.show_search_results(models, query)
+  local options = {}
+  
+  for i, model in ipairs(models) do
+    local tags_str = table.concat(model.tags or {}, ", ")
+    local price_in = model.pricing_prompt_per_m_tokens or 0
+    local price_out = model.pricing_completion_per_m_tokens or 0
+    local ctx = model.context_window or 0
+    local installed_mark = model.installed and " ✓" or ""
+    
+    local price_display = price_in == 0 and price_out == 0
+      and "[FREE]"
+      or string.format("$%.2f/$%.2f", price_in, price_out)
+    
+    local ctx_str = ctx > 0 and string.format("%dk", math.floor(ctx / 1000)) or ""
+    
+    local line = string.format("%d. %s%s [%s] %s %s",
+      i, model.name, installed_mark, tags_str, price_display, ctx_str)
+    table.insert(options, line)
+  end
+  
+  vim.ui.select(options, {
+    prompt = string.format("Search: '%s' (%d results)", query, #models)
+  }, function(choice)
+    if not choice then return end
+    
+    local idx = tonumber(choice:match("^(%d+)"))
+    if not idx then return end
+    
+    local selected = models[idx]
+    M.handle_model_selection(selected)
+  end)
+end
+
+function M.handle_model_selection(model)
+  local backend = model.id:match("^([^/]+)/") or "unknown"
+  local is_ollama = backend == "ollama" or not model.id:match("/")
+  
+  if is_ollama and not model.installed then
+    M.prompt_ollama_install(model, function(success)
+      if success then
+        M.show_model_actions(model)
+      end
+    end)
+  else
+    M.show_model_actions(model)
+  end
+end
+
+function M.show_model_actions(model)
+  local actions = {
+    "1. Set as default model",
+    "2. Use for current session",
+    "3. Cancel"
+  }
+  
+  vim.ui.select(actions, {
+    prompt = string.format("Model: %s", model.name)
+  }, function(choice)
+    if not choice then return end
+    
+    if choice:match("^1") then
+      local backend = model.id:match("^([^/]+)/") or "ollama"
+      vim.fn.system({"chu", "config", "set", "defaults.model", model.id})
+      vim.fn.system({"chu", "config", "set", "defaults.backend", backend})
+      M.load_profile_info()
+      M.render_chat()
+      vim.notify(string.format("✓ Set as default: %s", model.id), vim.log.levels.INFO)
+    elseif choice:match("^2") then
+      chat_state.model = model.id
+      M.render_chat()
+      vim.notify(string.format("✓ Using for session: %s", model.id), vim.log.levels.INFO)
     end
   end)
 end
