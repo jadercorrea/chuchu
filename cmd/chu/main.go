@@ -12,6 +12,7 @@ import (
 	"chuchu/internal/catalog"
 	"chuchu/internal/config"
 	"chuchu/internal/elixir"
+	"chuchu/internal/feedback"
 	"chuchu/internal/langdetect"
 	"chuchu/internal/llm"
 	"chuchu/internal/memory"
@@ -62,7 +63,9 @@ Setup:
   chu profiles list <backend>              - List profiles for backend
   chu profiles show <backend> <profile>    - Show profile configuration
   chu profiles create <backend> <profile>  - Create new profile
-  chu profiles set-agent <backend> <profile> <agent> <model>  - Set agent model`,
+  chu profiles set-agent <backend> <profile> <agent> <model>  - Set agent model
+  chu feedback good|bad [--backend] [--model] [--agent] [--context] - Record feedback
+  chu feedback stats               - View feedback statistics`,
 }
 
 func init() {
@@ -71,6 +74,7 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(detectLanguageCmd)
 	rootCmd.AddCommand(modelsCmd)
+	rootCmd.AddCommand(feedbackCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(chatCmd)
 	rootCmd.AddCommand(tddCmd)
@@ -447,6 +451,89 @@ Example:
 	},
 }
 
+var feedbackCmd = &cobra.Command{
+	Use:   "feedback",
+	Short: "Record and analyze feedback for model performance",
+}
+
+var feedbackGoodCmd = &cobra.Command{
+	Use:   "good",
+	Short: "Record positive feedback",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backend, _ := cmd.Flags().GetString("backend")
+		model, _ := cmd.Flags().GetString("model")
+		agent, _ := cmd.Flags().GetString("agent")
+		context, _ := cmd.Flags().GetString("context")
+		
+		event := feedback.Event{
+			Sentiment: feedback.SentimentGood,
+			Backend:   backend,
+			Model:     model,
+			Agent:     agent,
+			Context:   context,
+		}
+		
+		if err := feedback.Record(event); err != nil {
+			return fmt.Errorf("failed to record feedback: %w", err)
+		}
+		
+		fmt.Println("✓ Positive feedback recorded")
+		return nil
+	},
+}
+
+var feedbackBadCmd = &cobra.Command{
+	Use:   "bad",
+	Short: "Record negative feedback",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backend, _ := cmd.Flags().GetString("backend")
+		model, _ := cmd.Flags().GetString("model")
+		agent, _ := cmd.Flags().GetString("agent")
+		context, _ := cmd.Flags().GetString("context")
+		
+		event := feedback.Event{
+			Sentiment: feedback.SentimentBad,
+			Backend:   backend,
+			Model:     model,
+			Agent:     agent,
+			Context:   context,
+		}
+		
+		if err := feedback.Record(event); err != nil {
+			return fmt.Errorf("failed to record feedback: %w", err)
+		}
+		
+		fmt.Println("✓ Negative feedback recorded")
+		return nil
+	},
+}
+
+var feedbackStatsCmd = &cobra.Command{
+	Use:   "stats",
+	Short: "View feedback statistics",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		events, err := feedback.LoadAll()
+		if err != nil {
+			return fmt.Errorf("failed to load feedback: %w", err)
+		}
+		
+		if len(events) == 0 {
+			fmt.Println("No feedback recorded yet")
+			return nil
+		}
+		
+		stats := feedback.Analyze(events)
+		
+		encoder := json.NewEncoder(os.Stdout)
+		encoder.SetIndent("", "  ")
+		if err := encoder.Encode(stats); err != nil {
+			return fmt.Errorf("failed to encode stats: %w", err)
+		}
+		
+		return nil
+	},
+}
+
 func init() {
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configSetCmd)
@@ -456,6 +543,21 @@ func init() {
 	profilesCmd.AddCommand(profilesShowCmd)
 	profilesCmd.AddCommand(profilesCreateCmd)
 	profilesCmd.AddCommand(profilesSetAgentCmd)
+	
+	rootCmd.AddCommand(feedbackCmd)
+	feedbackCmd.AddCommand(feedbackGoodCmd)
+	feedbackCmd.AddCommand(feedbackBadCmd)
+	feedbackCmd.AddCommand(feedbackStatsCmd)
+	
+	feedbackGoodCmd.Flags().String("backend", "", "Backend used")
+	feedbackGoodCmd.Flags().String("model", "", "Model used")
+	feedbackGoodCmd.Flags().String("agent", "", "Agent type (router, query, editor, research)")
+	feedbackGoodCmd.Flags().String("context", "", "Additional context")
+	
+	feedbackBadCmd.Flags().String("backend", "", "Backend used")
+	feedbackBadCmd.Flags().String("model", "", "Model used")
+	feedbackBadCmd.Flags().String("agent", "", "Agent type (router, query, editor, research)")
+	feedbackBadCmd.Flags().String("context", "", "Additional context")
 	
 	modelsCmd.AddCommand(modelsUpdateCmd)
 	modelsCmd.AddCommand(modelsSearchCmd)

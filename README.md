@@ -24,6 +24,7 @@ Chuchu (pronounced "shoo-shoo", Brazilian slang for something small and cute) is
 - **📦 Neovim Native**: Deep integration with LSP, Tree-sitter, file navigation
 - **🌐 Web Search**: Research agent can search and summarize web content
 - **🚀 Auto-Install Models**: Discover and install 193+ Ollama models from Neovim
+- **📊 Feedback & Learning**: Track model performance and improve recommendations
 
 ## 🚀 Quick Start
 
@@ -119,6 +120,21 @@ chu models search ollama coding fast
 # Install ollama model
 chu models install llama3.1:8b
 ```
+
+### Feedback & Learning
+
+```bash
+# Record positive feedback
+chu feedback good --backend groq --model llama-3.3-70b-versatile --agent query
+
+# Record negative feedback
+chu feedback bad --backend groq --model llama-3.1-8b-instant --agent router
+
+# View statistics
+chu feedback stats
+```
+
+Chuchu learns from your feedback to recommend better models over time.
 
 ## 💡 Configuration Examples
 
