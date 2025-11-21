@@ -12,6 +12,7 @@ import (
 	"chuchu/internal/catalog"
 	"chuchu/internal/config"
 	"chuchu/internal/elixir"
+	"chuchu/internal/langdetect"
 	"chuchu/internal/llm"
 	"chuchu/internal/memory"
 	"chuchu/internal/modes"
@@ -52,6 +53,9 @@ Feature generation:
 Setup:
   chu setup                - Initialize ~/.chuchu configuration
   chu key [backend]        - Add/update API key for backend
+  chu config get <key>     - Get configuration value
+  chu config set <key> <value> - Set configuration value
+  chu detect-language [path] - Detect project language
   chu models update        - Update model catalog from OpenRouter API
   chu profiles list <backend>              - List profiles for backend
   chu profiles show <backend> <profile>    - Show profile configuration
@@ -62,6 +66,8 @@ Setup:
 func init() {
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(keyCmd)
+	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(detectLanguageCmd)
 	rootCmd.AddCommand(modelsCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(chatCmd)
@@ -131,6 +137,83 @@ var keyCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		backendName := args[0]
 		return config.UpdateAPIKey(backendName)
+	},
+}
+
+var configCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Manage configuration",
+}
+
+var configGetCmd = &cobra.Command{
+	Use:   "get <key>",
+	Short: "Get configuration value",
+	Long: `Get a configuration value from ~/.chuchu/setup.yaml
+
+Examples:
+  chu config get defaults.backend
+  chu config get defaults.profile
+  chu config get backend.groq.default_model`,
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		key := args[0]
+		value, err := config.GetConfig(key)
+		if err != nil {
+			return err
+		}
+		fmt.Println(value)
+		return nil
+	},
+}
+
+var configSetCmd = &cobra.Command{
+	Use:   "set <key> <value>",
+	Short: "Set configuration value",
+	Long: `Set a configuration value in ~/.chuchu/setup.yaml
+
+Examples:
+  chu config set defaults.backend groq
+  chu config set defaults.profile speed
+  chu config set backend.groq.default_model llama-3.3-70b-versatile`,
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		key := args[0]
+		value := args[1]
+		if err := config.SetConfig(key, value); err != nil {
+			return err
+		}
+		fmt.Printf("✓ Set %s = %s\n", key, value)
+		return nil
+	},
+}
+
+var detectLanguageCmd = &cobra.Command{
+	Use:   "detect-language [path]",
+	Short: "Detect project language",
+	Long: `Detect the primary programming language of a project.
+
+Checks for language-specific files:
+- Elixir: mix.exs
+- Ruby: Gemfile, config/application.rb
+- Go: go.mod
+- TypeScript/JavaScript: tsconfig.json, package.json
+- Python: requirements.txt, setup.py, pyproject.toml
+
+If no marker files found, analyzes file extensions in directory.
+
+Examples:
+  chu detect-language
+  chu detect-language /path/to/project
+  chu detect-language .`,
+	Args:  cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		path := "."
+		if len(args) > 0 {
+			path = args[0]
+		}
+		lang := langdetect.DetectLanguage(path)
+		fmt.Println(lang)
+		return nil
 	},
 }
 
@@ -332,6 +415,9 @@ Example:
 }
 
 func init() {
+	configCmd.AddCommand(configGetCmd)
+	configCmd.AddCommand(configSetCmd)
+	
 	rootCmd.AddCommand(profilesCmd)
 	profilesCmd.AddCommand(profilesListCmd)
 	profilesCmd.AddCommand(profilesShowCmd)
