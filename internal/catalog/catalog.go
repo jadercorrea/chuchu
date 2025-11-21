@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"chuchu/internal/feedback"
 	"chuchu/internal/ollama"
 	"encoding/json"
 	"fmt"
@@ -89,6 +90,24 @@ func GetRecommendedForAgent(backend string, agent string) ([]ModelOutput, error)
 	}
 
 	return filtered, nil
+}
+
+func getFeedbackScores(agent string) map[string]float64 {
+	events, err := feedback.LoadAll()
+	if err != nil || len(events) == 0 {
+		return map[string]float64{}
+	}
+	
+	stats := feedback.Analyze(events)
+	scores := make(map[string]float64)
+	
+	for model, modelStats := range stats.ByModel {
+		if modelStats.Total >= 3 {
+			scores[model] = modelStats.Ratio
+		}
+	}
+	
+	return scores
 }
 
 func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]ModelOutput, error) {
@@ -190,7 +209,17 @@ func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]Mod
 		}
 	}
 	
+	feedbackScores := getFeedbackScores(agent)
+	for i := range filtered {
+		if score, ok := feedbackScores[filtered[i].ID]; ok {
+			filtered[i].FeedbackScore = score
+		}
+	}
+	
 	sort.Slice(filtered, func(i, j int) bool {
+		if filtered[i].FeedbackScore != filtered[j].FeedbackScore {
+			return filtered[i].FeedbackScore > filtered[j].FeedbackScore
+		}
 		costA := filtered[i].PricingPrompt + filtered[i].PricingComp
 		costB := filtered[j].PricingPrompt + filtered[j].PricingComp
 		

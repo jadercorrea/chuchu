@@ -108,6 +108,7 @@ type ModelOutput struct {
 	PricingPrompt  float64  `json:"pricing_prompt_per_m_tokens"`
 	PricingComp    float64  `json:"pricing_completion_per_m_tokens"`
 	Installed      bool     `json:"installed"`
+	FeedbackScore  float64  `json:"feedback_score"`
 }
 
 type ProviderOutput struct {

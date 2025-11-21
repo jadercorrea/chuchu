@@ -371,6 +371,7 @@ Flags override positional backend:
 			PricePrompt   float64  `json:"pricing_prompt_per_m_tokens"`
 			PriceComp     float64  `json:"pricing_completion_per_m_tokens"`
 			Installed     bool     `json:"installed"`
+			FeedbackScore float64  `json:"feedback_score"`
 		}
 		
 		result := make([]ModelJSON, 0, len(models))
@@ -394,6 +395,7 @@ Flags override positional backend:
 				PricePrompt:   m.PricingPrompt,
 				PriceComp:     m.PricingComp,
 				Installed:     m.Installed,
+				FeedbackScore: m.FeedbackScore,
 			})
 		}
 		
