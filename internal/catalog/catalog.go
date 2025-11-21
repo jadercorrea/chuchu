@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"chuchu/internal/ollama"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -176,6 +177,19 @@ func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]Mod
 		}
 	}
 
+	for i := range filtered {
+		if backendLower == "ollama" || strings.HasPrefix(strings.ToLower(filtered[i].ID), "ollama/") {
+			modelName := filtered[i].ID
+			if strings.HasPrefix(modelName, "ollama/") {
+				modelName = strings.TrimPrefix(modelName, "ollama/")
+			}
+			installed, err := ollama.IsInstalled(modelName)
+			if err == nil {
+				filtered[i].Installed = installed
+			}
+		}
+	}
+	
 	sort.Slice(filtered, func(i, j int) bool {
 		costA := filtered[i].PricingPrompt + filtered[i].PricingComp
 		costB := filtered[j].PricingPrompt + filtered[j].PricingComp

@@ -263,15 +263,48 @@ See our [Hybrid Cloud/Local guide](2024-12-06-hybrid-cloud-local) for detailed s
 | Offline | ✅ Works offline | ❌ Requires internet |
 | Setup | ⚠️ Download models | ✅ Just API key |
 
-## Model Discovery
+## Model Discovery and Installation
 
-To discover available Ollama models, visit [ollama.com/library](https://ollama.com/library) and install them using:
+Chuchu includes built-in model discovery and installation for Ollama:
+
+### Search for Models
 
 ```bash
-ollama pull <model-name>
+# Search all ollama models
+chu models search -b ollama
+
+# Search with filters (ANDed together)
+chu models search ollama coding fast
+chu models search ollama llama3
 ```
 
-After pulling new models, update Chuchu's catalog:
+The search results include an `installed` field showing which models are already available:
+
+```json
+{
+  "id": "llama3.1:8b",
+  "name": "llama3.1:8b",
+  "tags": ["free", "fast", "versatile"],
+  "context_window": 8192,
+  "installed": true
+}
+```
+
+### Install Models
+
+```bash
+# Install a specific model
+chu models install llama3.1:8b
+
+# If already installed, you'll see:
+# ✓ Model llama3.1:8b already installed
+```
+
+### Discover New Models
+
+For the full catalog of available models, visit [ollama.com/library](https://ollama.com/library).
+
+Update Chuchu's model catalog periodically:
 ```bash
 chu models update
 ```

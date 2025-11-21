@@ -107,6 +107,19 @@ chu profiles set-agent groq speed router llama-3.1-8b-instant
 chu profiles set-agent groq speed query llama-3.1-8b-instant
 ```
 
+### Model Discovery & Installation
+
+```bash
+# Search for ollama models
+chu models search ollama llama3
+
+# Search with multiple filters (ANDed)
+chu models search ollama coding fast
+
+# Install ollama model
+chu models install llama3.1:8b
+```
+
 ## 💡 Configuration Examples
 
 ### Budget Setup ($2-5/month)

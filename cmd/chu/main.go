@@ -16,6 +16,7 @@ import (
 	"chuchu/internal/llm"
 	"chuchu/internal/memory"
 	"chuchu/internal/modes"
+	"chuchu/internal/ollama"
 	"chuchu/internal/prompt"
 )
 
@@ -57,6 +58,7 @@ Setup:
   chu config set <key> <value> - Set configuration value
   chu detect-language [path] - Detect project language
   chu models update        - Update model catalog from OpenRouter API
+  chu models install <model> - Install Ollama model if not present
   chu profiles list <backend>              - List profiles for backend
   chu profiles show <backend> <profile>    - Show profile configuration
   chu profiles create <backend> <profile>  - Create new profile
@@ -318,6 +320,37 @@ Flags override positional backend:
 	},
 }
 
+var modelsInstallCmd = &cobra.Command{
+	Use:   "install <model>",
+	Short: "Install Ollama model if not present",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		modelName := args[0]
+		
+		installed, err := ollama.IsInstalled(modelName)
+		if err != nil {
+			return fmt.Errorf("failed to check model status: %w", err)
+		}
+		
+		if installed {
+			fmt.Printf("✓ Model %s already installed\n", modelName)
+			return nil
+		}
+		
+		fmt.Printf("Installing model %s...\n", modelName)
+		progressCallback := func(status string) {
+			fmt.Println(status)
+		}
+		
+		if err := ollama.Install(modelName, progressCallback); err != nil {
+			return fmt.Errorf("failed to install model: %w", err)
+		}
+		
+		fmt.Printf("✓ Model %s installed successfully\n", modelName)
+		return nil
+	},
+}
+
 var profilesCmd = &cobra.Command{
 	Use:   "profiles",
 	Short: "Manage backend profiles",
@@ -426,6 +459,7 @@ func init() {
 	
 	modelsCmd.AddCommand(modelsUpdateCmd)
 	modelsCmd.AddCommand(modelsSearchCmd)
+	modelsCmd.AddCommand(modelsInstallCmd)
 	
 	modelsSearchCmd.Flags().StringP("backend", "b", "openrouter", "Backend to search (openrouter, groq, ollama, etc)")
 	modelsSearchCmd.Flags().StringP("agent", "a", "", "Agent type (router, query, editor, research)")
