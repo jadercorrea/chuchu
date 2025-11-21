@@ -16,11 +16,12 @@ type Profile struct {
 
 type Setup struct {
 	Defaults struct {
-		Backend string `yaml:"backend"`
-		Profile string `yaml:"profile,omitempty"`
-		Model   string `yaml:"model"`
-		Lang    string `yaml:"lang"`
-		SystemPromptFile string `yaml:"system_prompt_file,omitempty"`
+		Backend           string  `yaml:"backend"`
+		Profile           string  `yaml:"profile,omitempty"`
+		Model             string  `yaml:"model"`
+		Lang              string  `yaml:"lang"`
+		SystemPromptFile  string  `yaml:"system_prompt_file,omitempty"`
+		MLComplexThreshold float64 `yaml:"ml_complex_threshold,omitempty"`
 	} `yaml:"defaults"`
 	Backend map[string]BackendConfig `yaml:"backend"`
 }

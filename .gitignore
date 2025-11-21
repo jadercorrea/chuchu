@@ -36,3 +36,9 @@ Thumbs.db
 
 # User config (should stay local)
 .chuchu/
+
+# ML artifacts
+ml/complexity_detection/models/*.json
+ml/complexity_detection/data/training_data.csv
+ml/complexity_detection/venv/
+ml/complexity_detection/__pycache__/

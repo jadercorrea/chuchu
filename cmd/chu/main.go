@@ -16,6 +16,7 @@ import (
 	"chuchu/internal/langdetect"
 	"chuchu/internal/llm"
 	"chuchu/internal/memory"
+	"chuchu/internal/ml"
 	"chuchu/internal/modes"
 	"chuchu/internal/ollama"
 	"chuchu/internal/prompt"
@@ -68,7 +69,14 @@ Setup:
   chu profiles create <backend> <profile>  - Create new profile
   chu profiles set-agent <backend> <profile> <agent> <model>  - Set agent model
   chu feedback good|bad [--backend] [--model] [--agent] [--context] - Record feedback
-  chu feedback stats               - View feedback statistics`,
+  chu feedback stats               - View feedback statistics
+
+Machine Learning:
+  chu ml list                      - List available ML models
+  chu ml train <model>             - Train ML model
+  chu ml test <model> [query]      - Test ML model
+  chu ml eval <model> [-f file]    - Evaluate model on dataset
+  chu ml predict <text>            - Predict using embedded Go model`,
 }
 
 func init() {
@@ -79,6 +87,7 @@ func init() {
 	rootCmd.AddCommand(detectLanguageCmd)
 	rootCmd.AddCommand(modelsCmd)
 	rootCmd.AddCommand(feedbackCmd)
+	rootCmd.AddCommand(mlCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(chatCmd)
 	rootCmd.AddCommand(tddCmd)
@@ -787,6 +796,139 @@ var featureCmd = &cobra.Command{
 		// Default to generic TDD for other languages
 		return modes.RunTDD(builder, provider, model, args[0])
 	},
+}
+
+var mlCmd = &cobra.Command{
+	Use:   "ml",
+	Short: "Machine learning model management",
+	Long: `Manage machine learning models for Chuchu.
+
+Available commands:
+  list  - List available models
+  train - Train a model
+  test  - Test a trained model
+
+Examples:
+  chu ml list
+  chu ml train complexity_detection
+  chu ml test complexity_detection "implement oauth2"`,
+}
+
+var mlListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List available ML models",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		trainer := ml.NewTrainer(cwd)
+		trainer.ListModels()
+		return nil
+	},
+}
+
+var mlTrainCmd = &cobra.Command{
+	Use:   "train <model-name>",
+	Short: "Train an ML model",
+	Long: `Train a machine learning model.
+
+Examples:
+  chu ml train complexity_detection`,
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		
+		trainer := ml.NewTrainer(cwd)
+		modelName := args[0]
+		
+		if err := trainer.Train(modelName); err != nil {
+			return fmt.Errorf("training failed: %w", err)
+		}
+		
+		return nil
+	},
+}
+
+var mlTestCmd = &cobra.Command{
+	Use:   "test <model-name> [query]",
+	Short: "Test a trained ML model",
+	Long: `Test a trained model with example queries.
+
+Without a query, runs pre-defined test examples.
+With a query, tests that specific input.
+
+Examples:
+  chu ml test complexity_detection
+  chu ml test complexity_detection "fix typo in readme"
+  chu ml test complexity_detection "implement oauth2 with google"`,
+	Args:  cobra.MinimumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		
+		trainer := ml.NewTrainer(cwd)
+		modelName := args[0]
+		
+		var query string
+		if len(args) > 1 {
+			query = args[1]
+		}
+		
+		if err := trainer.Test(modelName, query); err != nil {
+			return fmt.Errorf("test failed: %w", err)
+		}
+		
+		return nil
+	},
+}
+
+var mlEvalCmd = &cobra.Command{
+	Use:   "eval <model-name>",
+	Short: "Evaluate a trained ML model on a dataset",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		trainer := ml.NewTrainer(cwd)
+		file, _ := cmd.Flags().GetString("file")
+		if err := trainer.Eval(args[0], file); err != nil {
+			return fmt.Errorf("eval failed: %w", err)
+		}
+		return nil
+	},
+}
+
+var mlPredictCmd = &cobra.Command{
+	Use:   "predict <text>",
+	Short: "Predict complexity using embedded Go model (no Python)",
+	Args:  cobra.MinimumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		p, err := ml.LoadEmbedded()
+		if err != nil { return err }
+		text := strings.Join(args, " ")
+		label, probs := p.Predict(text)
+		fmt.Printf("Prediction: %s\n", label)
+		fmt.Println("Probabilities:")
+		for k, v := range probs { fmt.Printf("  %s: %.1f%%\n", k, v*100) }
+		return nil
+	},
+}
+
+func init() {
+	mlCmd.AddCommand(mlListCmd)
+	mlCmd.AddCommand(mlTrainCmd)
+	mlCmd.AddCommand(mlTestCmd)
+	mlCmd.AddCommand(mlEvalCmd)
+	mlCmd.AddCommand(mlPredictCmd)
+	mlEvalCmd.Flags().StringP("file", "f", "", "Path to eval CSV with columns: message,label")
 }
 
 var reviewCmd = &cobra.Command{

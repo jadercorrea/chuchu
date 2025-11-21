@@ -1,0 +1,13 @@
+message,label
+"fix typo in README",0
+"rename variable in main.go",0
+"update docs for installation",0
+"write a bash script to parse nginx logs and upload daily summary to S3",1
+"implement OAuth2 login with Google and GitHub",1
+"migrate database schema with rollback plan",1
+"deploy dockerized service to staging on kubernetes",1
+"add unit tests for payment module then refactor the API handlers",2
+"deploy to staging, run database migrations, then restart all services",2
+"first create feature branch, then write tests, then implement the endpoint",2
+"set up terraform pipeline for VPC and RDS",1
+"configure ansible playbook to provision servers",1

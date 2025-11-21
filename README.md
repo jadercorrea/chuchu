@@ -83,7 +83,44 @@ Add to your Neovim config:
   - Auto-install Ollama models
   - Set as default or use for current session
 
+### ML-Driven Task Routing (Built-in)
+
+Chuchu embeds a compact ML model to decide when a request is complex or multistep and should trigger Guided Mode automatically in `chu chat` (CLI and Neovim). No external deps, zero runtime Python.
+
+Defaults
+- Threshold for "complex": 0.55 (can be changed in config)
+- "multistep" always triggers Guided Mode
+
+Configure
+```bash
+# View threshold
+chu config get defaults.ml_complex_threshold
+
+# Set threshold (e.g. 0.6)
+chu config set defaults.ml_complex_threshold 0.6
+```
+
+ML CLI
+```bash
+# New parent command
+chu ml                     # help
+
+# List models
+chu ml list
+
+# Train model (uses Python in repo only for training)
+chu ml train complexity_detection
+
+# Test / Eval (Python)
+chu ml test complexity_detection "your task"
+chu ml eval complexity_detection -f ml/complexity_detection/data/eval.csv
+
+# Pure-Go inference (no Python)
+chu ml predict "your task description"
+```
+
 ## 📖 Usage
+
 
 ### Chat Mode
 

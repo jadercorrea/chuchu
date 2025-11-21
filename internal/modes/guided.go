@@ -11,6 +11,8 @@ import (
 	"chuchu/internal/agents"
 	"chuchu/internal/events"
 	"chuchu/internal/llm"
+	"chuchu/internal/ml"
+	"chuchu/internal/config"
 )
 
 type GuidedMode struct {
@@ -229,39 +231,24 @@ func (g *GuidedMode) waitForConfirmation(prompt string, id string) bool {
 }
 
 func IsComplexTask(message string) bool {
-	lower := strings.ToLower(message)
-
-	complexKeywords := []string{
-		"analyz",
-		"analys",
-		"integrat",
-		"implement",
-		"add",
-		"creat",
-		"build",
-		"setup",
-		"configur",
+	p, err := ml.LoadEmbedded()
+	if err != nil {
+		return false
 	}
-
-	multiStepIndicators := []string{
-		"first",
-		"then",
-		"after",
-		"and then",
+	label, probs := p.Predict(message)
+	if label == "multistep" {
+		return true
 	}
-
-	keywordCount := 0
-	for _, kw := range complexKeywords {
-		if strings.Contains(lower, kw) {
-			keywordCount++
+	if label == "complex" {
+		threshold := 0.55
+		if setup, err2 := config.LoadSetup(); err2 == nil {
+			if setup.Defaults.MLComplexThreshold > 0 {
+				threshold = setup.Defaults.MLComplexThreshold
+			}
 		}
-	}
-
-	for _, indicator := range multiStepIndicators {
-		if strings.Contains(lower, indicator) {
+		if v, ok := probs["complex"]; ok && v >= threshold {
 			return true
 		}
 	}
-
-	return keywordCount >= 2 || (keywordCount >= 1 && len(message) > 30)
+	return false
 }

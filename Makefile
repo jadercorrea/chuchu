@@ -6,7 +6,9 @@ ifeq ($(GOBIN),)
     GOBIN=$(HOME)/go/bin
 endif
 
-.PHONY: all build install dev clean test
+ML_DIR=ml/complexity_detection
+
+.PHONY: all build install dev clean test train-ml train-complexity install-ml
 
 all: build
 
@@ -22,6 +24,11 @@ install: build
 	@$(GOBIN)/$(APP_NAME) setup
 	@echo "-> Done."
 
+install-ml: install
+	@echo "-> Setting up ML models..."
+	@$(MAKE) train-complexity
+	@echo "-> ML models ready."
+
 dev:
 	@echo "-> Running in dev mode..."
 	@go run $(APP_PATH)
@@ -29,7 +36,16 @@ dev:
 clean:
 	@echo "-> Cleaning..."
 	@rm -rf bin/
+	@rm -rf $(ML_DIR)/venv
+	@rm -f $(ML_DIR)/models/*.json
 
 test:
 	@echo "-> Running Go tests..."
 	@go test ./...
+
+# ML Training targets
+train-ml:
+	@chu train
+
+train-complexity:
+	@chu train complexity_detection

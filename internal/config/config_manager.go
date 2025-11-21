@@ -54,6 +54,8 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 			return setup.Defaults.Lang, nil
 		case "system_prompt_file":
 			return setup.Defaults.SystemPromptFile, nil
+		case "ml_complex_threshold":
+			return setup.Defaults.MLComplexThreshold, nil
 		default:
 			return nil, fmt.Errorf("unknown defaults field: %s", parts[1])
 		}
@@ -114,6 +116,12 @@ func setNestedValue(setup *Setup, key, value string) error {
 			setup.Defaults.Lang = value
 		case "system_prompt_file":
 			setup.Defaults.SystemPromptFile = value
+		case "ml_complex_threshold":
+			var f float64
+			if _, err := fmt.Sscan(value, &f); err != nil {
+				return fmt.Errorf("invalid float value for ml_complex_threshold: %s", value)
+			}
+			setup.Defaults.MLComplexThreshold = f
 		default:
 			return fmt.Errorf("unknown defaults field: %s", parts[1])
 		}
