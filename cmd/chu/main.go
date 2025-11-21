@@ -55,6 +55,9 @@ Feature generation:
 Setup:
   chu setup                - Initialize ~/.chuchu configuration
   chu key [backend]        - Add/update API key for backend
+  chu backend list         - List configured backends
+  chu backend create <name> <type> <base-url> - Create new backend
+  chu backend delete <name> - Delete backend
   chu config get <key>     - Get configuration value
   chu config set <key> <value> - Set configuration value
   chu detect-language [path] - Detect project language
@@ -71,6 +74,7 @@ Setup:
 func init() {
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(keyCmd)
+	rootCmd.AddCommand(backendCmd)
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(detectLanguageCmd)
 	rootCmd.AddCommand(modelsCmd)
@@ -143,6 +147,85 @@ var keyCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		backendName := args[0]
 		return config.UpdateAPIKey(backendName)
+	},
+}
+
+var backendCmd = &cobra.Command{
+	Use:   "backend",
+	Short: "Manage backends",
+}
+
+var backendListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List configured backends",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backends, err := config.ListBackends()
+		if err != nil {
+			return fmt.Errorf("failed to list backends: %w", err)
+		}
+		
+		setup, _ := config.LoadSetup()
+		defaultBackend := setup.Defaults.Backend
+		
+		for _, name := range backends {
+			if name == defaultBackend {
+				fmt.Printf("%s (default)\n", name)
+			} else {
+				fmt.Println(name)
+			}
+		}
+		return nil
+	},
+}
+
+var backendCreateCmd = &cobra.Command{
+	Use:   "create <name> <type> <base-url>",
+	Short: "Create new backend",
+	Long: `Create a new backend configuration.
+
+Type must be: openai, ollama
+
+Examples:
+  chu backend create mygroq openai https://api.groq.com/openai/v1
+  chu backend create local ollama http://localhost:11434`,
+	Args:  cobra.ExactArgs(3),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		name := args[0]
+		backendType := args[1]
+		baseURL := args[2]
+		
+		if backendType != "openai" && backendType != "ollama" {
+			return fmt.Errorf("type must be 'openai' or 'ollama'")
+		}
+		
+		if err := config.CreateBackend(name, backendType, baseURL); err != nil {
+			return err
+		}
+		
+		fmt.Printf("✓ Created backend: %s\n", name)
+		fmt.Println("\nNext steps:")
+		if backendType == "openai" {
+			fmt.Printf("  chu key %s                    # Set API key\n", name)
+		}
+		fmt.Printf("  chu config set backend.%s.default_model <model>\n", name)
+		fmt.Printf("  chu config set defaults.backend %s\n", name)
+		return nil
+	},
+}
+
+var backendDeleteCmd = &cobra.Command{
+	Use:   "delete <name>",
+	Short: "Delete backend",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		name := args[0]
+		
+		if err := config.DeleteBackend(name); err != nil {
+			return err
+		}
+		
+		fmt.Printf("✓ Deleted backend: %s\n", name)
+		return nil
 	},
 }
 
@@ -535,6 +618,10 @@ var feedbackStatsCmd = &cobra.Command{
 }
 
 func init() {
+	backendCmd.AddCommand(backendListCmd)
+	backendCmd.AddCommand(backendCreateCmd)
+	backendCmd.AddCommand(backendDeleteCmd)
+	
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configSetCmd)
 	

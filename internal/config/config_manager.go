@@ -59,6 +59,14 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 		}
 	
 	case "backend":
+		if len(parts) == 1 {
+			var backends []string
+			for name := range setup.Backend {
+				backends = append(backends, name)
+			}
+			return backends, nil
+		}
+		
 		if len(parts) < 3 {
 			return nil, fmt.Errorf("backend key requires: backend.<name>.<field>")
 		}
@@ -94,6 +102,9 @@ func setNestedValue(setup *Setup, key, value string) error {
 		}
 		switch parts[1] {
 		case "backend":
+			if _, ok := setup.Backend[value]; !ok {
+				return fmt.Errorf("backend %s does not exist", value)
+			}
 			setup.Defaults.Backend = value
 		case "profile":
 			setup.Defaults.Profile = value
@@ -114,7 +125,7 @@ func setNestedValue(setup *Setup, key, value string) error {
 		backendName := parts[1]
 		backend, ok := setup.Backend[backendName]
 		if !ok {
-			return fmt.Errorf("backend %s not found", backendName)
+			return fmt.Errorf("backend %s not found. Use 'chu backend create %s' first", backendName, backendName)
 		}
 		
 		switch parts[2] {
@@ -135,6 +146,58 @@ func setNestedValue(setup *Setup, key, value string) error {
 	}
 	
 	return nil
+}
+
+func CreateBackend(name, backendType, baseURL string) error {
+	setup, err := LoadSetup()
+	if err != nil {
+		return err
+	}
+	
+	if _, exists := setup.Backend[name]; exists {
+		return fmt.Errorf("backend %s already exists", name)
+	}
+	
+	setup.Backend[name] = BackendConfig{
+		Type:    backendType,
+		BaseURL: baseURL,
+		Models:  make(map[string]string),
+	}
+	
+	return saveSetupConfig(setup)
+}
+
+func DeleteBackend(name string) error {
+	setup, err := LoadSetup()
+	if err != nil {
+		return err
+	}
+	
+	if _, exists := setup.Backend[name]; !exists {
+		return fmt.Errorf("backend %s does not exist", name)
+	}
+	
+	if setup.Defaults.Backend == name {
+		return fmt.Errorf("cannot delete backend %s: it is set as default", name)
+	}
+	
+	delete(setup.Backend, name)
+	
+	return saveSetupConfig(setup)
+}
+
+func ListBackends() ([]string, error) {
+	setup, err := LoadSetup()
+	if err != nil {
+		return nil, err
+	}
+	
+	var backends []string
+	for name := range setup.Backend {
+		backends = append(backends, name)
+	}
+	
+	return backends, nil
 }
 
 func saveSetupConfig(setup *Setup) error {

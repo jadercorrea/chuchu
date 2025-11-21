@@ -91,6 +91,24 @@ chu plan "add user authentication with JWT"
 chu implement
 ```
 
+### Backend Management
+
+```bash
+# List configured backends
+chu backend list
+
+# Create new backend
+chu backend create mygroq openai https://api.groq.com/openai/v1
+chu key mygroq  # Set API key
+chu config set backend.mygroq.default_model llama-3.3-70b-versatile
+
+# Switch default backend
+chu config set defaults.backend mygroq
+
+# Delete backend
+chu backend delete mygroq
+```
+
 ### Profile Management
 
 ```bash
