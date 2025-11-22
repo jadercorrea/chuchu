@@ -1,10 +1,11 @@
 run:
   timeout: 5m
   tests: true
-  skip-dirs:
-    - vendor
-    - docs
-    - ml
+  skip-dirs-use-default: true
+
+output:
+  formats:
+    - format: colored-line-number
 
 linters:
   enable:
@@ -34,6 +35,9 @@ issues:
       linters:
         - errcheck
         - unused
+    - path: (vendor|docs|ml)/
+      linters:
+        - all
     - text: "Error return value is not checked"
       linters:
         - errcheck
