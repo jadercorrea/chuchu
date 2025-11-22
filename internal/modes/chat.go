@@ -141,7 +141,7 @@ func Chat(input string, args []string) {
 	// Dependency Graph Integration
 	// We build the graph and find relevant context to prepend to the message
 	// This is a simple MVP integration
-	if os.Getenv("CHUCHU_NO_GRAPH") != "1" {
+	if os.Getenv("CHUCHU_GRAPH") != "false" {
 		if os.Getenv("CHUCHU_DEBUG") == "1" {
 			fmt.Fprintln(os.Stderr, "[GRAPH] Building dependency graph...")
 		}

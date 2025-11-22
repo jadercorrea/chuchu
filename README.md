@@ -154,9 +154,6 @@ Automatically analyzes your codebase structure to provide only relevant context 
 
 **Control:**
 ```bash
-# Disable graph optimization
-CHUCHU_NO_GRAPH=1 chu chat "your query"
-
 # Debug mode shows graph stats
 CHUCHU_DEBUG=1 chu chat "your query"
 # [GRAPH] Built graph: 142 nodes, 287 edges

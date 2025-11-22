@@ -303,6 +303,83 @@ Higher threshold = more LLM fallbacks (more accurate but slower/expensive)
 
 ---
 
+## Dependency Graph Commands
+
+### `chu graph build`
+
+Force rebuild dependency graph, ignoring cache.
+
+```bash
+chu graph build
+```
+
+Shows:
+- Number of nodes (files)
+- Number of edges (dependencies)
+- Build time
+
+**When to use:**
+- After major refactoring
+- After adding/removing many files
+- If cache seems stale
+
+### `chu graph query <terms>`
+
+Find relevant files for a query term using PageRank.
+
+```bash
+chu graph query "authentication"
+chu graph query "database connection"
+chu graph query "api routes"
+```
+
+Shows:
+- Matching files ranked by importance
+- PageRank scores
+- Why each file was selected
+
+**How it works:**
+1. Keyword matching in file paths
+2. Neighbor expansion (imports/imported-by)
+3. PageRank weighting
+4. Top N selection
+
+---
+
+## Graph Configuration
+
+### Max Files
+
+Control how many files are added to context in chat mode.
+
+```bash
+# View current setting (default: 5)
+chu config get defaults.graph_max_files
+
+# Set max files (1-20)
+chu config set defaults.graph_max_files 8
+```
+
+**Recommendations:**
+- Small projects (<50 files): 3-5
+- Medium projects (50-500 files): 5-8
+- Large projects (500+ files): 8-12
+
+### Debug Graph
+
+```bash
+export CHUCHU_DEBUG=1
+chu chat "your query"  # Shows graph stats
+```
+
+Shows:
+- Nodes/edges count
+- Selected files
+- PageRank scores
+- Build time (cache hit/miss)
+
+---
+
 ## Command Comparison
 
 | Command | Purpose | When to Use |
