@@ -58,6 +58,8 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 			return setup.Defaults.MLComplexThreshold, nil
 		case "ml_intent_threshold":
 			return setup.Defaults.MLIntentThreshold, nil
+		case "graph_max_files":
+			return setup.Defaults.GraphMaxFiles, nil
 		default:
 			return nil, fmt.Errorf("unknown defaults field: %s", parts[1])
 		}
@@ -130,6 +132,15 @@ func setNestedValue(setup *Setup, key, value string) error {
 				return fmt.Errorf("invalid float value for ml_intent_threshold: %s", value)
 			}
 			setup.Defaults.MLIntentThreshold = f
+		case "graph_max_files":
+			var i int
+			if _, err := fmt.Sscan(value, &i); err != nil {
+				return fmt.Errorf("invalid int value for graph_max_files: %s", value)
+			}
+			if i < 1 || i > 20 {
+				return fmt.Errorf("graph_max_files must be between 1 and 20")
+			}
+			setup.Defaults.GraphMaxFiles = i
 		default:
 			return fmt.Errorf("unknown defaults field: %s", parts[1])
 		}

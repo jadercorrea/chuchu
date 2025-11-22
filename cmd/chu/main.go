@@ -88,6 +88,7 @@ func init() {
 	rootCmd.AddCommand(modelsCmd)
 	rootCmd.AddCommand(feedbackCmd)
 	rootCmd.AddCommand(mlCmd)
+	rootCmd.AddCommand(graphCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(chatCmd)
 	rootCmd.AddCommand(tddCmd)

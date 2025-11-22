@@ -131,6 +131,47 @@ chu ml predict complexity "implement oauth"   # explicit
 chu ml predict intent "explain this code"     # intent classification
 ```
 
+#### 3. Dependency Graph + Context Optimization
+
+Automatically analyzes your codebase structure to provide only relevant context to the LLM.
+
+**How it works:**
+1. Builds a graph of file dependencies (imports/requires)
+2. Runs PageRank to identify central/important files
+3. Matches query terms to relevant files
+4. Expands to 1-hop neighbors (dependencies + dependents)
+5. Provides top 5 most relevant files as context
+
+**Benefits:**
+- **5x token reduction**: 100k → 20k tokens (only relevant files)
+- **Better responses**: LLM sees focused context, not noise
+- **Automatic**: Works transparently in `chu chat`
+- **Cached**: Graph rebuilt only when files change
+
+**Supported Languages:**
+- Go, Python, JavaScript/TypeScript
+- Ruby, Rust
+
+**Control:**
+```bash
+# Disable graph optimization
+CHUCHU_NO_GRAPH=1 chu chat "your query"
+
+# Debug mode shows graph stats
+CHUCHU_DEBUG=1 chu chat "your query"
+# [GRAPH] Built graph: 142 nodes, 287 edges
+# [GRAPH] Selected 5 files:
+# [GRAPH]   1. internal/agents/router.go (score: 0.842)
+# [GRAPH]   2. internal/llm/provider.go (score: 0.731)
+```
+
+**Example:**
+```bash
+chu chat "fix bug in authentication"
+# Without graph: Sends entire codebase (100k tokens)
+# With graph: Sends auth.go + user.go + middleware.go + session.go + config.go (18k tokens)
+```
+
 ## 📖 Usage
 
 

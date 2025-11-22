@@ -23,6 +23,7 @@ type Setup struct {
 		SystemPromptFile   string  `yaml:"system_prompt_file,omitempty"`
 		MLComplexThreshold float64 `yaml:"ml_complex_threshold,omitempty"`
 		MLIntentThreshold  float64 `yaml:"ml_intent_threshold,omitempty"`
+		GraphMaxFiles      int     `yaml:"graph_max_files,omitempty"`
 	} `yaml:"defaults"`
 	Backend map[string]BackendConfig `yaml:"backend"`
 }

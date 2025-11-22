@@ -14,6 +14,7 @@ import (
 
 	"chuchu/internal/agents"
 	"chuchu/internal/config"
+	"chuchu/internal/graph"
 	"chuchu/internal/llm"
 	"chuchu/internal/output"
 	"chuchu/internal/prompt"
@@ -25,9 +26,9 @@ type ChatHistory struct {
 
 func Chat(input string, args []string) {
 	os.Stdout.Sync()
-	
+
 	fmt.Fprintf(os.Stderr, "[CHAT] Starting Chat function, input len=%d\n", len(input))
-	
+
 	if os.Getenv("CHUCHU_DEBUG") == "1" {
 		fmt.Fprintf(os.Stderr, "[CHAT] Input: %s\n", input[:min(100, len(input))])
 	}
@@ -82,7 +83,7 @@ func Chat(input string, args []string) {
 
 	if strings.ToLower(strings.TrimSpace(lastUserMessage)) == "implement" {
 		fmt.Fprintln(os.Stderr, "[CHAT] Implement command detected")
-		
+
 		home, _ := os.UserHomeDir()
 		planPath := filepath.Join(home, ".chuchu", "current_plan.txt")
 		planContent, err := os.ReadFile(planPath)
@@ -90,11 +91,11 @@ func Chat(input string, args []string) {
 			fmt.Println("No active plan found. Please create a plan first.")
 			return
 		}
-		
+
 		fmt.Fprintln(os.Stderr, "[CHAT] Starting implementation")
 		queryModel := backendCfg.GetModelForAgent("query")
 		guided := NewGuidedMode(orchestrator, cwd, queryModel)
-		
+
 		guided.events.Status("Implementing plan...")
 		if err := guided.Implement(context.Background(), string(planContent)); err != nil {
 			fmt.Fprintln(os.Stderr, "Implementation error:", err)
@@ -103,7 +104,7 @@ func Chat(input string, args []string) {
 			guided.events.Complete()
 			guided.events.Message("Implementation complete. Review files and run tests.")
 		}
-		
+
 		os.Stdout.Sync()
 		time.Sleep(200 * time.Millisecond)
 		io.Copy(io.Discard, os.Stdin)
@@ -120,9 +121,9 @@ func Chat(input string, args []string) {
 			fmt.Println("Erro:", err)
 		}
 		os.Stdout.Sync()
-		
+
 		time.Sleep(200 * time.Millisecond)
-		
+
 		io.Copy(io.Discard, os.Stdin)
 		return
 	}
@@ -136,6 +137,77 @@ func Chat(input string, args []string) {
 	routerModel := backendCfg.GetModelForAgent("router")
 	editorModel := backendCfg.GetModelForAgent("editor")
 	queryModel := backendCfg.GetModelForAgent("query")
+
+	// Dependency Graph Integration
+	// We build the graph and find relevant context to prepend to the message
+	// This is a simple MVP integration
+	if os.Getenv("CHUCHU_NO_GRAPH") != "1" {
+		if os.Getenv("CHUCHU_DEBUG") == "1" {
+			fmt.Fprintln(os.Stderr, "[GRAPH] Building dependency graph...")
+		}
+
+	// Build graph
+	builder := graph.NewBuilder(cwd)
+	if g, err := builder.Build(); err == nil {
+		if os.Getenv("CHUCHU_DEBUG") == "1" {
+			fmt.Fprintf(os.Stderr, "[GRAPH] Built graph: %d nodes, %d edges\n", len(g.Nodes), countEdges(g))
+		}
+		g.PageRank(0.85, 20)
+
+		// Optimize context
+		optimizer := graph.NewOptimizer(g)
+		maxFiles := setup.Defaults.GraphMaxFiles
+		if maxFiles == 0 {
+			maxFiles = 5 // default
+		}
+		relevantFiles := optimizer.OptimizeContext(lastUserMessage, maxFiles)
+
+			if len(relevantFiles) > 0 {
+				if os.Getenv("CHUCHU_DEBUG") == "1" {
+					fmt.Fprintf(os.Stderr, "[GRAPH] Selected %d files:\n", len(relevantFiles))
+					for i, f := range relevantFiles {
+						fmt.Fprintf(os.Stderr, "[GRAPH]   %d. %s (score: %.3f)\n", i+1, f, g.Nodes[g.Paths[f]].Score)
+					}
+				}
+
+				// Read file contents
+				var contextBuilder strings.Builder
+				contextBuilder.WriteString("\n\n[Context from Dependency Graph]\n")
+
+				for _, file := range relevantFiles {
+					content, err := os.ReadFile(filepath.Join(cwd, file))
+					if err == nil {
+						text := string(content)
+						
+						// Smart truncation: keep ~3000 chars (rough ~750 tokens)
+						// For large files, try to keep relevant parts (imports + key functions)
+						if len(text) > 3000 {
+							lines := strings.Split(text, "\n")
+							
+							// Keep first 30 lines (imports, package decl)
+							head := strings.Join(lines[:min(30, len(lines))], "\n")
+							
+							// Keep last 20 lines (often important functions)
+							tailStart := max(30, len(lines)-20)
+							tail := strings.Join(lines[tailStart:], "\n")
+							
+							text = fmt.Sprintf("%s\n\n... (%d lines omitted) ...\n\n%s", head, len(lines)-50, tail)
+						}
+						
+						contextBuilder.WriteString(fmt.Sprintf("File: %s\n```\n%s\n```\n", file, text))
+					}
+				}
+
+				// Append to the last user message
+				// We modify the history in place
+				history.Messages[len(history.Messages)-1].Content += contextBuilder.String()
+			}
+		} else {
+			if os.Getenv("CHUCHU_DEBUG") == "1" {
+				fmt.Fprintf(os.Stderr, "[GRAPH] Failed to build graph: %v\n", err)
+			}
+		}
+	}
 
 	coordinator := agents.NewCoordinator(provider, orchestrator, cwd, routerModel, editorModel, queryModel, researchModel)
 
@@ -231,4 +303,12 @@ func truncateHistory(messages []llm.ChatMessage, maxMessages int) []llm.ChatMess
 	// Always keep the system prompt if it exists (though usually it's added later)
 	// For now, just keep the last N messages
 	return messages[len(messages)-maxMessages:]
+}
+
+func countEdges(g *graph.Graph) int {
+	count := 0
+	for _, edges := range g.OutEdges {
+		count += len(edges)
+	}
+	return count
 }
