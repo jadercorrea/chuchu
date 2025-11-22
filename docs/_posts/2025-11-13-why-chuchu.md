@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Why Chuchu? Building an Affordable AI Coding Assistant"
-date: 2024-11-13
-author: Jader Corrêa
+date: 2025-11-13
+author: Jader Correa
 ---
 
 # Why Chuchu? Building an Affordable AI Coding Assistant
@@ -125,6 +125,6 @@ Join us in making AI coding assistance accessible to everyone.
 
 ## See Also
 
-- [Groq Optimal Configurations](2024-11-18-groq-optimal-configs) - Budget-friendly model setups
-- [OpenRouter Setup](2024-11-20-openrouter-multi-provider) - Access premium models like Claude 4.5 and Grok 4.1
-- [Ollama Local Setup](2024-11-19-ollama-local-setup) - Run completely offline for $0/month
+- [Groq Optimal Configurations](2025-11-15-groq-optimal-configs) - Budget-friendly model setups
+- [OpenRouter Setup](2025-11-16-openrouter-multi-provider) - Access premium models like Claude 4.5 and Grok 4.1
+- [Ollama Local Setup](2025-11-17-ollama-local-setup) - Run completely offline for $0/month

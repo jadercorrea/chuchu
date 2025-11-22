@@ -1,0 +1,127 @@
+name: Continuous Delivery
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update-models:
+    name: Update Model Catalog
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+      
+      - name: Build chu CLI
+        run: go build -o bin/chu ./cmd/chu
+      
+      - name: Update model catalog
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # Models will be saved to ~/.chuchu/models.json
+          mkdir -p ~/.chuchu
+          ./bin/chu models update || echo "Model update completed with warnings"
+      
+      - name: Export models for web
+        run: |
+          go run scripts/export-models-for-web.go
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code docs/compare/data/models.json || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/compare/data/models.json
+          git commit -m "chore: update model catalog [skip ci]"
+          git push
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+      
+      - name: Run tests
+        run: go test -v ./...
+      
+      - name: Build binaries
+        run: |
+          # Build for multiple platforms
+          GOOS=linux GOARCH=amd64 go build -o bin/chu-linux-amd64 ./cmd/chu
+          GOOS=linux GOARCH=arm64 go build -o bin/chu-linux-arm64 ./cmd/chu
+          GOOS=darwin GOARCH=amd64 go build -o bin/chu-darwin-amd64 ./cmd/chu
+          GOOS=darwin GOARCH=arm64 go build -o bin/chu-darwin-arm64 ./cmd/chu
+          GOOS=windows GOARCH=amd64 go build -o bin/chu-windows-amd64.exe ./cmd/chu
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.ref }}^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREV_TAG}..${{ github.ref }})
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            ## Changes
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Installation
+            Download the appropriate binary for your system and add it to your PATH.
+            
+            ### Verify Installation
+            ```bash
+            chu --version
+            ```
+          files: |
+            bin/chu-linux-amd64
+            bin/chu-linux-arm64
+            bin/chu-darwin-amd64
+            bin/chu-darwin-arm64
+            bin/chu-windows-amd64.exe
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

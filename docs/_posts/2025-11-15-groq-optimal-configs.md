@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Optimal Groq Configurations for Different Budgets"
-date: 2024-11-18
-author: Jader Corrêa
+date: 2025-11-15
+author: Jader Correa
 tags: [configuration, groq, optimization, cost]
 ---
 

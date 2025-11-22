@@ -91,6 +91,6 @@ Each command starts with fresh context, preventing pollution.
 
 ## Related Posts
 
-- [Context Engineering for Real Codebases]({% post_url 2024-11-15-context-engineering-for-real-codebases %})
-- [Profile Management]({% post_url 2024-12-15-profile-management %})
-- [Groq Optimal Configurations]({% post_url 2024-11-18-groq-optimal-configs %})
+- [Context Engineering for Real Codebases]({% post_url 2025-11-14-context-engineering-for-real-codebases %})
+- [Profile Management]({% post_url 2025-11-21-profile-management %})
+- [Groq Optimal Configurations]({% post_url 2025-11-15-groq-optimal-configs %})

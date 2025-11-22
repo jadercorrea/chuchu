@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Profile Management: Multiple Configurations per Backend"
-date: 2024-12-15
+date: 2025-11-21
 categories: features configuration
 ---
 
@@ -253,9 +253,9 @@ Planned features:
 
 ## Related Posts
 
-- [Groq Optimal Configurations]({% post_url 2024-11-18-groq-optimal-configs %})
-- [OpenRouter Multi-Provider Setup]({% post_url 2024-11-20-openrouter-multi-provider %})
-- [Ollama Local Setup]({% post_url 2024-11-19-ollama-local-setup %})
+- [Groq Optimal Configurations]({% post_url 2025-11-15-groq-optimal-configs %})
+- [OpenRouter Multi-Provider Setup]({% post_url 2025-11-16-openrouter-multi-provider %})
+- [Ollama Local Setup]({% post_url 2025-11-17-ollama-local-setup %})
 
 ---
 

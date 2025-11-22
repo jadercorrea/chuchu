@@ -1,0 +1,201 @@
+{
+  "models": [
+    {
+      "id": "groq/llama-3.3-70b-versatile",
+      "name": "Llama 3.3 70B Versatile",
+      "provider": "groq",
+      "family": "llama",
+      "parameters": "70B",
+      "context_window": 128000,
+      "pricing_prompt_per_m_tokens": 0.59,
+      "pricing_completion_per_m_tokens": 0.79,
+      "speed_tokens_per_sec": 500,
+      "benchmarks": {
+        "humaneval": 82.4,
+        "swe_bench": 38.2,
+        "livecode": 75.1,
+        "aime": 70.5
+      },
+      "tags": ["fast", "reasoning", "open-source"],
+      "recommended_for": ["router", "query"],
+      "supports_tools": true,
+      "supports_json": true,
+      "released_at": "2024-12-01"
+    },
+    {
+      "id": "openrouter/anthropic/claude-4.5-sonnet",
+      "name": "Claude 4.5 Sonnet",
+      "provider": "openrouter",
+      "family": "claude",
+      "parameters": "Unknown",
+      "context_window": 200000,
+      "pricing_prompt_per_m_tokens": 3.0,
+      "pricing_completion_per_m_tokens": 15.0,
+      "speed_tokens_per_sec": 85,
+      "benchmarks": {
+        "humaneval": 92.0,
+        "swe_bench": 49.0,
+        "livecode": 88.6,
+        "aime": 88.7
+      },
+      "tags": ["quality", "reasoning", "proprietary"],
+      "recommended_for": ["editor", "research"],
+      "supports_tools": true,
+      "supports_json": true,
+      "released_at": "2024-10-22"
+    },
+    {
+      "id": "openrouter/openai/gpt-4o",
+      "name": "GPT-4o",
+      "provider": "openrouter",
+      "family": "gpt",
+      "parameters": "Unknown",
+      "context_window": 128000,
+      "pricing_prompt_per_m_tokens": 2.5,
+      "pricing_completion_per_m_tokens": 10.0,
+      "speed_tokens_per_sec": 120,
+      "benchmarks": {
+        "humaneval": 90.2,
+        "swe_bench": 48.9,
+        "livecode": 85.4,
+        "aime": 83.3
+      },
+      "tags": ["quality", "balanced", "proprietary"],
+      "recommended_for": ["editor", "query", "research"],
+      "supports_tools": true,
+      "supports_json": true,
+      "released_at": "2024-05-13"
+    },
+    {
+      "id": "openrouter/google/gemini-2.0-flash-exp:free",
+      "name": "Gemini 2.0 Flash (Free)",
+      "provider": "openrouter",
+      "family": "gemini",
+      "parameters": "Unknown",
+      "context_window": 1000000,
+      "pricing_prompt_per_m_tokens": 0.0,
+      "pricing_completion_per_m_tokens": 0.0,
+      "speed_tokens_per_sec": 200,
+      "benchmarks": {
+        "humaneval": 71.9,
+        "swe_bench": 28.3,
+        "livecode": 62.1,
+        "aime": 58.0
+      },
+      "tags": ["free", "fast", "large-context"],
+      "recommended_for": ["router", "query"],
+      "supports_tools": true,
+      "supports_json": true,
+      "released_at": "2024-12-11"
+    },
+    {
+      "id": "groq/llama-3.1-8b-instant",
+      "name": "Llama 3.1 8B Instant",
+      "provider": "groq",
+      "family": "llama",
+      "parameters": "8B",
+      "context_window": 128000,
+      "pricing_prompt_per_m_tokens": 0.05,
+      "pricing_completion_per_m_tokens": 0.08,
+      "speed_tokens_per_sec": 800,
+      "benchmarks": {
+        "humaneval": 72.6,
+        "swe_bench": 25.7,
+        "livecode": 58.3,
+        "aime": 48.2
+      },
+      "tags": ["fast", "budget", "open-source"],
+      "recommended_for": ["router"],
+      "supports_tools": true,
+      "supports_json": true,
+      "released_at": "2024-07-23"
+    },
+    {
+      "id": "ollama/qwen2.5-coder:7b",
+      "name": "Qwen 2.5 Coder 7B",
+      "provider": "ollama",
+      "family": "qwen",
+      "parameters": "7B",
+      "context_window": 32768,
+      "pricing_prompt_per_m_tokens": 0.0,
+      "pricing_completion_per_m_tokens": 0.0,
+      "speed_tokens_per_sec": 45,
+      "benchmarks": {
+        "humaneval": 88.0,
+        "swe_bench": 35.2,
+        "livecode": 70.8,
+        "aime": 55.4
+      },
+      "tags": ["local", "free", "coding-focused", "open-source"],
+      "recommended_for": ["editor"],
+      "supports_tools": false,
+      "supports_json": true,
+      "released_at": "2024-11-01",
+      "installed": true
+    },
+    {
+      "id": "openrouter/deepseek/deepseek-chat",
+      "name": "DeepSeek Chat",
+      "provider": "openrouter",
+      "family": "deepseek",
+      "parameters": "67B",
+      "context_window": 64000,
+      "pricing_prompt_per_m_tokens": 0.14,
+      "pricing_completion_per_m_tokens": 0.28,
+      "speed_tokens_per_sec": 180,
+      "benchmarks": {
+        "humaneval": 84.1,
+        "swe_bench": 40.6,
+        "livecode": 73.2,
+        "aime": 65.7
+      },
+      "tags": ["budget", "reasoning", "open-source"],
+      "recommended_for": ["query", "editor"],
+      "supports_tools": true,
+      "supports_json": true,
+      "released_at": "2024-11-15"
+    },
+    {
+      "id": "openrouter/x-ai/grok-beta",
+      "name": "Grok Beta",
+      "provider": "openrouter",
+      "family": "grok",
+      "parameters": "Unknown",
+      "context_window": 131072,
+      "pricing_prompt_per_m_tokens": 5.0,
+      "pricing_completion_per_m_tokens": 15.0,
+      "speed_tokens_per_sec": 150,
+      "benchmarks": {
+        "humaneval": 87.5,
+        "swe_bench": 43.8,
+        "livecode": 78.9,
+        "aime": 74.2
+      },
+      "tags": ["quality", "reasoning", "proprietary"],
+      "recommended_for": ["research", "editor"],
+      "supports_tools": true,
+      "supports_json": true,
+      "released_at": "2024-12-01"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2025-11-22T14:50:00Z",
+    "version": "1.0.0",
+    "total_models": 8,
+    "sources": [
+      "OpenRouter API",
+      "Groq API",
+      "Ollama Library",
+      "HumanEval public benchmarks",
+      "LiveCodeBench leaderboard",
+      "SWE-Bench leaderboard",
+      "AIME results"
+    ],
+    "benchmarks_info": {
+      "humaneval": "Code completion accuracy (0-100)",
+      "swe_bench": "Real bug fixing success rate (0-100)",
+      "livecode": "Competitive programming (0-100)",
+      "aime": "Math and logic for coding (0-100)"
+    }
+  }
+}

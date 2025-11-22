@@ -1,0 +1,75 @@
+---
+layout: default
+---
+
+<article class="post">
+  <header class="post-header">
+    <h1 class="post-title">{{ page.title }}</h1>
+    <div class="post-meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">
+        {{ page.date | date: "%b %d, %Y" }}
+      </time>
+      {% if page.author %}
+        <span class="post-author">• {{ page.author }}</span>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="post-content">
+    {{ content }}
+  </div>
+
+  <footer class="post-footer">
+    <a href="{{ '/blog' | relative_url }}" class="back-to-blog">← Back to Blog</a>
+  </footer>
+</article>
+
+<style>
+.post {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.post-header {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.post-title {
+  margin-top: 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.post-meta {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.post-author {
+  margin-left: var(--spacing-xs);
+}
+
+.post-content {
+  margin-bottom: var(--spacing-xl);
+}
+
+.post-content h1 {
+  display: none; /* Hide duplicate H1 from markdown */
+}
+
+.post-footer {
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.back-to-blog {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.back-to-blog:hover {
+  color: var(--color-primary);
+}
+</style>

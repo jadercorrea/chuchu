@@ -2,7 +2,7 @@
 layout: post
 title: "ML-Powered Intelligence: 500x Faster, 80% Cheaper"
 date: 2025-11-22
-author: Jader Corrêa
+author: Jader Correa
 tags: [machine-learning, performance, cost-optimization]
 ---
 
@@ -276,5 +276,5 @@ But the foundation is here today: fast, cheap, accurate routing powered by embed
 ## See Also
 
 - [Full ML Features Documentation](../ml-features) - Technical deep dive
-- [Groq Optimal Configurations](2024-11-18-groq-optimal-configs) - Combine ML routing with cheap Groq models
+- [Groq Optimal Configurations](2025-11-15-groq-optimal-configs) - Combine ML routing with cheap Groq models
 - [Cost Optimization](../commands#configuration) - Additional cost-saving strategies

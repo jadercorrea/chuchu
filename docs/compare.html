@@ -1,0 +1,115 @@
+---
+layout: default
+title: Model Comparison
+permalink: /compare/
+---
+
+<link rel="stylesheet" href="{{ '/assets/css/compare.css' | relative_url }}">
+
+<div class="compare-page">
+<h1>Model Comparison</h1>
+<p class="subtitle">Find the best LLM for your coding assistant</p>
+
+<div class="container">
+    <!-- Filters Section -->
+    <section class="filters">
+        <div class="filter-group">
+            <label>Provider</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" value="groq" checked> Groq</label>
+                <label><input type="checkbox" value="openrouter" checked> OpenRouter</label>
+                <label><input type="checkbox" value="ollama" checked> Ollama</label>
+                <label><input type="checkbox" value="openai" checked> OpenAI</label>
+                <label><input type="checkbox" value="deepseek" checked> DeepSeek</label>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label>Cost Tier</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" value="free" checked> Free</label>
+                <label><input type="checkbox" value="budget" checked> Budget (<$1/M)</label>
+                <label><input type="checkbox" value="mid" checked> Mid ($1-5/M)</label>
+                <label><input type="checkbox" value="premium" checked> Premium (>$5/M)</label>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label>Role</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" value="router" checked> Router</label>
+                <label><input type="checkbox" value="query" checked> Query</label>
+                <label><input type="checkbox" value="editor" checked> Editor</label>
+                <label><input type="checkbox" value="research" checked> Research</label>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label>Sort By</label>
+            <select id="sort-select">
+                <option value="cost-asc">Cost (Low to High)</option>
+                <option value="cost-desc">Cost (High to Low)</option>
+                <option value="speed-desc">Speed (Fastest)</option>
+                <option value="humaneval-desc">HumanEval Score</option>
+                <option value="context-desc">Context Window</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Model Cards -->
+    <section class="model-grid" id="model-grid">
+        <!-- Cards inserted by JavaScript -->
+    </section>
+
+    <!-- Comparison Section -->
+    <section class="comparison-section" id="comparison-section" style="display: none;">
+        <div class="comparison-header">
+            <h2>Model Comparison</h2>
+            <button id="clear-comparison">Clear All</button>
+        </div>
+        <div class="comparison-table" id="comparison-table">
+            <!-- Table inserted by JavaScript -->
+        </div>
+    </section>
+
+    <!-- Cost Calculator -->
+    <section class="cost-calculator">
+        <h2>Monthly Cost Calculator</h2>
+        <p class="description">Estimate your monthly API costs based on typical usage</p>
+        
+        <div class="calculator-inputs">
+            <div class="input-group">
+                <label>Requests per day</label>
+                <input type="number" id="requests-per-day" value="100" min="0">
+            </div>
+            <div class="input-group">
+                <label>Avg tokens per request</label>
+                <input type="number" id="tokens-per-request" value="1000" min="0">
+            </div>
+            <div class="input-group">
+                <label>Agent distribution</label>
+                <div class="agent-breakdown">
+                    <span>Router: 5%</span>
+                    <span>Query: 60%</span>
+                    <span>Editor: 30%</span>
+                    <span>Research: 5%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="calculator-results" id="calculator-results">
+            <!-- Results inserted by JavaScript -->
+        </div>
+    </section>
+</div>
+
+<div class="compare-footer">
+    <p>Data sourced from OpenRouter, Groq, Ollama, and public benchmarks.</p>
+    <p>Last updated: <span id="last-updated"></span></p>
+</div>
+</div>
+
+<script src="{{ '/assets/js/compare.js' | relative_url }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', init);
+</script>

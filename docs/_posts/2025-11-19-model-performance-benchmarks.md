@@ -9,8 +9,8 @@ title: "Model Performance Benchmarks: Real-World Coding Comparisons"
 
 **Important**: AI models evolve rapidly. These benchmarks are approximate and represent general trends, not precise measurements. Model availability and performance can change. We recommend:
 1. Testing models with your specific workload
-2. Checking [Groq configurations]({% post_url 2024-11-18-groq-optimal-configs %}) for current recommendations
-3. Exploring [OpenRouter guide]({% post_url 2024-11-20-openrouter-multi-provider %}) for latest models
+2. Checking [Groq configurations]({% post_url 2025-11-15-groq-optimal-configs %}) for current recommendations
+3. Exploring [OpenRouter guide]({% post_url 2025-11-16-openrouter-multi-provider %}) for latest models
 4. Using `chu models search` to discover available models
 
 ## Speed vs Quality Trade-offs
@@ -97,4 +97,4 @@ chu models search free coding
 chu models search --agent editor openrouter
 ```
 
-See our [detailed configuration guides]({% post_url 2024-11-18-groq-optimal-configs %}) for setup instructions and cost breakdowns.
+See our [detailed configuration guides]({% post_url 2025-11-15-groq-optimal-configs %}) for setup instructions and cost breakdowns.

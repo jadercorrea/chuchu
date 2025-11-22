@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Running Chuchu Completely Offline with Ollama"
-date: 2024-11-19
-author: Jader Corrêa
+date: 2025-11-17
+author: Jader Correa
 tags: [configuration, ollama, local, privacy, offline]
 ---
 
@@ -232,7 +232,7 @@ backend:
 - **Ollama**: Privacy-sensitive code, unlimited usage, working offline
 - **Groq**: Need faster inference, larger context, better quality for critical tasks
 
-See our [Hybrid Cloud/Local guide](2024-12-06-hybrid-cloud-local) for detailed switching strategies.
+See our [Hybrid Cloud/Local guide](2025-11-18-hybrid-cloud-local) for detailed switching strategies.
 
 ## Troubleshooting
 

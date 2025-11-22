@@ -1,13 +1,13 @@
 ---
 layout: post
 title: "Context Engineering: Making AI Work in Real Codebases"
-date: 2024-11-15
-author: Jader Corrêa
+date: 2025-11-14
+author: Jader Correa
 ---
 
 # Context Engineering: Making AI Work in Real Codebases
 
-In the [previous post]({% post_url 2024-11-13-why-chuchu %}), we talked about **why** Chuchu exists—making AI coding assistance affordable. Now let's talk about **how** to actually make it work in production codebases.
+In the [previous post]({% post_url 2025-11-13-why-chuchu %}), we talked about **why** Chuchu exists—making AI coding assistance affordable. Now let's talk about **how** to actually make it work in production codebases.
 
 ## The Real Problem
 

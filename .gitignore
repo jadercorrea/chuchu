@@ -46,3 +46,4 @@ ml/intent/models/*.json
 ml/intent/data/training_data.csv
 ml/intent/venv/
 ml/intent/__pycache__/
+docs/_site/

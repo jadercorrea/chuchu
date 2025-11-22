@@ -12,7 +12,7 @@ Chuchu (pronounced "shoo-shoo", Brazilian slang for something small and cute) is
 
 **Radically affordable**: Use Groq for $2-5/month or Ollama for **$0/month**. Compare that to $20-30/month subscriptions.
 
-[Read the full story →](https://jadercorrea.github.io/chuchu/blog/2025-01-19-why-chuchu)
+[Read the full story →](https://jadercorrea.github.io/chuchu/blog/2025-11-13-why-chuchu)
 
 ## ✨ Features
 
@@ -312,7 +312,7 @@ backend:
           research: groq/compound
 ```
 
-[See more configurations →](https://jadercorrea.github.io/chuchu/blog/2025-01-18-groq-optimal-configs)
+[See more configurations →](https://jadercorrea.github.io/chuchu/blog/2025-11-15-groq-optimal-configs)
 
 ## 🏗️ Architecture
 
@@ -328,6 +328,62 @@ Each agent can use a different model, optimizing for cost vs capability.
 ## 🤝 Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 📝 Documentation & Blog
+
+The website and blog are built with Jekyll and hosted on GitHub Pages.
+
+### Running Locally
+
+```bash
+cd docs
+bundle install
+bundle exec jekyll serve --port 4040
+```
+
+Site will be available at `http://localhost:4040/`
+
+### Writing Blog Posts
+
+1. Create a new post in `docs/_posts/`:
+   - Filename format: `YYYY-MM-DD-title-slug.md`
+   - Example: `2025-11-22-ml-powered-intelligence.md`
+
+2. Add front matter:
+   ```yaml
+   ---
+   layout: post
+   title: "Your Post Title"
+   date: 2025-11-22
+   author: Jader Correa
+   tags: [tag1, tag2]
+   ---
+   ```
+
+3. Write content in Markdown
+
+4. Test locally:
+   ```bash
+   cd docs
+   bundle exec jekyll serve --port 4040
+   ```
+
+5. Submit via Pull Request
+
+### Deployment
+
+The site auto-deploys via GitHub Actions when changes are merged to `main`.
+
+**Pull Request Process:**
+1. Fork the repository
+2. Create a branch: `git checkout -b blog/your-post-title`
+3. Add your post in `docs/_posts/`
+4. Commit: `git commit -m "Add blog post: Your Title"`
+5. Push: `git push origin blog/your-post-title`
+6. Open Pull Request on GitHub
+7. After review and merge, post goes live automatically
+
+**Note:** Posts with future dates won't appear until that date.
 
 ## 📝 License
 
