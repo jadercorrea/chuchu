@@ -841,8 +841,8 @@ function M.show_model_picker(callback, agent, backend)
             and "[FREE]" 
             or string.format("$%.2f/$%.2f", price_in, price_out)
           
-          local line = string.format("%s%s%s %s",
-            name_with_rec, padding, price_display,
+          local line = string.format("%d. %s%s%s %s",
+            i, name_with_rec, padding, price_display,
             ctx_str ~= "" and string.format("(%s)", ctx_str) or "")
           table.insert(options, line)
         end
