@@ -66,9 +66,9 @@ func (e *Emitter) Emit(eventType EventType, data map[string]interface{}) error {
 	
 	f, err := os.OpenFile(e.eventLog, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err == nil {
-		fmt.Fprintf(f, "%s\n", string(jsonBytes))
-		f.Sync()
-		f.Close()
+		_, _ = fmt.Fprintf(f, "%s\n", string(jsonBytes))
+		_ = f.Sync()
+		_ = f.Close()
 	}
 	
 	return nil
