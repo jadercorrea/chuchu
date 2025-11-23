@@ -39,9 +39,10 @@ General execution:
   chu run "task"           - Execute tasks: HTTP requests, CLI commands, devops
 
 Workflow modes (research → plan → implement):
-  chu research "question"  - Document codebase and understand architecture
-  chu plan "task"          - Create detailed implementation plan
-  chu implement plan.md    - Execute plan phase-by-phase with verification
+  chu research \"question\"  - Document codebase and understand architecture
+  chu plan \"task\"          - Create detailed implementation plan
+  chu implement plan.md    - Execute plan step-by-step (interactive)
+  chu implement plan.md --auto  - Autonomous execution with verification
 
 Code quality:
   chu review [target]      - Review code for bugs, security, and improvements
@@ -740,18 +741,6 @@ Example: chu plan "Add user authentication"`,
 	},
 }
 
-var implementCmd = &cobra.Command{
-	Use:   "implement <plan_file>",
-	Short: "Implement mode - execute plan with verification at each phase",
-	Long: `Implement mode executes an approved plan from ~/.chuchu/plans/ directory.
-Each phase is implemented and verified before proceeding.
-
-Example: chu implement ~/.chuchu/plans/2025-01-15-add-auth.md`,
-	Args:  cobra.MinimumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return modes.RunImplement(args[0])
-	},
-}
 
 var runCmd = &cobra.Command{
 	Use:   "run [task]",

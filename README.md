@@ -25,6 +25,30 @@ Chuchu (pronounced "shoo-shoo", Brazilian slang for something small and cute) is
 - **Auto-Install Models**: Discover and install 193+ Ollama models from Neovim
 - **Feedback & Learning**: Track model performance and improve recommendations
 
+## The Chuchu Way: Research → Plan → Implement
+
+Unlike traditional AI coding assistants that generate code immediately, Chuchu uses a structured workflow:
+
+```bash
+# 1. Research: Understand your codebase
+chu research "How does authentication work?"
+
+# 2. Plan: Create detailed implementation steps
+chu plan "Add password reset feature"
+
+# 3. Implement: Execute with verification
+chu implement plan.md              # Interactive (step-by-step)
+chu implement plan.md --auto       # Autonomous (fully automated)
+```
+
+**Why this matters:**
+- ✅ Context-aware changes that fit your codebase
+- ✅ Incremental verification at each step
+- ✅ Choose your control level (interactive or autonomous)
+- ✅ Lower costs through better planning
+
+📖 **[Read the Complete Workflow Guide](docs/workflow-guide.md)**
+
 ## Quick Start
 
 ### Installation
@@ -81,6 +105,9 @@ Add to your Neovim config:
   - Shows pricing, context window, tags, and installation status (✓)
   - Auto-install Ollama models
   - Set as default or use for current session
+- `<leader>ca` - Autonomous Execution (:ChuchuAuto)
+  - Execute implementation plans with verification
+  - Shows progress in real-time notifications
 
 ### ML-Powered Intelligence (Built-in)
 
@@ -170,6 +197,7 @@ chu chat "fix bug in authentication"
 
 ## Usage
 
+**📖 [Complete Workflow Guide](docs/workflow-guide.md)** - Learn the full research → plan → implement workflow
 
 ### Chat Mode
 
@@ -189,7 +217,46 @@ chu research "best practices for error handling in Go"
 
 ```bash
 chu plan "add user authentication with JWT"
-chu implement
+chu implement plan.md
+```
+
+### Autonomous Execution (Maestro)
+
+**Fully autonomous execution with verification and error recovery:**
+
+```bash
+# Execute a plan with automatic verification
+chu implement docs/plans/my-implementation.md --auto
+
+# With custom retry limit
+chu implement docs/plans/my-implementation.md --auto --max-retries 5
+
+# Resume from last checkpoint
+chu implement docs/plans/my-implementation.md --auto --resume
+
+# Enable lint verification (optional)
+chu implement docs/plans/my-implementation.md --auto --lint
+```
+
+**Interactive Mode (default):**
+- Prompts for confirmation before each step
+- Shows step details and context
+- Options: execute, skip, or quit
+- On error: choose to continue or stop
+
+**Autonomous Mode (`--auto`):**
+- Executes plan steps automatically
+- Verifies changes with build + tests (auto-detects language)
+- Automatic error recovery with intelligent retry
+- Checkpoints after each successful step
+- Rollback on failure
+- Language support: Go, TypeScript/JavaScript, Python, Elixir, Ruby
+- Optional lint verification (golangci-lint, eslint, ruff, rubocop, mix format)
+
+**Neovim Integration:**
+```vim
+:ChuchuAuto        " prompts for plan file and runs: chu implement <file> --auto
+" Or keymap: <leader>ca
 ```
 
 ### Backend Management

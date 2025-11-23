@@ -124,6 +124,37 @@ function M.setup(opts)
     M.switch_model()
   end, {})
 
+  vim.api.nvim_create_user_command("ChuchuAuto", function(opts)
+    local default = vim.fn.getcwd() .. "/docs/plans/maestro-autonomous-execution-plan.md"
+    vim.ui.input({ prompt = "Plan file:", default = default }, function(input)
+      if not input or input == "" then return end
+      local cmd = { "chu", "implement", input, "--auto" }
+      vim.fn.jobstart(cmd, {
+        stdout_buffered = true,
+        on_stdout = function(_, data)
+          if not data then return end
+          for _, line in ipairs(data) do
+            if line ~= "" then
+              vim.schedule(function()
+                vim.notify(line, vim.log.levels.INFO, { title = "Chuchu Implement" })
+              end)
+            end
+          end
+        end,
+        on_stderr = function(_, data)
+          if not data then return end
+          for _, line in ipairs(data) do
+            if line ~= "" then
+              vim.schedule(function()
+                vim.notify(line, vim.log.levels.WARN, { title = "Chuchu Implement" })
+              end)
+            end
+          end
+        end,
+      })
+    end)
+  end, { nargs = "?" })
+
   vim.api.nvim_create_user_command("ChuchuModelSearch", function()
     M.search_models()
   end, {})
@@ -161,6 +192,11 @@ function M.setup(opts)
     silent = true,
     noremap = true,
     desc = "Chuchu: toggle chat",
+  })
+  vim.keymap.set("n", "<leader>ca", ":ChuchuAuto<CR>", {
+    silent = true,
+    noremap = true,
+    desc = "Chuchu: autonomous implement",
   })
   vim.keymap.set("n", "<C-v>", ":ChuchuVerified<CR>", {
     silent = true,
