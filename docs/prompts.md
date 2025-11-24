@@ -8,6 +8,87 @@ description: System prompts, workflows, and best practices for Chuchu agents
 
 Chuchu uses carefully crafted system prompts for each agent and workflow. Understanding these helps you get better results.
 
+## Quick Navigation
+
+<div class="prompt-nav">
+  <a href="#research-mode">Research</a>
+  <a href="#plan-mode">Plan</a>
+  <a href="#agent-prompts">Agents</a>
+  <a href="#best-practices">Best Practices</a>
+  <a href="#common-patterns">Patterns</a>
+  <a href="#customizing-prompts">Customize</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+</div>
+
+<style>
+.prompt-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+.prompt-nav a {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.prompt-nav a:hover {
+  background: #8b5cf6;
+  color: white;
+  border-color: #8b5cf6;
+}
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.highlight:hover .copy-btn {
+  opacity: 1;
+}
+.copy-btn:hover {
+  background: #7c3aed;
+}
+.highlight {
+  position: relative;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre code').forEach(function(codeBlock) {
+    const button = document.createElement('button');
+    button.className = 'copy-btn';
+    button.textContent = 'Copy';
+    button.addEventListener('click', function() {
+      navigator.clipboard.writeText(codeBlock.textContent).then(function() {
+        button.textContent = 'Copied!';
+        setTimeout(function() {
+          button.textContent = 'Copy';
+        }, 2000);
+      });
+    });
+    codeBlock.parentElement.appendChild(button);
+  });
+});
+</script>
+
 ## Research Mode
 
 **Purpose**: Document codebase as-is without suggesting improvements.

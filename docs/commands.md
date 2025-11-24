@@ -7,6 +7,89 @@ description: Complete reference for all Chuchu CLI commands
 
 Complete guide to all `chu` commands and their usage.
 
+## Quick Navigation
+
+<div class="command-nav">
+  <a href="#setup-commands">Setup</a>
+  <a href="#interactive-modes">Interactive</a>
+  <a href="#workflow-commands-research--plan--implement">Workflow</a>
+  <a href="#code-quality">Review</a>
+  <a href="#feature-generation">Features</a>
+  <a href="#execution-mode">Run</a>
+  <a href="#machine-learning-commands">ML</a>
+  <a href="#dependency-graph-commands">Graph</a>
+  <a href="#configuration">Config</a>
+</div>
+
+<style>
+.command-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+.command-nav a {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.command-nav a:hover {
+  background: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
+}
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.highlight:hover .copy-btn {
+  opacity: 1;
+}
+.copy-btn:hover {
+  background: #357abd;
+}
+.highlight {
+  position: relative;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre code').forEach(function(codeBlock) {
+    const button = document.createElement('button');
+    button.className = 'copy-btn';
+    button.textContent = 'Copy';
+    button.addEventListener('click', function() {
+      navigator.clipboard.writeText(codeBlock.textContent).then(function() {
+        button.textContent = 'Copied!';
+        setTimeout(function() {
+          button.textContent = 'Copy';
+        }, 2000);
+      });
+    });
+    codeBlock.parentElement.appendChild(button);
+  });
+});
+</script>
+
 ---
 
 ## Setup Commands
