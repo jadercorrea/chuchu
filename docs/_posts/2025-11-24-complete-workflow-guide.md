@@ -2,7 +2,9 @@
 layout: post
 title: "Complete Workflow: From Feature Idea to Implementation"
 date: 2025-11-24
-categories: [guides, workflow]
+author: Jader Correa
+description: "Master Chuchu's three-phase workflow: Research codebase context, plan implementation steps, and execute interactively or autonomously with built-in verification."
+tags: [guides, workflow, best-practices, tutorial]
 ---
 
 # Complete Workflow: From Feature Idea to Implementation

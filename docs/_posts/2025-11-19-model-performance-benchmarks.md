@@ -1,13 +1,17 @@
 ---
-layout: default
+layout: post
 title: "Model Performance Benchmarks: Real-World Coding Comparisons"
+date: 2025-11-19
+author: Jader Correa
+description: "Real-world coding benchmarks comparing models on HumanEval, AIME, and speed metrics. Find the best models for your budget and use case."
+tags: [benchmarks, performance, models, comparison]
 ---
 
 # Model Performance Benchmarks: Real-World Coding Comparisons
 
-*November 27, 2024 - Updated January 2025*
+*Updated January 2025*
 
-**Important**: AI models evolve rapidly. These benchmarks are approximate and represent general trends, not precise measurements. Model availability and performance can change. We recommend:
+**Important**: AI models evolve rapidly.
 1. Testing models with your specific workload
 2. Checking [Groq configurations]({% post_url 2025-11-15-groq-optimal-configs %}) for current recommendations
 3. Exploring [OpenRouter guide]({% post_url 2025-11-16-openrouter-multi-provider %}) for latest models

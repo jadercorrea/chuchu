@@ -3,6 +3,7 @@ layout: post
 title: "ML-Powered Intelligence: 500x Faster, 92% Cheaper"
 date: 2025-11-22
 author: Jader Correa
+description: "Embedded ML models in Chuchu enable instant intent classification and complexity detection with zero API costs. 92% cheaper than commercial copilots."
 tags: [machine-learning, performance, cost-optimization]
 ---
 

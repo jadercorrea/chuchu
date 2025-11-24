@@ -3,6 +3,8 @@ layout: post
 title: "Context Engineering: Making AI Work in Real Codebases"
 date: 2025-11-14
 author: Jader Correa
+description: "Learn context engineering principles to make AI work effectively in production codebases. Proper context management enables handling 300k+ LOC repos with today's models."
+tags: [context-management, architecture, performance, best-practices]
 ---
 
 # Context Engineering: Making AI Work in Real Codebases

@@ -1,13 +1,15 @@
 ---
-layout: default
+layout: post
 title: "OpenRouter: Access to Premium Models in One Place"
+date: 2025-11-16
+author: Jader Correa
+description: "OpenRouter provides unified access to the best AI models from multiple providers through a single API, including Claude 4.5, Grok 4.1, and free tier models."
+tags: [configuration, openrouter, multi-provider, setup]
 ---
 
 # OpenRouter: Access to Premium Models in One Place
 
-*November 20, 2024*
-
-OpenRouter provides unified access to the best AI models from multiple providers through a single API. This means you can leverage Claude 4.5's reasoning, Grok's agentic capabilities, and GPT-OSS open models - all through one configuration.
+OpenRouter provides unified access to the best AI models from multiple providers through a single API.
 
 ## Why OpenRouter?
 

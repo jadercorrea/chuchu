@@ -2,7 +2,9 @@
 layout: post
 title: "Profile Management: Multiple Configurations per Backend"
 date: 2025-11-21
-categories: features configuration
+author: Jader Correa
+description: "Switch between multiple named configurations per backend. Create speed, quality, and free profiles to optimize your workflow without editing config files."
+tags: [features, configuration, profiles, productivity]
 ---
 
 Chuchu now supports **profiles** - multiple named configurations per backend. This lets you quickly switch between different model setups without editing configuration files.

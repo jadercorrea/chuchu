@@ -3,6 +3,8 @@ layout: post
 title: "Why Chuchu? Building an Affordable AI Coding Assistant"
 date: 2025-11-13
 author: Jader Correa
+description: "AI coding assistants cost $20-30/month. Chuchu offers TDD-first AI assistance for $2-5/month with Groq or $0/month with Ollama. Radically affordable without compromise."
+tags: [introduction, affordability, philosophy, open-source]
 ---
 
 # Why Chuchu? Building an Affordable AI Coding Assistant

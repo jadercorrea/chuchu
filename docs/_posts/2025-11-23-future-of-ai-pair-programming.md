@@ -1,11 +1,13 @@
 ---
-layout: default
+layout: post
 title: "The Future of AI Pair Programming: Beyond Autocomplete"
+date: 2025-11-23
+author: Jader Correa
+description: "From autocomplete to agentic coding to autonomous engineering. Exploring the future of AI-assisted development and Chuchu's roadmap toward Phase 3."
+tags: [vision, future, agentic-coding, roadmap]
 ---
 
 # The Future of AI Pair Programming: Beyond Autocomplete
-
-*December 11, 2024*
 
 **Note**: This post explores potential futures and vision, not committed roadmap features. Timelines and specific implementations may vary.
 

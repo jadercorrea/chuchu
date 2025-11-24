@@ -1,13 +1,15 @@
 ---
-layout: default
+layout: post
 title: "Switching Between Local and Cloud: Flexibility When You Need It"
+date: 2025-11-18
+author: Jader Correa
+description: "Switch between local Ollama models for privacy and cloud providers for power. Get the best of both worlds with Chuchu's flexible backend configuration."
+tags: [configuration, hybrid, cloud, local, strategy]
 ---
 
 # Switching Between Local and Cloud: Flexibility When You Need It
 
-*December 6, 2024*
-
-The debate between "Local AI" (privacy, free) and "Cloud AI" (intelligence, speed) is a false dichotomy. With Chuchu, you can **switch between both** based on your needs at any given moment.
+The debate between "Local AI" (privacy, free) and "Cloud AI" (intelligence, speed) is a false dichotomy.
 
 ## How It Works
 

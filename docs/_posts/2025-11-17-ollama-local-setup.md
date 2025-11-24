@@ -3,6 +3,7 @@ layout: post
 title: "Running Chuchu Completely Offline with Ollama"
 date: 2025-11-17
 author: Jader Correa
+description: "Run Chuchu completely offline with Ollama. Your code never leaves your machine. Zero cost per token, full privacy, no network latency."
 tags: [configuration, ollama, local, privacy, offline]
 ---
 

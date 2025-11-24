@@ -1,13 +1,15 @@
 ---
-layout: default
+layout: post
 title: "Advanced Context Management: Handling Large Repositories"
+date: 2025-11-20
+author: Jader Correa
+description: "Learn how Chuchu uses RAG, smart retrieval, and context optimization to handle large repositories without dumping your entire codebase into the prompt."
+tags: [context-management, advanced, optimization, rag]
 ---
 
 # Advanced Context Management: Handling Large Repositories
 
-*December 2, 2024*
-
-One of the biggest challenges in AI coding is the **Context Window**. Even with 128k token windows, dumping your entire repository into the prompt is slow, expensive, and often confuses the model. Chuchu uses **Smart Context Management** to solve this.
+One of the biggest challenges in AI coding is the **Context Window**.
 
 ## How Chuchu Manages Context
 

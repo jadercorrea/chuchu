@@ -3,6 +3,7 @@ layout: post
 title: "Optimal Groq Configurations for Different Budgets"
 date: 2025-11-15
 author: Jader Correa
+description: "Groq offers blazing-fast inference with LPU technology. Here are optimized agent model configurations for different budgets, from $20/month to $90/month."
 tags: [configuration, groq, optimization, cost]
 ---
 
