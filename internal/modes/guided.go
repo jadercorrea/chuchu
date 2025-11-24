@@ -128,7 +128,7 @@ func (g *GuidedMode) createDetailedPlan(ctx context.Context, task string, draft 
 		}
 	}
 
-	prompt := fmt.Sprintf(`Create a detailed implementation plan.
+	prompt := fmt.Sprintf(`Create a SIMPLE, DIRECT implementation plan.
 
 Task: %s
 
@@ -138,32 +138,27 @@ Draft outline:
 Codebase research:
 %s
 
-Create a structured plan with:
-# Implementation Plan
+IMPORTANT CONSTRAINTS:
+- Keep it MINIMAL - only what's strictly necessary
+- NO extra features, NO tests unless explicitly requested
+- NO scripts, NO automation unless asked
+- ONLY modify files that already exist OR that are explicitly requested
+- Focus on the EXACT task, nothing more
 
-## Problem Statement
-[What we're solving]
+Create a brief plan:
+# Plan
 
-## Current State
-[Relevant architecture/files]
+## What to do
+[1-2 sentences]
 
-## Proposed Changes
-### Phase 1: [Name]
-- Step 1
-- Step 2
+## Files to modify
+[List ONLY files that exist or are explicitly requested]
 
-### Phase 2: [Name]
-- Step 1
-- Step 2
-
-## Files to Create/Modify
-- path/to/file.ext: [purpose]
-
-## Testing Strategy
-[How to verify]`, task, draft, research)
+## Changes
+[Specific, minimal changes to make]`, task, draft, research)
 
 	resp, err := g.provider.Chat(ctx, llm.ChatRequest{
-		SystemPrompt: "You create detailed, actionable technical plans.",
+		SystemPrompt: "You create MINIMAL, DIRECT plans. Focus ONLY on what's asked. NO extra features.",
 		UserPrompt:   prompt,
 		Model:        g.model,
 	})
@@ -181,19 +176,21 @@ func (g *GuidedMode) Implement(ctx context.Context, plan string) error {
 		_ = g.events.Status(status)
 	}
 
-	implementPrompt := fmt.Sprintf(`Implement this approved technical plan:
+	implementPrompt := fmt.Sprintf(`Implement EXACTLY what this plan says - NOTHING MORE:
 
 ---
 %s
 ---
 
-Execute the plan step by step:
-1. Read all files mentioned in the plan
-2. Make the required code changes
-3. Verify changes work (read files to confirm)
-4. Create any new directories/files as specified
+RULES:
+- ONLY modify files explicitly listed in the plan
+- ONLY make the specific changes described
+- Do NOT create extra files (scripts, tests, configs) unless the plan says to
+- Do NOT add features not mentioned in the plan
+- If a file doesn't exist and isn't explicitly requested, DON'T create it
+- When done, stop - do NOT keep iterating
 
-Focus on making the actual code changes described in the plan.`, plan)
+Execute the plan directly and minimally.`, plan)
 
 	history := []llm.ChatMessage{
 		{Role: "user", Content: implementPrompt},
