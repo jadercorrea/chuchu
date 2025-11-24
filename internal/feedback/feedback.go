@@ -16,14 +16,14 @@ const (
 )
 
 type Event struct {
-	Timestamp   time.Time         `json:"timestamp"`
-	Sentiment   Sentiment         `json:"sentiment"`
-	Backend     string            `json:"backend"`
-	Model       string            `json:"model"`
-	Agent       string            `json:"agent"`
-	Task        string            `json:"task,omitempty"`
-	Context     string            `json:"context,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
+	Timestamp time.Time         `json:"timestamp"`
+	Sentiment Sentiment         `json:"sentiment"`
+	Backend   string            `json:"backend"`
+	Model     string            `json:"model"`
+	Agent     string            `json:"agent"`
+	Task      string            `json:"task,omitempty"`
+	Context   string            `json:"context,omitempty"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
 func GetFeedbackDir() string {
@@ -71,7 +71,7 @@ func Record(event Event) error {
 
 func LoadAll() ([]Event, error) {
 	dir := GetFeedbackDir()
-	
+
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -104,20 +104,20 @@ func LoadAll() ([]Event, error) {
 }
 
 type Stats struct {
-	TotalEvents      int                        `json:"total_events"`
-	GoodCount        int                        `json:"good_count"`
-	BadCount         int                        `json:"bad_count"`
-	ByBackend        map[string]BackendStats    `json:"by_backend"`
-	ByModel          map[string]ModelStats      `json:"by_model"`
-	ByAgent          map[string]AgentStats      `json:"by_agent"`
-	RecentEvents     []Event                    `json:"recent_events,omitempty"`
+	TotalEvents  int                     `json:"total_events"`
+	GoodCount    int                     `json:"good_count"`
+	BadCount     int                     `json:"bad_count"`
+	ByBackend    map[string]BackendStats `json:"by_backend"`
+	ByModel      map[string]ModelStats   `json:"by_model"`
+	ByAgent      map[string]AgentStats   `json:"by_agent"`
+	RecentEvents []Event                 `json:"recent_events,omitempty"`
 }
 
 type BackendStats struct {
-	Good    int     `json:"good"`
-	Bad     int     `json:"bad"`
-	Total   int     `json:"total"`
-	Ratio   float64 `json:"ratio"`
+	Good  int     `json:"good"`
+	Bad   int     `json:"bad"`
+	Total int     `json:"total"`
+	Ratio float64 `json:"ratio"`
 }
 
 type ModelStats struct {
@@ -210,13 +210,13 @@ func GetBestModels(agent string, minSamples int) []string {
 	}
 
 	stats := Analyze(events)
-	
+
 	type modelRating struct {
 		model string
 		ratio float64
 		total int
 	}
-	
+
 	var candidates []modelRating
 	for model, ms := range stats.ByModel {
 		if ms.Total >= minSamples {

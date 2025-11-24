@@ -55,7 +55,6 @@ func detectTemplateDir() string {
 	return "templates"
 }
 
-
 func LoadSetup() (*Setup, error) {
 	path := filepath.Join(configDir(), "setup.yaml")
 	b, err := os.ReadFile(path)
@@ -207,7 +206,7 @@ func interactiveSetup() *Setup {
 			if apiKey != "" {
 				envVar := strings.ToUpper(backendName) + "_API_KEY"
 				os.Setenv(envVar, apiKey)
-				
+
 				if err := saveAPIKeyToProfile(envVar, apiKey); err != nil {
 					fmt.Fprintf(os.Stderr, "\nWarning: Could not auto-save to shell profile: %v\n", err)
 					fmt.Fprintf(os.Stderr, "Manually add: export %s=%s\n", envVar, apiKey)
@@ -270,27 +269,27 @@ func saveSetup(path string, setup *Setup) error {
 
 func GetAPIKey(backendName string) string {
 	envVar := strings.ToUpper(backendName) + "_API_KEY"
-	
+
 	if key := os.Getenv(envVar); key != "" {
 		return key
 	}
-	
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return ""
 	}
-	
+
 	keysPath := filepath.Join(home, ".chuchu", "keys.yaml")
 	data, err := os.ReadFile(keysPath)
 	if err != nil {
 		return ""
 	}
-	
+
 	var keys map[string]string
 	if err := yaml.Unmarshal(data, &keys); err != nil {
 		return ""
 	}
-	
+
 	return keys[backendName]
 }
 
@@ -299,21 +298,21 @@ func saveAPIKeyToKeysFile(backendName, apiKey string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	keysPath := filepath.Join(home, ".chuchu", "keys.yaml")
-	
+
 	keys := make(map[string]string)
 	if data, err := os.ReadFile(keysPath); err == nil {
-	_ = yaml.Unmarshal(data, &keys)
+		_ = yaml.Unmarshal(data, &keys)
 	}
-	
+
 	keys[backendName] = apiKey
-	
+
 	data, err := yaml.Marshal(keys)
 	if err != nil {
 		return err
 	}
-	
+
 	return os.WriteFile(keysPath, data, 0o600)
 }
 
@@ -322,27 +321,27 @@ func UpdateAPIKey(backendName string) error {
 	if err != nil {
 		return fmt.Errorf("could not load setup: %w", err)
 	}
-	
+
 	if _, ok := setup.Backend[backendName]; !ok {
 		return fmt.Errorf("backend %q not found in setup. Available: %v", backendName, getBackendNames(setup))
 	}
-	
+
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Fprintf(os.Stderr, "Enter API key for %s: ", backendName)
 	apiKey, _ := reader.ReadString('\n')
 	apiKey = strings.TrimSpace(apiKey)
-	
+
 	if apiKey == "" {
 		return fmt.Errorf("API key cannot be empty")
 	}
-	
+
 	if err := saveAPIKeyToKeysFile(backendName, apiKey); err != nil {
 		return fmt.Errorf("failed to save API key: %w", err)
 	}
-	
+
 	fmt.Fprintf(os.Stderr, "\n✓ API key saved to ~/.chuchu/keys.yaml\n")
 	fmt.Fprintf(os.Stderr, "  (with 0600 permissions for security)\n")
-	
+
 	return nil
 }
 
@@ -359,10 +358,10 @@ func saveAPIKeyToProfile(envVar, apiKey string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	shell := os.Getenv("SHELL")
 	var profilePath string
-	
+
 	if strings.Contains(shell, "zsh") {
 		profilePath = filepath.Join(home, ".zshrc")
 	} else if strings.Contains(shell, "bash") {
@@ -373,30 +372,30 @@ func saveAPIKeyToProfile(envVar, apiKey string) error {
 	} else {
 		return fmt.Errorf("unsupported shell: %s", shell)
 	}
-	
+
 	exportLine := fmt.Sprintf("export %s=%q\n", envVar, apiKey)
-	
+
 	if _, err := os.Stat(profilePath); err == nil {
 		content, err := os.ReadFile(profilePath)
 		if err != nil {
 			return err
 		}
-		
+
 		if strings.Contains(string(content), envVar) {
 			return fmt.Errorf("%s already exists in %s", envVar, profilePath)
 		}
 	}
-	
+
 	f, err := os.OpenFile(profilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	
+
 	if _, err := f.WriteString("\n# Chuchu API key\n" + exportLine); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 

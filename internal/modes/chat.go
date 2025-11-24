@@ -146,21 +146,21 @@ func Chat(input string, args []string) {
 			fmt.Fprintln(os.Stderr, "[GRAPH] Building dependency graph...")
 		}
 
-	// Build graph
-	builder := graph.NewBuilder(cwd)
-	if g, err := builder.Build(); err == nil {
-		if os.Getenv("CHUCHU_DEBUG") == "1" {
-			fmt.Fprintf(os.Stderr, "[GRAPH] Built graph: %d nodes, %d edges\n", len(g.Nodes), countEdges(g))
-		}
-		g.PageRank(0.85, 20)
+		// Build graph
+		builder := graph.NewBuilder(cwd)
+		if g, err := builder.Build(); err == nil {
+			if os.Getenv("CHUCHU_DEBUG") == "1" {
+				fmt.Fprintf(os.Stderr, "[GRAPH] Built graph: %d nodes, %d edges\n", len(g.Nodes), countEdges(g))
+			}
+			g.PageRank(0.85, 20)
 
-		// Optimize context
-		optimizer := graph.NewOptimizer(g)
-		maxFiles := setup.Defaults.GraphMaxFiles
-		if maxFiles == 0 {
-			maxFiles = 5 // default
-		}
-		relevantFiles := optimizer.OptimizeContext(lastUserMessage, maxFiles)
+			// Optimize context
+			optimizer := graph.NewOptimizer(g)
+			maxFiles := setup.Defaults.GraphMaxFiles
+			if maxFiles == 0 {
+				maxFiles = 5 // default
+			}
+			relevantFiles := optimizer.OptimizeContext(lastUserMessage, maxFiles)
 
 			if len(relevantFiles) > 0 {
 				if os.Getenv("CHUCHU_DEBUG") == "1" {
@@ -178,22 +178,22 @@ func Chat(input string, args []string) {
 					content, err := os.ReadFile(filepath.Join(cwd, file))
 					if err == nil {
 						text := string(content)
-						
+
 						// Smart truncation: keep ~3000 chars (rough ~750 tokens)
 						// For large files, try to keep relevant parts (imports + key functions)
 						if len(text) > 3000 {
 							lines := strings.Split(text, "\n")
-							
+
 							// Keep first 30 lines (imports, package decl)
 							head := strings.Join(lines[:min(30, len(lines))], "\n")
-							
+
 							// Keep last 20 lines (often important functions)
 							tailStart := max(30, len(lines)-20)
 							tail := strings.Join(lines[tailStart:], "\n")
-							
+
 							text = fmt.Sprintf("%s\n\n... (%d lines omitted) ...\n\n%s", head, len(lines)-50, tail)
 						}
-						
+
 						contextBuilder.WriteString(fmt.Sprintf("File: %s\n```\n%s\n```\n", file, text))
 					}
 				}

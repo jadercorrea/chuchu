@@ -2,24 +2,37 @@ package agents
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"chuchu/internal/llm"
 	"chuchu/internal/tools"
 )
 
 type EditorAgent struct {
-	provider llm.Provider
-	cwd      string
-	model    string
+	provider     llm.Provider
+	cwd          string
+	model        string
+	allowedFiles []string
 }
 
 func NewEditor(provider llm.Provider, cwd string, model string) *EditorAgent {
 	return &EditorAgent{
-		provider: provider,
-		cwd:      cwd,
-		model:    model,
+		provider:     provider,
+		cwd:          cwd,
+		model:        model,
+		allowedFiles: nil,
+	}
+}
+
+func NewEditorWithFileValidation(provider llm.Provider, cwd string, model string, allowedFiles []string) *EditorAgent {
+	return &EditorAgent{
+		provider:     provider,
+		cwd:          cwd,
+		model:        model,
+		allowedFiles: allowedFiles,
 	}
 }
 
@@ -201,6 +214,22 @@ func (e *EditorAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 			if statusCallback != nil {
 				statusCallback(fmt.Sprintf("Editor: Executing %s...", tc.Name))
 			}
+
+			if tc.Name == "write_file" {
+				var argsMap map[string]interface{}
+				if err := json.Unmarshal([]byte(tc.Arguments), &argsMap); err == nil {
+					if err := e.validateFileWrite(argsMap); err != nil {
+						messages = append(messages, llm.ChatMessage{
+							Role:       "tool",
+							Content:    fmt.Sprintf("Error: %s. Only modify files mentioned in the plan.", err.Error()),
+							Name:       tc.Name,
+							ToolCallID: tc.ID,
+						})
+						continue
+					}
+				}
+			}
+
 			result := tools.ExecuteToolFromLLM(llmCall, e.cwd)
 
 			content := result.Result
@@ -232,4 +261,26 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func (e *EditorAgent) validateFileWrite(args map[string]interface{}) error {
+	if e.allowedFiles == nil || len(e.allowedFiles) == 0 {
+		return nil
+	}
+
+	path, ok := args["path"].(string)
+	if !ok {
+		return nil
+	}
+
+	for _, allowed := range e.allowedFiles {
+		if path == allowed || strings.HasSuffix(allowed, path) || strings.Contains(allowed, path) {
+			return nil
+		}
+	}
+
+	return &FileValidationError{
+		Path:    path,
+		Message: fmt.Sprintf("File '%s' is not in the allowed list. Plan mentions: %v", path, e.allowedFiles),
+	}
 }

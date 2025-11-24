@@ -11,22 +11,22 @@ import (
 
 var (
 	HeaderStyle = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("12")).
-		MarginTop(1).
-		MarginBottom(1)
+			Bold(true).
+			Foreground(lipgloss.Color("12")).
+			MarginTop(1).
+			MarginBottom(1)
 
 	SeparatorStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240"))
+			Foreground(lipgloss.Color("240"))
 
 	SuccessStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("10")).
-		Bold(true)
+			Foreground(lipgloss.Color("10")).
+			Bold(true)
 
 	BoxStyle = lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		Padding(0, 1)
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("240")).
+			Padding(0, 1)
 )
 
 func GetTerminalWidth() int {
@@ -54,11 +54,11 @@ func CodeBlockBox(title, code string) string {
 	styledCode := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("14")).
 		Render(code)
-	
+
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("11"))
-	
+
 	content := fmt.Sprintf("%s\n\n%s", titleStyle.Render(title), styledCode)
 	return BoxStyle.Render(content)
 }

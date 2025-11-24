@@ -8,14 +8,14 @@ import (
 )
 
 type TaskExecution struct {
-	Timestamp   time.Time         `json:"timestamp"`
-	Task        string            `json:"task"`
-	Backend     string            `json:"backend"`
-	Model       string            `json:"model"`
-	Success     bool              `json:"success"`
-	Error       string            `json:"error,omitempty"`
-	Features    map[string]interface{} `json:"features,omitempty"`
-	LatencyMs   int64             `json:"latency_ms,omitempty"`
+	Timestamp time.Time              `json:"timestamp"`
+	Task      string                 `json:"task"`
+	Backend   string                 `json:"backend"`
+	Model     string                 `json:"model"`
+	Success   bool                   `json:"success"`
+	Error     string                 `json:"error,omitempty"`
+	Features  map[string]interface{} `json:"features,omitempty"`
+	LatencyMs int64                  `json:"latency_ms,omitempty"`
 }
 
 func RecordExecution(exec TaskExecution) error {
@@ -25,7 +25,7 @@ func RecordExecution(exec TaskExecution) error {
 	}
 
 	historyPath := filepath.Join(home, ".chuchu", "task_execution_history.jsonl")
-	
+
 	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -79,10 +79,10 @@ func GetRecentModelPerformance(taskType string, limit int) ([]ModelSuccess, erro
 	}
 
 	stats := make(map[string]*struct {
-		successes   int
-		total       int
-		backend     string
-		model       string
+		successes    int
+		total        int
+		backend      string
+		model        string
 		totalLatency int64
 		latencyCount int
 	})
@@ -91,13 +91,13 @@ func GetRecentModelPerformance(taskType string, limit int) ([]ModelSuccess, erro
 		key := exec.Backend + "/" + exec.Model
 		if stats[key] == nil {
 			stats[key] = &struct {
-			successes    int
-			total        int
-			backend      string
-			model        string
-			totalLatency int64
-			latencyCount int
-		}{backend: exec.Backend, model: exec.Model}
+				successes    int
+				total        int
+				backend      string
+				model        string
+				totalLatency int64
+				latencyCount int
+			}{backend: exec.Backend, model: exec.Model}
 		}
 		stats[key].total++
 		if exec.Success {

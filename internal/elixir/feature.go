@@ -44,7 +44,6 @@ func RunFeatureElixir(builder *prompt.Builder, provider llm.Provider, model stri
 		Hint: hint,
 	})
 
-
 	user := fmt.Sprintf(`You are Chuchu, a strict TDD-first coding assistant for Elixir.
 
 We are in a Mix project with:
@@ -75,20 +74,20 @@ CONSTRAINTS:
 
 3) Generate the following fenced blocks exactly:
 
-` + "```" + `tests
+`+"```"+`tests
 # path: %s
 # ExUnit tests for %s.%s
 # Cover at least:
 # - happy path(s)
 # - empty list or nil inputs (if relevant)
 # - any domain rules explicitly mentioned in the description
-` + "```" + `
+`+"```"+`
 
-` + "```" + `impl
+`+"```"+`impl
 # path: %s
 # Implementation of %s.%s module.
 # Use pure functions where possible.
-` + "```" + `
+`+"```"+`
 
 Do NOT use any other fences.
 Do NOT include explanations outside those blocks.

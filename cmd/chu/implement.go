@@ -31,11 +31,11 @@ Examples:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		planPath := args[0]
 		autoMode, _ := cmd.Flags().GetBool("auto")
-		
+
 		if autoMode {
 			return runAutonomousImplement(cmd, planPath)
 		}
-		
+
 		return runInteractiveImplement(planPath)
 	},
 }
@@ -137,7 +137,7 @@ func runInteractiveImplement(planPath string) error {
 	for i, step := range steps {
 		fmt.Fprintf(os.Stderr, "\033[34m─── Step %d/%d: %s ───\033[0m\n", i+1, len(steps), step.Title)
 		fmt.Fprintf(os.Stderr, "\n%s\n\n", strings.TrimSpace(step.Content))
-		
+
 		fmt.Fprint(os.Stderr, "Execute this step? [Y/n/q]: ")
 		response, _ := reader.ReadString('\n')
 		response = strings.ToLower(strings.TrimSpace(response))

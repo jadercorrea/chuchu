@@ -1,26 +1,26 @@
 package intelligence
 
 import (
+	"chuchu/internal/config"
 	"fmt"
 	"strings"
-	"chuchu/internal/config"
 )
 
 type ModelRecommendation struct {
-	Backend      string
-	Model        string
-	Reason       string
-	Confidence   float64
-	Score        float64
-	Metrics      RecommendationMetrics
+	Backend    string
+	Model      string
+	Reason     string
+	Confidence float64
+	Score      float64
+	Metrics    RecommendationMetrics
 }
 
 type RecommendationMetrics struct {
-	SuccessRate   float64
-	AvgLatencyMs  int64
-	CostPer1M     float64
-	Availability  float64
-	SpeedTPS      int
+	SuccessRate  float64
+	AvgLatencyMs int64
+	CostPer1M    float64
+	Availability float64
+	SpeedTPS     int
 }
 
 var modelsWithFunctionCalling = map[string]map[string][]string{
@@ -176,22 +176,22 @@ func getModelCost(backend, model string) float64 {
 	if strings.Contains(model, ":free") || strings.Contains(backend, "ollama") {
 		return 0.0
 	}
-	
+
 	costs := map[string]float64{
-		"gpt-4-turbo":                    0.01,
-		"gpt-4":                          0.03,
-		"claude-3.5-sonnet":              0.003,
-		"moonshotai/kimi-k2-instruct":    0.002,
-		"llama-3.3-70b-versatile":        0.00,
-		"qwen3-coder":                    0.00,
+		"gpt-4-turbo":                 0.01,
+		"gpt-4":                       0.03,
+		"claude-3.5-sonnet":           0.003,
+		"moonshotai/kimi-k2-instruct": 0.002,
+		"llama-3.3-70b-versatile":     0.00,
+		"qwen3-coder":                 0.00,
 	}
-	
+
 	for prefix, cost := range costs {
 		if strings.Contains(model, prefix) {
 			return cost
 		}
 	}
-	
+
 	return 0.001
 }
 
@@ -202,11 +202,11 @@ func getModelSpeed(backend, model string) int {
 		"openrouter": 300,
 		"openai":     400,
 	}
-	
+
 	if speed, ok := speeds[backend]; ok {
 		return speed
 	}
-	
+
 	return 300
 }
 

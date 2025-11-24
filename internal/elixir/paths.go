@@ -139,4 +139,3 @@ func PathsForSlug(p *Project, slug string) (testPath, implPath string) {
 	implPath = filepath.Join("lib", p.AppName, slug+".ex")
 	return
 }
-

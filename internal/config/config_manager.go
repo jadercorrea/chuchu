@@ -37,7 +37,7 @@ func SetConfig(key, value string) error {
 
 func getNestedValue(setup *Setup, key string) (interface{}, error) {
 	parts := strings.Split(key, ".")
-	
+
 	switch parts[0] {
 	case "defaults":
 		if len(parts) < 2 {
@@ -63,7 +63,7 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 		default:
 			return nil, fmt.Errorf("unknown defaults field: %s", parts[1])
 		}
-	
+
 	case "backend":
 		if len(parts) == 1 {
 			var backends []string
@@ -72,7 +72,7 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 			}
 			return backends, nil
 		}
-		
+
 		if len(parts) < 3 {
 			return nil, fmt.Errorf("backend key requires: backend.<name>.<field>")
 		}
@@ -81,7 +81,7 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 		if !ok {
 			return nil, fmt.Errorf("backend %s not found", backendName)
 		}
-		
+
 		switch parts[2] {
 		case "type":
 			return backend.Type, nil
@@ -92,7 +92,7 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 		default:
 			return nil, fmt.Errorf("unknown backend field: %s", parts[2])
 		}
-	
+
 	default:
 		return nil, fmt.Errorf("unknown config section: %s", parts[0])
 	}
@@ -100,7 +100,7 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 
 func setNestedValue(setup *Setup, key, value string) error {
 	parts := strings.Split(key, ".")
-	
+
 	switch parts[0] {
 	case "defaults":
 		if len(parts) < 2 {
@@ -144,7 +144,7 @@ func setNestedValue(setup *Setup, key, value string) error {
 		default:
 			return fmt.Errorf("unknown defaults field: %s", parts[1])
 		}
-	
+
 	case "backend":
 		if len(parts) < 3 {
 			return fmt.Errorf("backend key requires: backend.<name>.<field>")
@@ -154,7 +154,7 @@ func setNestedValue(setup *Setup, key, value string) error {
 		if !ok {
 			return fmt.Errorf("backend %s not found. Use 'chu backend create %s' first", backendName, backendName)
 		}
-		
+
 		switch parts[2] {
 		case "type":
 			backend.Type = value
@@ -165,13 +165,13 @@ func setNestedValue(setup *Setup, key, value string) error {
 		default:
 			return fmt.Errorf("unknown backend field: %s", parts[2])
 		}
-		
+
 		setup.Backend[backendName] = backend
-	
+
 	default:
 		return fmt.Errorf("unknown config section: %s", parts[0])
 	}
-	
+
 	return nil
 }
 
@@ -180,17 +180,17 @@ func CreateBackend(name, backendType, baseURL string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if _, exists := setup.Backend[name]; exists {
 		return fmt.Errorf("backend %s already exists", name)
 	}
-	
+
 	setup.Backend[name] = BackendConfig{
 		Type:    backendType,
 		BaseURL: baseURL,
 		Models:  make(map[string]string),
 	}
-	
+
 	return saveSetupConfig(setup)
 }
 
@@ -199,17 +199,17 @@ func DeleteBackend(name string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if _, exists := setup.Backend[name]; !exists {
 		return fmt.Errorf("backend %s does not exist", name)
 	}
-	
+
 	if setup.Defaults.Backend == name {
 		return fmt.Errorf("cannot delete backend %s: it is set as default", name)
 	}
-	
+
 	delete(setup.Backend, name)
-	
+
 	return saveSetupConfig(setup)
 }
 
@@ -218,12 +218,12 @@ func ListBackends() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var backends []string
 	for name := range setup.Backend {
 		backends = append(backends, name)
 	}
-	
+
 	return backends, nil
 }
 

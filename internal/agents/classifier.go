@@ -61,10 +61,10 @@ func (c *Classifier) ClassifyIntent(ctx context.Context, userMessage string) (In
 		if threshold == 0 {
 			threshold = 0.7
 		}
-		
+
 		label, probs := p.Predict(userMessage)
 		confidence := probs[label]
-		
+
 		if confidence >= threshold {
 			intent := mapMLLabelToIntent(label)
 			if intent != "" {
@@ -72,7 +72,7 @@ func (c *Classifier) ClassifyIntent(ctx context.Context, userMessage string) (In
 			}
 		}
 	}
-	
+
 	resp, err := c.provider.Chat(ctx, llm.ChatRequest{
 		SystemPrompt: routerPrompt,
 		UserPrompt:   userMessage,
@@ -102,7 +102,7 @@ func (c *Classifier) ClassifyIntent(ctx context.Context, userMessage string) (In
 
 func mapMLLabelToIntent(label string) Intent {
 	switch label {
-	 case "router":
+	case "router":
 		return IntentQuery
 	case "query":
 		return IntentQuery

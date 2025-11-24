@@ -56,9 +56,9 @@ func (p *Pricing) UnmarshalJSON(data []byte) error {
 }
 
 type TopProviderInfo struct {
-	ContextLength      int  `json:"context_length"`
+	ContextLength       int  `json:"context_length"`
 	MaxCompletionTokens int  `json:"max_completion_tokens"`
-	IsModerated        bool `json:"is_moderated"`
+	IsModerated         bool `json:"is_moderated"`
 }
 
 type ModelAPI struct {
@@ -79,14 +79,14 @@ type APIResponse struct {
 }
 
 type OllamaModel struct {
-	Name      string `json:"name"`
-	Model     string `json:"model"`
-	Size      int64  `json:"size"`
-	Digest    string `json:"digest"`
-	Details   struct {
-		Family        string   `json:"family"`
-		ParameterSize string   `json:"parameter_size"`
-		Format        string   `json:"format"`
+	Name    string `json:"name"`
+	Model   string `json:"model"`
+	Size    int64  `json:"size"`
+	Digest  string `json:"digest"`
+	Details struct {
+		Family        string `json:"family"`
+		ParameterSize string `json:"parameter_size"`
+		Format        string `json:"format"`
 	} `json:"details"`
 }
 
@@ -344,7 +344,7 @@ func fetchGroqModels(apiKey string) ([]ModelAPI, error) {
 		if apiResp.Data[i].Name == "" {
 			apiResp.Data[i].Name = apiResp.Data[i].ID
 		}
-		
+
 		if pricing, ok := pricingMap[apiResp.Data[i].ID]; ok {
 			apiResp.Data[i].Pricing = pricing
 		}
@@ -411,7 +411,7 @@ func scrapeGroqPricing() (map[string]Pricing, error) {
 		if !ok {
 			continue
 		}
-		
+
 		text, ok := data["text"].(string)
 		if !ok {
 			continue
@@ -543,7 +543,7 @@ func categorizeAndTagModels(sources []ModelSource) OutputJSON {
 				output.Groq.Models = append(output.Groq.Models, modelOutput)
 			case "openrouter":
 				output.OpenRouter.Models = append(output.OpenRouter.Models, modelOutput)
-				
+
 				parts := strings.Split(m.ID, "/")
 				if len(parts) > 1 {
 					providerPrefix := strings.ToLower(parts[0])
@@ -603,22 +603,22 @@ func inferTags(m ModelAPI) []string {
 		tags = append(tags, "moderation")
 	}
 
-  // heuristics example for "hig quality"
+	// heuristics example for "hig quality"
 	if m.PerplexityRate != nil && *m.PerplexityRate < 2.0 {
 		tags = append(tags, "best-quality")
 	} else if !strings.Contains(m.Name, "Mini") && !strings.Contains(m.Name, "Haiku") {
 		tags = append(tags, "versatile")
 	}
-    
-    // Garantir unicidade das tags
-    uniqueTags := make(map[string]bool)
-    finalTags := []string{}
-    for _, t := range tags {
-        if !uniqueTags[t] {
-            uniqueTags[t] = true
-            finalTags = append(finalTags, t)
-        }
-    }
+
+	// Garantir unicidade das tags
+	uniqueTags := make(map[string]bool)
+	finalTags := []string{}
+	for _, t := range tags {
+		if !uniqueTags[t] {
+			uniqueTags[t] = true
+			finalTags = append(finalTags, t)
+		}
+	}
 	return finalTags
 }
 
@@ -644,18 +644,18 @@ func sortOutputModels(output *OutputJSON) {
 	modelComparator := func(a, b ModelOutput) bool {
 		costA := a.PricingPrompt + a.PricingComp
 		costB := b.PricingPrompt + b.PricingComp
-		
+
 		if costA != costB {
 			return costA < costB
 		}
-		
+
 		if a.ContextWindow != b.ContextWindow {
 			return a.ContextWindow > b.ContextWindow
 		}
-		
+
 		return a.Name < b.Name
 	}
-	
+
 	sort.Slice(output.Groq.Models, func(i, j int) bool {
 		return modelComparator(output.Groq.Models[i], output.Groq.Models[j])
 	})

@@ -36,7 +36,7 @@ func (c *Cache) cachePath(root string) string {
 
 func (c *Cache) computeHash(root string) (string, error) {
 	h := md5.New()
-	
+
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -47,51 +47,51 @@ func (c *Cache) computeHash(root string) (string, error) {
 			}
 			return nil
 		}
-		
+
 		ext := filepath.Ext(path)
 		if ext == ".go" || ext == ".py" || ext == ".js" || ext == ".ts" || ext == ".jsx" || ext == ".tsx" {
 			relPath, _ := filepath.Rel(root, path)
 			h.Write([]byte(relPath))
 			h.Write([]byte(fmt.Sprintf("%d", info.ModTime().Unix())))
 		}
-		
+
 		return nil
 	})
-	
+
 	if err != nil {
 		return "", err
 	}
-	
+
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 func (c *Cache) Get(root string) (*Graph, error) {
 	cachePath := c.cachePath(root)
-	
+
 	file, err := os.Open(cachePath)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	
+
 	var entry CacheEntry
 	if err := json.NewDecoder(file).Decode(&entry); err != nil {
 		return nil, err
 	}
-	
+
 	currentHash, err := c.computeHash(root)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if entry.Hash != currentHash {
 		return nil, fmt.Errorf("cache stale")
 	}
-	
+
 	if time.Since(entry.Timestamp) > 24*time.Hour {
 		return nil, fmt.Errorf("cache expired")
 	}
-	
+
 	return entry.Graph, nil
 }
 
@@ -100,20 +100,20 @@ func (c *Cache) Set(root string, g *Graph) error {
 	if err != nil {
 		return err
 	}
-	
+
 	entry := CacheEntry{
 		Hash:      hash,
 		Timestamp: time.Now(),
 		Graph:     g,
 	}
-	
+
 	cachePath := c.cachePath(root)
 	file, err := os.Create(cachePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	
+
 	return json.NewEncoder(file).Encode(entry)
 }
 

@@ -403,7 +403,7 @@ func writeFile(call ToolCall, workdir string) ToolResult {
 	}
 
 	fullPath := filepath.Join(workdir, path)
-	
+
 	dir := filepath.Dir(fullPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return ToolResult{Tool: "write_file", Error: fmt.Sprintf("could not create directory: %v", err)}

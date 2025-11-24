@@ -33,6 +33,7 @@ Examples:
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		verbose, _ := cmd.Flags().GetBool("verbose")
 		maxAttempts, _ := cmd.Flags().GetInt("max-attempts")
+		supervised, _ := cmd.Flags().GetBool("supervised")
 
 		if verbose {
 			fmt.Fprintf(os.Stderr, "Task: %s\n", task)
@@ -44,7 +45,7 @@ Examples:
 			return runDoAnalysis(task, verbose)
 		}
 
-		return runDoExecutionWithRetry(task, verbose, maxAttempts)
+		return runDoExecutionWithRetry(task, verbose, maxAttempts, supervised)
 	},
 }
 
@@ -54,6 +55,7 @@ func init() {
 	doCmd.Flags().Bool("dry-run", false, "Show analysis and plan without executing")
 	doCmd.Flags().BoolP("verbose", "v", false, "Show detailed progress")
 	doCmd.Flags().Int("max-attempts", 3, "Maximum retry attempts with different models")
+	doCmd.Flags().Bool("supervised", false, "Require manual approval before implementation")
 }
 
 func runDoAnalysis(task string, verbose bool) error {
@@ -105,7 +107,7 @@ Provide a brief analysis.`, task)
 	return nil
 }
 
-func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int) error {
+func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervised bool) error {
 	setup, err := config.LoadSetup()
 	if err != nil {
 		return fmt.Errorf("failed to load setup: %w", err)
@@ -121,7 +123,7 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int) error {
 		}
 
 		startTime := time.Now()
-		err := runDoExecution(task, verbose, setup, currentBackend, currentEditorModel)
+		err := runDoExecution(task, verbose, supervised, setup, currentBackend, currentEditorModel)
 		elapsed := time.Since(startTime).Milliseconds()
 
 		if err == nil {
@@ -196,7 +198,7 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int) error {
 	return fmt.Errorf("task failed after %d attempts", maxAttempts)
 }
 
-func runDoExecution(task string, verbose bool, setup *config.Setup, backendName string, editorModel string) error {
+func runDoExecution(task string, verbose bool, supervised bool, setup *config.Setup, backendName string, editorModel string) error {
 	backendCfg := setup.Backend[backendName]
 
 	cwd, _ := os.Getwd()
@@ -219,25 +221,37 @@ func runDoExecution(task string, verbose bool, setup *config.Setup, backendName 
 		fmt.Fprintf(os.Stderr, "Query Model: %s\n\n", queryModel)
 	}
 
-	guided := modes.NewGuidedMode(orchestrator, cwd, queryModel)
+	if supervised {
+		guided := modes.NewGuidedMode(orchestrator, cwd, queryModel)
 
-	if verbose {
-		fmt.Fprintf(os.Stderr, "Creating plan...\n")
-	}
+		if verbose {
+			fmt.Fprintf(os.Stderr, "Creating plan...\n")
+		}
 
-	planContent, err := guided.ExecuteAndReturnPlan(context.Background(), task)
-	if err != nil {
-		return fmt.Errorf("plan creation failed: %w", err)
-	}
+		planContent, err := guided.ExecuteAndReturnPlan(context.Background(), task)
+		if err != nil {
+			return fmt.Errorf("plan creation failed: %w", err)
+		}
 
-	if verbose {
-		fmt.Fprintf(os.Stderr, "Plan created. Starting implementation...\n")
-	}
+		if verbose {
+			fmt.Fprintf(os.Stderr, "Plan created. Starting implementation...\n")
+		}
 
-	guidedWithCustomEditor := modes.NewGuidedModeWithCustomModel(orchestrator, provider, cwd, queryModel, editorModel)
+		guidedWithCustomEditor := modes.NewGuidedModeWithCustomModel(orchestrator, provider, cwd, queryModel, editorModel)
 
-	if err := guidedWithCustomEditor.Implement(context.Background(), planContent); err != nil {
-		return fmt.Errorf("implementation failed: %w", err)
+		if err := guidedWithCustomEditor.Implement(context.Background(), planContent); err != nil {
+			return fmt.Errorf("implementation failed: %w", err)
+		}
+	} else {
+		orchestrated := modes.NewOrchestratedMode(orchestrator, provider, cwd, queryModel, editorModel)
+
+		if verbose {
+			fmt.Fprintf(os.Stderr, "Using orchestrated mode with decomposed agents...\n")
+		}
+
+		if err := orchestrated.Execute(context.Background(), task); err != nil {
+			return fmt.Errorf("orchestrated execution failed: %w", err)
+		}
 	}
 
 	return nil

@@ -243,4 +243,3 @@ func SetProfileAgentModel(backendName, profileName, agent, model string) error {
 
 	return saveSetupForProfiles(setup)
 }
-

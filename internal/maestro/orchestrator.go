@@ -112,7 +112,7 @@ func (m *Maestro) ExecutePlan(ctx context.Context, planContent string) error {
 		}
 
 		if err != nil {
-		return fmt.Errorf("step %d failed after %d retries: %w", stepIdx, m.MaxRetries, err)
+			return fmt.Errorf("step %d failed after %d retries: %w", stepIdx, m.MaxRetries, err)
 		}
 	}
 
@@ -179,7 +179,7 @@ func (m *Maestro) verify(ctx context.Context) (*VerificationResult, error) {
 		}
 	}
 
-return &VerificationResult{Success: true}, nil
+	return &VerificationResult{Success: true}, nil
 }
 
 func (m *Maestro) gitChangedFiles() []string {

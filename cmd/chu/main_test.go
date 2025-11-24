@@ -34,12 +34,12 @@ func TestDetectLanguage(t *testing.T) {
 		if tt.filename != "unknown.txt" {
 			os.WriteFile(tt.filename, []byte(""), 0644)
 		}
-		
+
 		got := detectLanguage()
 		if got != tt.expected {
 			t.Errorf("detectLanguage() with %s = %s, want %s", tt.filename, got, tt.expected)
 		}
-		
+
 		if tt.filename != "unknown.txt" {
 			os.Remove(tt.filename)
 		}

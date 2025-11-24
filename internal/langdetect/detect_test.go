@@ -8,9 +8,9 @@ import (
 
 func TestDetectLanguage(t *testing.T) {
 	tests := []struct {
-		name      string
-		files     map[string]string
-		wantLang  Language
+		name     string
+		files    map[string]string
+		wantLang Language
 	}{
 		{
 			name: "elixir project",
@@ -58,7 +58,7 @@ func TestDetectLanguage(t *testing.T) {
 		{
 			name: "elixir by file extensions",
 			files: map[string]string{
-				"lib/app.ex":  "defmodule App do\nend",
+				"lib/app.ex":        "defmodule App do\nend",
 				"test/app_test.exs": "defmodule AppTest do\nend",
 			},
 			wantLang: Elixir,
@@ -69,11 +69,11 @@ func TestDetectLanguage(t *testing.T) {
 			wantLang: Unknown,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
-			
+
 			for path, content := range tt.files {
 				fullPath := filepath.Join(tmpDir, path)
 				dir := filepath.Dir(fullPath)
@@ -84,7 +84,7 @@ func TestDetectLanguage(t *testing.T) {
 					t.Fatalf("Failed to write file %s: %v", fullPath, err)
 				}
 			}
-			
+
 			got := DetectLanguage(tmpDir)
 			if got != tt.wantLang {
 				t.Errorf("DetectLanguage() = %v, want %v", got, tt.wantLang)
@@ -108,7 +108,7 @@ func TestDetectFromFilename(t *testing.T) {
 		{"readme.md", Unknown},
 		{"Makefile", Unknown},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.filename, func(t *testing.T) {
 			got := DetectFromFilename(tt.filename)

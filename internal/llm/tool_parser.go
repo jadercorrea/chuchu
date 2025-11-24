@@ -11,23 +11,23 @@ func ParseToolCallsFromText(text string) []ChatToolCall {
 
 	calls = append(calls, parsePythonStyle(text)...)
 	calls = append(calls, parseXMLStyle(text)...)
-	
+
 	return calls
 }
 
 func parsePythonStyle(text string) []ChatToolCall {
 	re := regexp.MustCompile(`\[(\w+)\((.*?)\)\]`)
 	matches := re.FindAllStringSubmatch(text, -1)
-	
+
 	var calls []ChatToolCall
 	for i, match := range matches {
 		if len(match) < 3 {
 			continue
 		}
-		
+
 		funcName := match[1]
 		argsStr := match[2]
-		
+
 		argsMap := make(map[string]interface{})
 		if argsStr != "" {
 			argPairs := strings.Split(argsStr, ",")
@@ -40,7 +40,7 @@ func parsePythonStyle(text string) []ChatToolCall {
 				}
 			}
 		}
-		
+
 		argsJSON, _ := json.Marshal(argsMap)
 		calls = append(calls, ChatToolCall{
 			ID:        generateID("call", i),
@@ -48,26 +48,26 @@ func parsePythonStyle(text string) []ChatToolCall {
 			Arguments: string(argsJSON),
 		})
 	}
-	
+
 	return calls
 }
 
 func parseXMLStyle(text string) []ChatToolCall {
 	re := regexp.MustCompile(`<function=(\w+)=?(.*?)>`)
 	matches := re.FindAllStringSubmatch(text, -1)
-	
+
 	var calls []ChatToolCall
 	for i, match := range matches {
 		if len(match) < 2 {
 			continue
 		}
-		
+
 		funcName := match[1]
 		var argsJSON string
-		
+
 		if len(match) > 2 && match[2] != "" {
 			argsStr := strings.TrimSpace(match[2])
-			
+
 			if strings.HasPrefix(argsStr, "{") && strings.HasSuffix(argsStr, "}") {
 				argsJSON = argsStr
 			} else {
@@ -87,14 +87,14 @@ func parseXMLStyle(text string) []ChatToolCall {
 		} else {
 			argsJSON = "{}"
 		}
-		
+
 		calls = append(calls, ChatToolCall{
 			ID:        generateID("call", i),
 			Name:      funcName,
 			Arguments: argsJSON,
 		})
 	}
-	
+
 	return calls
 }
 

@@ -9,23 +9,23 @@ func TestIsInstalled(t *testing.T) {
 	if os.Getenv("CI") == "true" {
 		t.Skip("Skipping integration test in CI (requires Ollama service)")
 	}
-	
+
 	tests := []struct {
-		name         string
-		modelName    string
-		wantErr      bool
+		name          string
+		modelName     string
+		wantErr       bool
 		wantInstalled bool
 	}{
 		{
-			name:         "check existing model",
-			modelName:    "llama3.1:8b",
-			wantErr:      false,
+			name:          "check existing model",
+			modelName:     "llama3.1:8b",
+			wantErr:       false,
 			wantInstalled: true,
 		},
 		{
-			name:         "check nonexistent model",
-			modelName:    "nonexistent-model-xyz",
-			wantErr:      false,
+			name:          "check nonexistent model",
+			modelName:     "nonexistent-model-xyz",
+			wantErr:       false,
 			wantInstalled: false,
 		},
 		{
@@ -53,7 +53,7 @@ func TestCheckAndInstall(t *testing.T) {
 	if os.Getenv("CI") == "true" {
 		t.Skip("Skipping integration test in CI (requires Ollama service)")
 	}
-	
+
 	tests := []struct {
 		name        string
 		modelName   string

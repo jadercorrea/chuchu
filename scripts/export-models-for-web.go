@@ -9,14 +9,14 @@ import (
 )
 
 type ModelInput struct {
-	ID                    string   `json:"id"`
-	Name                  string   `json:"name"`
-	Tags                  []string `json:"tags"`
-	RecommendedFor        []string `json:"recommended_for"`
-	ContextWindow         int      `json:"context_window"`
-	PricingPrompt         float64  `json:"pricing_prompt_per_m_tokens"`
-	PricingComp           float64  `json:"pricing_completion_per_m_tokens"`
-	Installed             bool     `json:"installed"`
+	ID             string   `json:"id"`
+	Name           string   `json:"name"`
+	Tags           []string `json:"tags"`
+	RecommendedFor []string `json:"recommended_for"`
+	ContextWindow  int      `json:"context_window"`
+	PricingPrompt  float64  `json:"pricing_prompt_per_m_tokens"`
+	PricingComp    float64  `json:"pricing_completion_per_m_tokens"`
+	Installed      bool     `json:"installed"`
 }
 
 type ProviderInput struct {
@@ -58,11 +58,11 @@ type ModelOutput struct {
 }
 
 type Metadata struct {
-	GeneratedAt    string              `json:"generated_at"`
-	Version        string              `json:"version"`
-	TotalModels    int                 `json:"total_models"`
-	Sources        []string            `json:"sources"`
-	BenchmarksInfo map[string]string   `json:"benchmarks_info"`
+	GeneratedAt    string            `json:"generated_at"`
+	Version        string            `json:"version"`
+	TotalModels    int               `json:"total_models"`
+	Sources        []string          `json:"sources"`
+	BenchmarksInfo map[string]string `json:"benchmarks_info"`
 }
 
 type OutputJSON struct {
@@ -71,25 +71,25 @@ type OutputJSON struct {
 }
 
 var benchmarkData = map[string]Benchmarks{
-	"groq/llama-3.3-70b-versatile": {HumanEval: 82.4, SWEBench: 38.2, LiveCode: 75.1, AIME: 70.5},
-	"groq/llama-3.1-8b-instant": {HumanEval: 72.6, SWEBench: 25.7, LiveCode: 58.3, AIME: 48.2},
-	"openrouter/anthropic/claude-4.5-sonnet": {HumanEval: 92.0, SWEBench: 49.0, LiveCode: 88.6, AIME: 88.7},
-	"openrouter/openai/gpt-4o": {HumanEval: 90.2, SWEBench: 48.9, LiveCode: 85.4, AIME: 83.3},
+	"groq/llama-3.3-70b-versatile":                {HumanEval: 82.4, SWEBench: 38.2, LiveCode: 75.1, AIME: 70.5},
+	"groq/llama-3.1-8b-instant":                   {HumanEval: 72.6, SWEBench: 25.7, LiveCode: 58.3, AIME: 48.2},
+	"openrouter/anthropic/claude-4.5-sonnet":      {HumanEval: 92.0, SWEBench: 49.0, LiveCode: 88.6, AIME: 88.7},
+	"openrouter/openai/gpt-4o":                    {HumanEval: 90.2, SWEBench: 48.9, LiveCode: 85.4, AIME: 83.3},
 	"openrouter/google/gemini-2.0-flash-exp:free": {HumanEval: 71.9, SWEBench: 28.3, LiveCode: 62.1, AIME: 58.0},
-	"ollama/qwen2.5-coder:7b": {HumanEval: 88.0, SWEBench: 35.2, LiveCode: 70.8, AIME: 55.4},
-	"openrouter/deepseek/deepseek-chat": {HumanEval: 84.1, SWEBench: 40.6, LiveCode: 73.2, AIME: 65.7},
-	"openrouter/x-ai/grok-beta": {HumanEval: 87.5, SWEBench: 43.8, LiveCode: 78.9, AIME: 74.2},
+	"ollama/qwen2.5-coder:7b":                     {HumanEval: 88.0, SWEBench: 35.2, LiveCode: 70.8, AIME: 55.4},
+	"openrouter/deepseek/deepseek-chat":           {HumanEval: 84.1, SWEBench: 40.6, LiveCode: 73.2, AIME: 65.7},
+	"openrouter/x-ai/grok-beta":                   {HumanEval: 87.5, SWEBench: 43.8, LiveCode: 78.9, AIME: 74.2},
 }
 
 var speedData = map[string]int{
-	"groq/llama-3.3-70b-versatile": 500,
-	"groq/llama-3.1-8b-instant": 800,
-	"openrouter/anthropic/claude-4.5-sonnet": 85,
-	"openrouter/openai/gpt-4o": 120,
+	"groq/llama-3.3-70b-versatile":                500,
+	"groq/llama-3.1-8b-instant":                   800,
+	"openrouter/anthropic/claude-4.5-sonnet":      85,
+	"openrouter/openai/gpt-4o":                    120,
 	"openrouter/google/gemini-2.0-flash-exp:free": 200,
-	"ollama/qwen2.5-coder:7b": 45,
-	"openrouter/deepseek/deepseek-chat": 180,
-	"openrouter/x-ai/grok-beta": 150,
+	"ollama/qwen2.5-coder:7b":                     45,
+	"openrouter/deepseek/deepseek-chat":           180,
+	"openrouter/x-ai/grok-beta":                   150,
 }
 
 func main() {

@@ -12,14 +12,14 @@ import (
 type EventType string
 
 const (
-	EventMessage     EventType = "message"
-	EventStatus      EventType = "status"
-	EventConfirm     EventType = "confirm"
-	EventOpenFile    EventType = "open_file"
-	EventOpenPlan    EventType = "open_plan"
-	EventOpenSplit   EventType = "open_split"
-	EventComplete    EventType = "complete"
-	EventNotify      EventType = "notify"
+	EventMessage   EventType = "message"
+	EventStatus    EventType = "status"
+	EventConfirm   EventType = "confirm"
+	EventOpenFile  EventType = "open_file"
+	EventOpenPlan  EventType = "open_plan"
+	EventOpenSplit EventType = "open_split"
+	EventComplete  EventType = "complete"
+	EventNotify    EventType = "notify"
 )
 
 type Event struct {
@@ -49,28 +49,28 @@ func (e *Emitter) Emit(eventType EventType, data map[string]interface{}) error {
 		Data:      data,
 		Timestamp: time.Now().UnixMilli(),
 	}
-	
+
 	jsonBytes, err := json.Marshal(event)
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = fmt.Fprintf(e.writer, "__EVENT__%s__EVENT__\n", string(jsonBytes))
 	if err != nil {
 		return err
 	}
-	
+
 	if f, ok := e.writer.(*os.File); ok {
 		_ = f.Sync()
 	}
-	
+
 	f, err := os.OpenFile(e.eventLog, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err == nil {
 		_, _ = fmt.Fprintf(f, "%s\n", string(jsonBytes))
 		_ = f.Sync()
 		_ = f.Close()
 	}
-	
+
 	return nil
 }
 

@@ -19,7 +19,7 @@ Task:
 Generate tests first, then the minimum implementation to pass them.
 
 Format:
-Use standard markdown code blocks (e.g., ` + "```python" + ` or ` + "```go" + `).
+Use standard markdown code blocks (e.g., `+"```python"+` or `+"```go"+`).
 Include the file path in a comment at the top of each block.
 
 Details:
@@ -38,5 +38,3 @@ Details:
 	fmt.Println(strings.TrimSpace(resp.Text))
 	return nil
 }
-
-

@@ -16,10 +16,10 @@ type Profile struct {
 
 type Setup struct {
 	Defaults struct {
-		Backend           string  `yaml:"backend"`
-		Profile           string  `yaml:"profile,omitempty"`
-		Model             string  `yaml:"model"`
-		Lang              string  `yaml:"lang"`
+		Backend            string  `yaml:"backend"`
+		Profile            string  `yaml:"profile,omitempty"`
+		Model              string  `yaml:"model"`
+		Lang               string  `yaml:"lang"`
 		SystemPromptFile   string  `yaml:"system_prompt_file,omitempty"`
 		MLComplexThreshold float64 `yaml:"ml_complex_threshold,omitempty"`
 		MLIntentThreshold  float64 `yaml:"ml_intent_threshold,omitempty"`
@@ -29,12 +29,12 @@ type Setup struct {
 }
 
 type BackendConfig struct {
-	Type         string                       `yaml:"type"`
-	BaseURL      string                       `yaml:"base_url"`
-	DefaultModel string                       `yaml:"default_model"`
-	Models       map[string]string            `yaml:"models"`
-	AgentModels  AgentModels                  `yaml:"agent_models,omitempty"`
-	Profiles     map[string]ProfileConfig     `yaml:"profiles,omitempty"`
+	Type         string                   `yaml:"type"`
+	BaseURL      string                   `yaml:"base_url"`
+	DefaultModel string                   `yaml:"default_model"`
+	Models       map[string]string        `yaml:"models"`
+	AgentModels  AgentModels              `yaml:"agent_models,omitempty"`
+	Profiles     map[string]ProfileConfig `yaml:"profiles,omitempty"`
 }
 
 type ProfileConfig struct {

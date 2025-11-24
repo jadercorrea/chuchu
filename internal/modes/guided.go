@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -170,13 +172,31 @@ Create a brief plan:
 }
 
 func (g *GuidedMode) Implement(ctx context.Context, plan string) error {
-	editorAgent := agents.NewEditor(g.baseProvider, g.cwd, g.editorModel)
+	allowedFiles := extractFilesFromPlan(plan)
+
+	var editorAgent *agents.EditorAgent
+	if len(allowedFiles) > 0 {
+		editorAgent = agents.NewEditorWithFileValidation(g.baseProvider, g.cwd, g.editorModel, allowedFiles)
+		if os.Getenv("CHUCHU_DEBUG") == "1" {
+			fmt.Fprintf(os.Stderr, "[IMPLEMENT] Allowed files: %v\n", allowedFiles)
+		}
+	} else {
+		editorAgent = agents.NewEditor(g.baseProvider, g.cwd, g.editorModel)
+	}
 
 	statusCallback := func(status string) {
 		_ = g.events.Status(status)
 	}
 
-	implementPrompt := fmt.Sprintf(`Implement EXACTLY what this plan says - NOTHING MORE:
+	validatorAgent := agents.NewValidator(g.baseProvider, g.cwd, g.model)
+
+	maxRetries := 2
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if os.Getenv("CHUCHU_DEBUG") == "1" {
+			fmt.Fprintf(os.Stderr, "[IMPLEMENT] Attempt %d/%d\n", attempt+1, maxRetries+1)
+		}
+
+		implementPrompt := fmt.Sprintf(`Implement EXACTLY what this plan says - NOTHING MORE:
 
 ---
 %s
@@ -192,24 +212,59 @@ RULES:
 
 Execute the plan directly and minimally.`, plan)
 
-	history := []llm.ChatMessage{
-		{Role: "user", Content: implementPrompt},
+		history := []llm.ChatMessage{
+			{Role: "user", Content: implementPrompt},
+		}
+
+		result, err := editorAgent.Execute(ctx, history, statusCallback)
+		if err != nil {
+			return err
+		}
+
+		if os.Getenv("CHUCHU_DEBUG") == "1" {
+			fmt.Fprintf(os.Stderr, "[IMPLEMENT] Editor result: %s\n", result)
+		}
+
+		if strings.Contains(result, "reached max iterations") {
+			return fmt.Errorf("editor reached max iterations without completing task")
+		}
+
+		validationResult, err := validatorAgent.Validate(ctx, plan, allowedFiles, statusCallback)
+		if err != nil {
+			if os.Getenv("CHUCHU_DEBUG") == "1" {
+				fmt.Fprintf(os.Stderr, "[IMPLEMENT] Validation failed: %v\n", err)
+			}
+			return err
+		}
+
+		if validationResult.Success {
+			_ = g.events.Message("Implementation validated successfully.")
+			return nil
+		}
+
+		if attempt < maxRetries {
+			_ = g.events.Message(fmt.Sprintf("Validation failed. Retrying... (attempt %d/%d)", attempt+2, maxRetries+1))
+
+			feedback := "VALIDATION FAILED. Issues found:\n"
+			for _, issue := range validationResult.Issues {
+				feedback += "- " + issue + "\n"
+			}
+			feedback += "\nFix these issues and try again."
+
+			if os.Getenv("CHUCHU_DEBUG") == "1" {
+				fmt.Fprintf(os.Stderr, "[IMPLEMENT] Feedback: %s\n", feedback)
+			}
+
+			editorAgent = agents.NewEditorWithFileValidation(g.baseProvider, g.cwd, g.editorModel, allowedFiles)
+		} else {
+			_ = g.events.Message("Implementation completed but validation failed after max retries.")
+			for _, issue := range validationResult.Issues {
+				_ = g.events.Message("  - " + issue)
+			}
+			return fmt.Errorf("validation failed: %v", validationResult.Issues)
+		}
 	}
 
-	result, err := editorAgent.Execute(ctx, history, statusCallback)
-	if err != nil {
-		return err
-	}
-	
-	if os.Getenv("CHUCHU_DEBUG") == "1" {
-		fmt.Fprintf(os.Stderr, "[IMPLEMENT] Editor result: %s\n", result)
-	}
-	
-	// Check if editor just returned without doing anything meaningful
-	if strings.Contains(result, "reached max iterations") {
-		return fmt.Errorf("editor reached max iterations without completing task")
-	}
-	
 	return nil
 }
 
@@ -296,4 +351,28 @@ func IsComplexTask(message string) bool {
 		}
 	}
 	return false
+}
+
+func extractFilesFromPlan(plan string) []string {
+	filePattern := regexp.MustCompile(`(?m)(?:[^\s]+/)?[^\s/]+\.(go|md|ts|tsx|js|jsx|py|rb|java|c|cpp|h|hpp|rs|yaml|yml|json|toml|txt|sh|sql|html|css|scss)`)
+	matches := filePattern.FindAllString(plan, -1)
+
+	seen := make(map[string]bool)
+	var files []string
+
+	for _, match := range matches {
+		cleanPath := strings.Trim(match, "`:*")
+		if !seen[cleanPath] {
+			seen[cleanPath] = true
+			files = append(files, cleanPath)
+		}
+	}
+
+	for i, file := range files {
+		if !filepath.IsAbs(file) && !strings.HasPrefix(file, "./") {
+			files[i] = file
+		}
+	}
+
+	return files
 }

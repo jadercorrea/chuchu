@@ -56,7 +56,6 @@ func GetModelsForBackend(backend string) ([]ModelOutput, error) {
 	return models, nil
 }
 
-
 func FilterByTag(models []ModelOutput, tag string) []ModelOutput {
 	filtered := []ModelOutput{}
 	tag = strings.ToLower(tag)
@@ -97,16 +96,16 @@ func getFeedbackScores(agent string) map[string]float64 {
 	if err != nil || len(events) == 0 {
 		return map[string]float64{}
 	}
-	
+
 	stats := feedback.Analyze(events)
 	scores := make(map[string]float64)
-	
+
 	for model, modelStats := range stats.ByModel {
 		if modelStats.Total >= 3 {
 			scores[model] = modelStats.Ratio
 		}
 	}
-	
+
 	return scores
 }
 
@@ -117,7 +116,7 @@ func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]Mod
 	}
 
 	backendLower := strings.ToLower(backend)
-	
+
 	if backendLower == "" && len(queryTerms) > 0 {
 		firstTerm := strings.ToLower(queryTerms[0])
 		if firstTerm == "groq" || firstTerm == "openrouter" || firstTerm == "ollama" || firstTerm == "openai" || firstTerm == "deepseek" {
@@ -125,9 +124,9 @@ func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]Mod
 			queryTerms = queryTerms[1:]
 		}
 	}
-	
+
 	var allModels []ModelOutput
-	
+
 	switch backendLower {
 	case "groq":
 		allModels = catalog.Groq.Models
@@ -150,36 +149,36 @@ func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]Mod
 	}
 
 	var filtered []ModelOutput
-	
+
 	for _, model := range allModels {
 		matches := true
-		
+
 		for _, term := range queryTerms {
 			termLower := strings.ToLower(term)
 			nameLower := strings.ToLower(model.Name)
 			idLower := strings.ToLower(model.ID)
-			
-			termMatches := strings.Contains(nameLower, termLower) || 
-			               strings.Contains(idLower, termLower)
-			
+
+			termMatches := strings.Contains(nameLower, termLower) ||
+				strings.Contains(idLower, termLower)
+
 			for _, tag := range model.Tags {
 				if strings.ToLower(tag) == termLower {
 					termMatches = true
 					break
 				}
 			}
-			
+
 			if !termMatches {
 				matches = false
 				break
 			}
 		}
-		
+
 		if matches {
 			filtered = append(filtered, model)
 		}
 	}
-	
+
 	if len(queryTerms) == 0 && agent != "" {
 		var agentFiltered []ModelOutput
 		for _, model := range filtered {
@@ -190,7 +189,7 @@ func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]Mod
 				}
 			}
 		}
-		
+
 		if len(agentFiltered) > 0 {
 			filtered = agentFiltered
 		}
@@ -205,29 +204,29 @@ func SearchModelsMulti(backend string, queryTerms []string, agent string) ([]Mod
 			}
 		}
 	}
-	
+
 	feedbackScores := getFeedbackScores(agent)
 	for i := range filtered {
 		if score, ok := feedbackScores[filtered[i].ID]; ok {
 			filtered[i].FeedbackScore = score
 		}
 	}
-	
+
 	sort.Slice(filtered, func(i, j int) bool {
 		if filtered[i].FeedbackScore != filtered[j].FeedbackScore {
 			return filtered[i].FeedbackScore > filtered[j].FeedbackScore
 		}
 		costA := filtered[i].PricingPrompt + filtered[i].PricingComp
 		costB := filtered[j].PricingPrompt + filtered[j].PricingComp
-		
+
 		if costA != costB {
 			return costA < costB
 		}
-		
+
 		if filtered[i].ContextWindow != filtered[j].ContextWindow {
 			return filtered[i].ContextWindow > filtered[j].ContextWindow
 		}
-		
+
 		return filtered[i].Name < filtered[j].Name
 	})
 
@@ -247,7 +246,7 @@ func SearchModels(backend string, query string, agent string) ([]ModelOutput, er
 		for _, model := range models {
 			nameLower := strings.ToLower(model.Name)
 			idLower := strings.ToLower(model.ID)
-			
+
 			if strings.Contains(nameLower, queryLower) || strings.Contains(idLower, queryLower) {
 				filtered = append(filtered, model)
 			}
@@ -261,7 +260,7 @@ func SearchModels(backend string, query string, agent string) ([]ModelOutput, er
 				}
 			}
 		}
-		
+
 		if len(filtered) == 0 {
 			filtered = models
 		}
@@ -272,15 +271,15 @@ func SearchModels(backend string, query string, agent string) ([]ModelOutput, er
 	sort.Slice(filtered, func(i, j int) bool {
 		costA := filtered[i].PricingPrompt + filtered[i].PricingComp
 		costB := filtered[j].PricingPrompt + filtered[j].PricingComp
-		
+
 		if costA != costB {
 			return costA < costB
 		}
-		
+
 		if filtered[i].ContextWindow != filtered[j].ContextWindow {
 			return filtered[i].ContextWindow > filtered[j].ContextWindow
 		}
-		
+
 		return filtered[i].Name < filtered[j].Name
 	})
 

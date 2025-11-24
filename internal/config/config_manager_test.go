@@ -10,11 +10,11 @@ func TestConfigGetSet(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
 	defer os.Setenv("HOME", originalHome)
-	
+
 	os.Setenv("HOME", tmpDir)
 	chuchuDir := filepath.Join(tmpDir, ".chuchu")
 	os.MkdirAll(chuchuDir, 0755)
-	
+
 	setupYAML := `defaults:
     backend: groq
     profile: default
@@ -32,7 +32,7 @@ backend:
 	if err := os.WriteFile(setupPath, []byte(setupYAML), 0644); err != nil {
 		t.Fatalf("Failed to write test setup.yaml: %v", err)
 	}
-	
+
 	tests := []struct {
 		name      string
 		key       string
@@ -64,7 +64,7 @@ backend:
 			wantErr:   true,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GetConfig(tt.key)
@@ -77,17 +77,17 @@ backend:
 			}
 		})
 	}
-	
+
 	t.Run("set and get", func(t *testing.T) {
 		if err := SetConfig("defaults.profile", "speed"); err != nil {
 			t.Fatalf("SetConfig() error = %v", err)
 		}
-		
+
 		got, err := GetConfig("defaults.profile")
 		if err != nil {
 			t.Fatalf("GetConfig() error = %v", err)
 		}
-		
+
 		if got != "speed" {
 			t.Errorf("After SetConfig, got %v, want speed", got)
 		}

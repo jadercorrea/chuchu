@@ -15,11 +15,11 @@ type ChatRequest struct {
 }
 
 type ChatMessage struct {
-	Role       string          `json:"role"`
-	Content    string          `json:"content"`
-	Name       string          `json:"name,omitempty"`
-	ToolCallID string          `json:"tool_call_id,omitempty"`
-	ToolCalls  []ChatToolCall  `json:"tool_calls,omitempty"`
+	Role       string         `json:"role"`
+	Content    string         `json:"content"`
+	Name       string         `json:"name,omitempty"`
+	ToolCallID string         `json:"tool_call_id,omitempty"`
+	ToolCalls  []ChatToolCall `json:"tool_calls,omitempty"`
 }
 
 type ChatResponse struct {

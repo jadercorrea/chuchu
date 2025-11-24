@@ -36,20 +36,20 @@ func NewChatCompletion(baseURL, backendName string) *ChatCompletionProvider {
 }
 
 type chatCompletionRequest struct {
-	Model       string               `json:"model"`
-	Messages    []chatCompletionMsg  `json:"messages"`
-	Tools       []interface{}        `json:"tools,omitempty"`
-	ToolChoice  string               `json:"tool_choice,omitempty"`
-	Stream      bool                 `json:"stream,omitempty"`
-	Temperature float64              `json:"temperature"`
+	Model       string              `json:"model"`
+	Messages    []chatCompletionMsg `json:"messages"`
+	Tools       []interface{}       `json:"tools,omitempty"`
+	ToolChoice  string              `json:"tool_choice,omitempty"`
+	Stream      bool                `json:"stream,omitempty"`
+	Temperature float64             `json:"temperature"`
 }
 
 type compoundChatRequest struct {
-	Model          string               `json:"model"`
-	Messages       []chatCompletionMsg  `json:"messages"`
-	CompoundCustom *compoundCustom      `json:"compound_custom,omitempty"`
-	Stream         bool                 `json:"stream,omitempty"`
-	Temperature    float64              `json:"temperature"`
+	Model          string              `json:"model"`
+	Messages       []chatCompletionMsg `json:"messages"`
+	CompoundCustom *compoundCustom     `json:"compound_custom,omitempty"`
+	Stream         bool                `json:"stream,omitempty"`
+	Temperature    float64             `json:"temperature"`
 }
 
 type compoundCustom struct {
@@ -64,26 +64,26 @@ func convertToolsToFunctions(tools []interface{}) []interface{} {
 	if len(tools) == 0 {
 		return nil
 	}
-	
+
 	functions := make([]interface{}, 0, len(tools))
 	for _, tool := range tools {
 		toolMap, ok := tool.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		
+
 		if toolMap["type"] != "function" {
 			continue
 		}
-		
+
 		funcDef, ok := toolMap["function"].(map[string]interface{})
 		if !ok {
 			continue
 		}
-		
+
 		functions = append(functions, funcDef)
 	}
-	
+
 	return functions
 }
 
@@ -91,37 +91,37 @@ func extractToolNames(tools []interface{}) []string {
 	if len(tools) == 0 {
 		return nil
 	}
-	
+
 	names := make([]string, 0, len(tools))
 	for _, tool := range tools {
 		toolMap, ok := tool.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		
+
 		if toolMap["type"] != "function" {
 			continue
 		}
-		
+
 		funcDef, ok := toolMap["function"].(map[string]interface{})
 		if !ok {
 			continue
 		}
-		
+
 		if name, ok := funcDef["name"].(string); ok {
 			names = append(names, name)
 		}
 	}
-	
+
 	return names
 }
 
 type chatCompletionMsg struct {
-	Role       string         `json:"role"`
-	Content    string         `json:"content,omitempty"`
-	ToolCalls  []ToolCall     `json:"tool_calls,omitempty"`
-	ToolCallID string         `json:"tool_call_id,omitempty"`
-	Name       string         `json:"name,omitempty"`
+	Role       string     `json:"role"`
+	Content    string     `json:"content,omitempty"`
+	ToolCalls  []ToolCall `json:"tool_calls,omitempty"`
+	ToolCallID string     `json:"tool_call_id,omitempty"`
+	Name       string     `json:"name,omitempty"`
 }
 
 type ToolCall struct {
@@ -153,7 +153,7 @@ func (c *ChatCompletionProvider) ChatStream(ctx context.Context, req ChatRequest
 	messages := []chatCompletionMsg{
 		{Role: "system", Content: req.SystemPrompt},
 	}
-	
+
 	for _, msg := range req.Messages {
 		messages = append(messages, chatCompletionMsg{
 			Role:       msg.Role,
@@ -162,7 +162,7 @@ func (c *ChatCompletionProvider) ChatStream(ctx context.Context, req ChatRequest
 			ToolCallID: msg.ToolCallID,
 		})
 	}
-	
+
 	if req.UserPrompt != "" {
 		messages = append(messages, chatCompletionMsg{
 			Role:    "user",
@@ -170,33 +170,33 @@ func (c *ChatCompletionProvider) ChatStream(ctx context.Context, req ChatRequest
 		})
 	}
 
-isCompound := strings.Contains(req.Model, "compound")
+	isCompound := strings.Contains(req.Model, "compound")
 
-var b []byte
-if isCompound {
-	toolNames := extractToolNames(req.Tools)
-	compoundBody := compoundChatRequest{
-		Model:    req.Model,
-		Messages: messages,
-		CompoundCustom: &compoundCustom{
-			Tools: &compoundTools{
-				EnabledTools: toolNames,
+	var b []byte
+	if isCompound {
+		toolNames := extractToolNames(req.Tools)
+		compoundBody := compoundChatRequest{
+			Model:    req.Model,
+			Messages: messages,
+			CompoundCustom: &compoundCustom{
+				Tools: &compoundTools{
+					EnabledTools: toolNames,
+				},
 			},
-		},
-		Stream:      true,
-		Temperature: 0.0,
+			Stream:      true,
+			Temperature: 0.0,
+		}
+		b, _ = json.Marshal(compoundBody)
+	} else {
+		body := chatCompletionRequest{
+			Model:       req.Model,
+			Messages:    messages,
+			Tools:       req.Tools,
+			Stream:      true,
+			Temperature: 0.0,
+		}
+		b, _ = json.Marshal(body)
 	}
-	b, _ = json.Marshal(compoundBody)
-} else {
-	body := chatCompletionRequest{
-		Model:       req.Model,
-		Messages:    messages,
-		Tools:       req.Tools,
-		Stream:      true,
-		Temperature: 0.0,
-	}
-	b, _ = json.Marshal(body)
-}
 
 	httpReq, _ := http.NewRequestWithContext(ctx, "POST", c.BaseURL, bytes.NewReader(b))
 	httpReq.Header.Set("Authorization", "Bearer "+c.APIKey)
@@ -220,12 +220,12 @@ if isCompound {
 		if !strings.HasPrefix(line, "data: ") {
 			continue
 		}
-		
+
 		data := strings.TrimPrefix(line, "data: ")
 		if data == "[DONE]" {
 			break
 		}
-		
+
 		var chunk struct {
 			Choices []struct {
 				Delta struct {
@@ -233,16 +233,16 @@ if isCompound {
 				} `json:"delta"`
 			} `json:"choices"`
 		}
-		
+
 		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
 			continue
 		}
-		
+
 		if len(chunk.Choices) > 0 && chunk.Choices[0].Delta.Content != "" {
 			callback(chunk.Choices[0].Delta.Content)
 		}
 	}
-	
+
 	return scanner.Err()
 }
 
@@ -254,7 +254,7 @@ func (c *ChatCompletionProvider) Chat(ctx context.Context, req ChatRequest) (*Ch
 	messages := []chatCompletionMsg{
 		{Role: "system", Content: req.SystemPrompt},
 	}
-	
+
 	for _, msg := range req.Messages {
 		chatMsg := chatCompletionMsg{
 			Role:       msg.Role,
@@ -262,7 +262,7 @@ func (c *ChatCompletionProvider) Chat(ctx context.Context, req ChatRequest) (*Ch
 			Name:       msg.Name,
 			ToolCallID: msg.ToolCallID,
 		}
-		
+
 		if len(msg.ToolCalls) > 0 {
 			chatMsg.ToolCalls = make([]ToolCall, len(msg.ToolCalls))
 			for i, tc := range msg.ToolCalls {
@@ -274,10 +274,10 @@ func (c *ChatCompletionProvider) Chat(ctx context.Context, req ChatRequest) (*Ch
 				chatMsg.ToolCalls[i].Function.Arguments = tc.Arguments
 			}
 		}
-		
+
 		messages = append(messages, chatMsg)
 	}
-	
+
 	if req.UserPrompt != "" {
 		messages = append(messages, chatCompletionMsg{
 			Role:    "user",
@@ -285,32 +285,32 @@ func (c *ChatCompletionProvider) Chat(ctx context.Context, req ChatRequest) (*Ch
 		})
 	}
 
-isCompound := strings.Contains(req.Model, "compound")
+	isCompound := strings.Contains(req.Model, "compound")
 
-var b []byte
-if isCompound {
-	toolNames := extractToolNames(req.Tools)
-	compoundBody := compoundChatRequest{
-		Model:    req.Model,
-		Messages: messages,
-		CompoundCustom: &compoundCustom{
-			Tools: &compoundTools{
-				EnabledTools: toolNames,
+	var b []byte
+	if isCompound {
+		toolNames := extractToolNames(req.Tools)
+		compoundBody := compoundChatRequest{
+			Model:    req.Model,
+			Messages: messages,
+			CompoundCustom: &compoundCustom{
+				Tools: &compoundTools{
+					EnabledTools: toolNames,
+				},
 			},
-		},
-		Temperature: 0.0,
+			Temperature: 0.0,
+		}
+		b, _ = json.Marshal(compoundBody)
+	} else {
+		body := chatCompletionRequest{
+			Model:       req.Model,
+			Messages:    messages,
+			Tools:       req.Tools,
+			Temperature: 0.0,
+		}
+		b, _ = json.Marshal(body)
 	}
-	b, _ = json.Marshal(compoundBody)
-} else {
-	body := chatCompletionRequest{
-		Model:       req.Model,
-		Messages:    messages,
-		Tools:       req.Tools,
-		Temperature: 0.0,
-	}
-	b, _ = json.Marshal(body)
-}
-	
+
 	if os.Getenv("CHUCHU_DEBUG") == "1" {
 		fmt.Fprintf(os.Stderr, "\n=== REQUEST TO %s ===\n%s\n\n", c.BaseURL, string(b))
 	}
@@ -331,11 +331,11 @@ if isCompound {
 
 	var responseBody []byte
 	responseBody, _ = io.ReadAll(resp.Body)
-	
+
 	if os.Getenv("CHUCHU_DEBUG") == "1" {
 		fmt.Fprintf(os.Stderr, "=== RESPONSE ===\n%s\n\n", string(responseBody))
 	}
-	
+
 	var apiResp chatCompletionResponse
 	if err := json.Unmarshal(responseBody, &apiResp); err != nil {
 		return nil, err
@@ -343,12 +343,12 @@ if isCompound {
 
 	if apiResp.Error != nil {
 		var errorDetail struct {
-			Message         string `json:"message"`
+			Message          string `json:"message"`
 			FailedGeneration string `json:"failed_generation"`
 		}
 		if err := json.Unmarshal(responseBody, &struct {
 			Error *struct {
-				Message         string `json:"message"`
+				Message          string `json:"message"`
 				FailedGeneration string `json:"failed_generation"`
 			} `json:"error"`
 		}{Error: &errorDetail}); err == nil && errorDetail.FailedGeneration != "" {
@@ -370,7 +370,7 @@ if isCompound {
 	response := &ChatResponse{
 		Text: apiResp.Choices[0].Message.Content,
 	}
-	
+
 	if len(apiResp.Choices[0].Message.ToolCalls) > 0 {
 		response.ToolCalls = make([]ChatToolCall, len(apiResp.Choices[0].Message.ToolCalls))
 		for i, tc := range apiResp.Choices[0].Message.ToolCalls {

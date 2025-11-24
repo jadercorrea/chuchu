@@ -21,7 +21,7 @@ func IsInstalled(modelName string) (bool, error) {
 	if modelName == "" {
 		return false, fmt.Errorf("model name cannot be empty")
 	}
-	
+
 	resp, err := http.Get("http://localhost:11434/api/tags")
 	if err != nil {
 		return false, fmt.Errorf("ollama not running or not accessible: %w", err)
@@ -89,7 +89,7 @@ func CheckAndInstall(modelName string, autoInstall bool, progressCallback func(s
 	if modelName == "" {
 		return fmt.Errorf("model name cannot be empty")
 	}
-	
+
 	installed, err := IsInstalled(modelName)
 	if err != nil {
 		return err

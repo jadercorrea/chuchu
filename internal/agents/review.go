@@ -77,13 +77,13 @@ Provide a structured review with:
 Be concise but thorough. If the code is good, say so.`
 
 	prompt += "\n" + getCodeStandards()
-	
+
 	return prompt
 }
 
 func (r *ReviewAgent) Execute(ctx context.Context, history []llm.ChatMessage, statusCallback StatusCallback) (string, error) {
 	reviewPrompt := buildReviewPrompt()
-	
+
 	toolDefs := []interface{}{
 		map[string]interface{}{
 			"type": "function",
@@ -204,8 +204,8 @@ func (r *ReviewAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 	}
 
 	if statusCallback != nil {
-			statusCallback("Review: Finalizing...")
-		}
+		statusCallback("Review: Finalizing...")
+	}
 	finalResp, err := r.provider.Chat(ctx, llm.ChatRequest{
 		SystemPrompt: reviewPrompt + "\n\nProvide your final review based on all the information gathered. Summarize findings.",
 		Messages:     messages,

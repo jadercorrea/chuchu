@@ -89,91 +89,91 @@ func (o *OrchestratorProvider) Chat(ctx context.Context, req ChatRequest) (*Chat
 			ToolCalls: resp.ToolCalls,
 		})
 
-	for _, tc := range resp.ToolCalls {
-		toolKey := fmt.Sprintf("%s:%s", tc.Name, tc.Arguments)
-		toolCallHistory[toolKey]++
+		for _, tc := range resp.ToolCalls {
+			toolKey := fmt.Sprintf("%s:%s", tc.Name, tc.Arguments)
+			toolCallHistory[toolKey]++
 
-		if toolCallHistory[toolKey] > 1 {
-			if os.Getenv("CHUCHU_DEBUG") == "1" {
-				fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Tool %s called %d times with same args - forcing stop\n", tc.Name, toolCallHistory[toolKey])
-			}
-			
-			for i := len(conversation) - 1; i >= 0; i-- {
-				if conversation[i].Role == "tool" && conversation[i].Name == tc.Name {
-					return &ChatResponse{
-						Text: conversation[i].Content,
-					}, nil
-				}
-			}
-			
-			return &ChatResponse{
-				Text: "Task completed.",
-			}, nil
-		}
-
-		var toolResult string
-
-		if compoundBuiltInTools[tc.Name] {
-			if os.Getenv("CHUCHU_DEBUG") == "1" {
-				fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Executing Compound tool: %s\n", tc.Name)
-			}
-
-			var argsMap map[string]interface{}
-			if err := json.Unmarshal([]byte(tc.Arguments), &argsMap); err == nil {
-				prompt := tc.Arguments
-				if query, ok := argsMap["query"].(string); ok {
-					prompt = query
-				} else if q, ok := argsMap["q"].(string); ok {
-					prompt = q
+			if toolCallHistory[toolKey] > 1 {
+				if os.Getenv("CHUCHU_DEBUG") == "1" {
+					fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Tool %s called %d times with same args - forcing stop\n", tc.Name, toolCallHistory[toolKey])
 				}
 
-				compoundResp, compoundErr := o.compound.Chat(ctx, ChatRequest{
-					Model:        "groq/compound",
-					SystemPrompt: req.SystemPrompt,
-					UserPrompt:   prompt,
-				})
+				for i := len(conversation) - 1; i >= 0; i-- {
+					if conversation[i].Role == "tool" && conversation[i].Name == tc.Name {
+						return &ChatResponse{
+							Text: conversation[i].Content,
+						}, nil
+					}
+				}
 
-				if compoundErr != nil {
-					toolResult = fmt.Sprintf("Error: %v", compoundErr)
+				return &ChatResponse{
+					Text: "Task completed.",
+				}, nil
+			}
+
+			var toolResult string
+
+			if compoundBuiltInTools[tc.Name] {
+				if os.Getenv("CHUCHU_DEBUG") == "1" {
+					fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Executing Compound tool: %s\n", tc.Name)
+				}
+
+				var argsMap map[string]interface{}
+				if err := json.Unmarshal([]byte(tc.Arguments), &argsMap); err == nil {
+					prompt := tc.Arguments
+					if query, ok := argsMap["query"].(string); ok {
+						prompt = query
+					} else if q, ok := argsMap["q"].(string); ok {
+						prompt = q
+					}
+
+					compoundResp, compoundErr := o.compound.Chat(ctx, ChatRequest{
+						Model:        "groq/compound",
+						SystemPrompt: req.SystemPrompt,
+						UserPrompt:   prompt,
+					})
+
+					if compoundErr != nil {
+						toolResult = fmt.Sprintf("Error: %v", compoundErr)
+					} else {
+						toolResult = compoundResp.Text
+					}
 				} else {
-					toolResult = compoundResp.Text
+					toolResult = "Error: invalid arguments"
 				}
 			} else {
-				toolResult = "Error: invalid arguments"
-			}
-		} else {
-			if os.Getenv("CHUCHU_DEBUG") == "1" {
-				fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Executing custom tool: %s\n", tc.Name)
-			}
-
-			var argsMap map[string]interface{}
-			if err := json.Unmarshal([]byte(tc.Arguments), &argsMap); err != nil {
-				toolResult = fmt.Sprintf("Error parsing arguments: %v", err)
-			} else {
-				cwd, _ := os.Getwd()
-				toolCall := tools.ToolCall{
-					Name:      tc.Name,
-					Arguments: argsMap,
+				if os.Getenv("CHUCHU_DEBUG") == "1" {
+					fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Executing custom tool: %s\n", tc.Name)
 				}
-				result := tools.ExecuteTool(toolCall, cwd)
-				if result.Error != "" {
-					toolResult = fmt.Sprintf("Error: %s", result.Error)
+
+				var argsMap map[string]interface{}
+				if err := json.Unmarshal([]byte(tc.Arguments), &argsMap); err != nil {
+					toolResult = fmt.Sprintf("Error parsing arguments: %v", err)
 				} else {
-					toolResult = result.Result
-					if toolResult == "" {
-						toolResult = "Success"
+					cwd, _ := os.Getwd()
+					toolCall := tools.ToolCall{
+						Name:      tc.Name,
+						Arguments: argsMap,
+					}
+					result := tools.ExecuteTool(toolCall, cwd)
+					if result.Error != "" {
+						toolResult = fmt.Sprintf("Error: %s", result.Error)
+					} else {
+						toolResult = result.Result
+						if toolResult == "" {
+							toolResult = "Success"
+						}
 					}
 				}
 			}
-		}
 
-		conversation = append(conversation, ChatMessage{
-			Role:       "tool",
-			Content:    toolResult,
-			Name:       tc.Name,
-			ToolCallID: tc.ID,
-		})
-	}
+			conversation = append(conversation, ChatMessage{
+				Role:       "tool",
+				Content:    toolResult,
+				Name:       tc.Name,
+				ToolCallID: tc.ID,
+			})
+		}
 
 		if iteration >= 2 {
 			if os.Getenv("CHUCHU_DEBUG") == "1" {
