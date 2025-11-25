@@ -145,6 +145,16 @@ func (r *RunREPL) handleCommand(cmd string) (bool, bool) {
 			for k, v := range r.history.Environment {
 				fmt.Printf("  %s=%s\n", k, v)
 			}
+		} else if len(parts) == 2 && strings.Contains(parts[1], "=") {
+			// Set environment variable
+			envParts := strings.SplitN(parts[1], "=", 2)
+			if len(envParts) == 2 {
+				key, value := envParts[0], envParts[1]
+				r.history.SetEnvironment(key, value)
+				fmt.Printf("Set %s=%s\n", key, value)
+			} else {
+				fmt.Println("Usage: /env <key>=<value>")
+			}
 		} else if len(parts) == 2 {
 			// Display specific env var
 			value := r.history.GetEnvironment(parts[1])
@@ -152,16 +162,6 @@ func (r *RunREPL) handleCommand(cmd string) (bool, bool) {
 				fmt.Printf("%s=%s\n", parts[1], value)
 			} else {
 				fmt.Printf("%s is not set\n", parts[1])
-			}
-		} else if strings.Contains(parts[1], "=") && len(parts) >= 2 {
-			// Set environment variable
-			parts := strings.SplitN(parts[1], "=", 2)
-			if len(parts) == 2 {
-				key, value := parts[0], parts[1]
-				r.history.SetEnvironment(key, value)
-				fmt.Printf("Set %s=%s\n", key, value)
-			} else {
-				fmt.Println("Usage: /env <key>=<value>")
 			}
 		} else {
 			fmt.Println("Usage: /env [key] or /env <key>=<value>")
