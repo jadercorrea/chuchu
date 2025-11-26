@@ -1,12 +1,27 @@
 # Multi-Step Task Execution - Maestro Pattern
 
+**Status:** IN PLANNING (Symphony pattern not yet implemented)  
+**Last Updated:** 2025-11-26  
+**Depends On:** Maestro Phase 1 (Complete)
+
 ## Problema Atual
 
-O `chu do` tenta executar tarefas complexas de uma vez, resultando em:
-- Editor atingindo max iterations sem completar
-- Mudanças inconsistentes ou incorretas
-- Criação de arquivos não solicitados
-- Falta de validação entre etapas
+**Note:** `chu do` does not exist yet. This plan describes a future enhancement to `chu implement`.
+
+Complex tasks executed with `chu implement --auto` can result in:
+- Editor reaching max iterations without completing
+- Inconsistent or incorrect changes
+- Creation of unintended files
+- Lack of validation between steps
+
+**Current Solution (Implemented):**
+- `chu implement plan.md` - step-by-step interactive execution
+- `chu implement plan.md --auto` - autonomous with verification
+- Verification system validates build + tests between changes
+- Error recovery with model switching on failure
+
+**Proposed Enhancement (This Plan):**
+Decompose complex tasks into "movements" with explicit dependencies and validation.
 
 ## Solução: Maestro Pattern (Symphony Execution)
 

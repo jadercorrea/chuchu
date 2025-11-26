@@ -1,12 +1,16 @@
 # Plan: Autonomous Multi-Step Task Execution
 
+**Status:** FUTURE / IN PLANNING  
+**Last Updated:** 2025-11-26  
+**Depends On:** Maestro Phase 1 (Complete), Multi-Agent Validation
+
 ## Problem Statement
 
 Chuchu can select optimal models, execute plans with retry logic, and collect feedback. However, it cannot autonomously handle complex implicit tasks like:
 
 ```bash
-chu "read docs/_posts/2025-11-25-ensemble-optimization.md and create a features page"
-chu "unify all feature files in /guides"
+chu do "read docs/_posts/2025-11-25-ensemble-optimization.md and create a features page"
+chu do "unify all feature files in /guides"
 ```
 
 These tasks require:
@@ -16,15 +20,16 @@ These tasks require:
 - Self-validation without explicit tests
 - End-to-end execution without approval steps
 
-**Current State:**
-- ✅ `chu auto plan.md` - executes existing plans with retry
-- ✅ Guided mode - creates plans but requires approval
-- ✅ Implement mode - edits files but needs explicit instructions
-- ✅ ML recommender - selects optimal models
-- ❌ Autonomous task decomposition from vague input
-- ❌ Implicit requirement discovery
-- ❌ Self-directed multi-file operations
-- ❌ Content-aware restructuring
+**Current State (2025-11-26):**
+- ✅ `chu implement plan.md --auto` - executes existing plans with retry
+- ✅ `chu implement plan.md` - interactive step-by-step execution
+- ✅ ML recommender - selects optimal models per agent
+- ✅ Verification system - build + test + lint
+- ✅ Error recovery with model switching
+- ❌ Autonomous task decomposition from vague input (PLANNED)
+- ❌ Implicit requirement discovery (PLANNED)
+- ❌ Self-directed multi-file operations (PLANNED)
+- ❌ Content-aware restructuring (PLANNED)
 
 ## Proposed Solution
 

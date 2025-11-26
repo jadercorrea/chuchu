@@ -23,23 +23,23 @@ func TestChuDoCreateFile(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	
+
 	t.Logf("Running chu do in %s", tmpDir)
 	t.Logf("This may take 2-5 minutes with local Ollama...")
-	
+
 	cmd := exec.Command("chu", "do", "create a file called hello.txt with content 'Hello from Chuchu E2E test'")
 	cmd.Dir = tmpDir
 	cmd.Env = append(os.Environ(), "CHUCHU_TELEMETRY=false")
-	
+
 	done := make(chan struct{})
 	var output []byte
 	var cmdErr error
-	
+
 	go func() {
 		output, cmdErr = cmd.CombinedOutput()
 		close(done)
 	}()
-	
+
 	timeout := 5 * time.Minute
 	select {
 	case <-done:
@@ -76,7 +76,7 @@ func TestChuDoModifyFile(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	
+
 	testFile := filepath.Join(tmpDir, "test.txt")
 	if err := os.WriteFile(testFile, []byte("original content"), 0644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -88,16 +88,16 @@ func TestChuDoModifyFile(t *testing.T) {
 	cmd := exec.Command("chu", "do", "modify test.txt to say 'modified by E2E test'")
 	cmd.Dir = tmpDir
 	cmd.Env = append(os.Environ(), "CHUCHU_TELEMETRY=false")
-	
+
 	done := make(chan struct{})
 	var output []byte
 	var cmdErr error
-	
+
 	go func() {
 		output, cmdErr = cmd.CombinedOutput()
 		close(done)
 	}()
-	
+
 	timeout := 5 * time.Minute
 	select {
 	case <-done:
@@ -135,7 +135,7 @@ func TestChuDoTimeout(t *testing.T) {
 	t.Skip("Skipping timeout test - takes too long with local Ollama (5+ minutes expected)")
 
 	tmpDir := t.TempDir()
-	
+
 	cmd := exec.Command("chu", "do", "create hello.txt")
 	cmd.Dir = tmpDir
 	cmd.Env = append(os.Environ(), "CHUCHU_TELEMETRY=false")
@@ -169,23 +169,23 @@ func TestChuDoNoUnintendedFiles(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	
+
 	t.Logf("Running chu do in %s", tmpDir)
 	t.Logf("This may take 2-5 minutes with local Ollama...")
-	
+
 	cmd := exec.Command("chu", "do", "create result.txt with just the word 'success'")
 	cmd.Dir = tmpDir
 	cmd.Env = append(os.Environ(), "CHUCHU_TELEMETRY=false")
-	
+
 	done := make(chan struct{})
 	var output []byte
 	var cmdErr error
-	
+
 	go func() {
 		output, cmdErr = cmd.CombinedOutput()
 		close(done)
 	}()
-	
+
 	timeout := 5 * time.Minute
 	select {
 	case <-done:
