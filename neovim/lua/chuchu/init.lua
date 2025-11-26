@@ -130,6 +130,7 @@ function M.setup(opts)
       if not input or input == "" then return end
       local cmd = { "chu", "implement", input, "--auto" }
       vim.fn.jobstart(cmd, {
+        env = vim.tbl_extend("force", vim.fn.environ(), {CHUCHU_NVIM_MODE = "1"}),
         stdout_buffered = true,
         on_stdout = function(_, data)
           if not data then return end
@@ -820,6 +821,7 @@ function M.show_model_picker(callback, agent, backend)
     
     local stdout_data = {}
     vim.fn.jobstart(cmd, {
+      env = vim.tbl_extend("force", vim.fn.environ(), {CHUCHU_NVIM_MODE = "1"}),
       stdout_buffered = true,
       on_stdout = function(_, data)
         if data then
@@ -926,6 +928,7 @@ function M.prompt_ollama_install(model, callback)
       vim.notify(string.format("Installing %s...", model.id), vim.log.levels.INFO)
       
       vim.fn.jobstart({"chu", "models", "install", model.id}, {
+        env = vim.tbl_extend("force", vim.fn.environ(), {CHUCHU_NVIM_MODE = "1"}),
         on_exit = function(_, exit_code)
           if exit_code == 0 then
             vim.schedule(function()
@@ -979,6 +982,7 @@ function M.search_models()
     
     local output = {}
     vim.fn.jobstart(cmd, {
+      env = vim.tbl_extend("force", vim.fn.environ(), {CHUCHU_NVIM_MODE = "1"}),
       stdout_buffered = true,
       on_stdout = function(_, data)
         if data then
@@ -1119,6 +1123,7 @@ function M.shell_help()
     local output = {}
 
     local job = vim.fn.jobstart(cmd, {
+      env = vim.tbl_extend("force", vim.fn.environ(), {CHUCHU_NVIM_MODE = "1"}),
       stdout_buffered = true,
       on_stdout = function(_, data, _)
         if data then vim.list_extend(output, data) end
@@ -1315,7 +1320,9 @@ function M.send_to_llm(user_input)
 
   local git_dir = vim.fn.finddir('.git', '.;')
   local project_root = git_dir ~= '' and vim.fn.fnamemodify(git_dir, ':h') or vim.fn.getcwd()
-  chat_state.job = vim.fn.jobstart(cmd, { cwd = project_root,
+  chat_state.job = vim.fn.jobstart(cmd, { 
+    env = vim.tbl_extend("force", vim.fn.environ(), {CHUCHU_NVIM_MODE = "1"}),
+    cwd = project_root,
     stdout_buffered = false,
     on_stdout = function(_, data, _)
       if not data then return end

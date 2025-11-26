@@ -15,6 +15,9 @@ collections:
 markdown: kramdown
 highlighter: rouge
 
+timezone: America/Sao_Paulo
+future: false
+
 plugins:
   - jekyll-feed
   - jekyll-seo-tag

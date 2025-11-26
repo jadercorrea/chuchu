@@ -40,6 +40,8 @@ Routes user requests to the right agent (query, editor, research, review):
 | **Cost** | $0 | $0.000005 |
 | **Accuracy** | 85-90% | 95%+ |
 
+**Training data**: The model is trained on 1,200+ examples including the NL2Bash corpus[^3], which provides natural language descriptions of shell commands. This enables accurate classification of shell/git command requests like "run git diff and create commit message".
+
 **Smart fallback**: When the ML model is uncertain (confidence < threshold), it falls back to the LLM. You get speed when possible, accuracy when needed.
 
 ### 2. Complexity Classifier
@@ -360,6 +362,8 @@ But the foundation is here today: fast, cheap, accurate routing powered by embed
 [^1]: Fan, R. E., Chang, K. W., Hsieh, C. J., Wang, X. R., & Lin, C. J. (2008). LIBLINEAR: A library for large linear classification. *Journal of Machine Learning Research*, 9(Aug), 1871-1874. https://www.jmlr.org/papers/v9/fan08a.html
 
 [^2]: Teerapittayanon, S., McDanel, B., & Kung, H. T. (2016). BranchyNet: Fast inference via early exiting from deep neural networks. *ICPR 2016*. https://arxiv.org/abs/1709.01686
+
+[^3]: Lin, X. V., Wang, C., Zettlemoyer, L., & Ernst, M. D. (2018). NL2Bash: A Corpus and Semantic Parser for Natural Language Interface to the Linux Operating System. *LREC 2018*. https://victorialin.org/pubs/nl2bash.pdf
 
 ## See Also
 

@@ -11,8 +11,8 @@ import numpy as np
 # Paths
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
-DATA_PATH = PROJECT_ROOT / "data" / "training_data.csv"
-MODEL_OUTPUT = PROJECT_ROOT / "models" / "router_model.json"
+DATA_PATH = PROJECT_ROOT / "data" / "training_data_merged.csv"
+MODEL_OUTPUT = PROJECT_ROOT / "models" / "intent_model.json"
 
 # Labels
 LABELS = {
