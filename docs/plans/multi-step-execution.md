@@ -2,26 +2,26 @@
 
 **Status:** IN PLANNING (Symphony pattern not yet implemented)  
 **Last Updated:** 2025-11-26  
-**Depends On:** Maestro Phase 1 (Complete)
+**Depends On:** Maestro Phase 1 (Complete), chu do (Complete)
 
 ## Problema Atual
 
-**Note:** `chu do` does not exist yet. This plan describes a future enhancement to `chu implement`.
-
-Complex tasks executed with `chu implement --auto` can result in:
+`chu do` and `chu implement --auto` execute complex tasks but can result in:
 - Editor reaching max iterations without completing
 - Inconsistent or incorrect changes
 - Creation of unintended files
 - Lack of validation between steps
 
 **Current Solution (Implemented):**
+- `chu do "task"` - autonomous execution with agents
 - `chu implement plan.md` - step-by-step interactive execution
 - `chu implement plan.md --auto` - autonomous with verification
 - Verification system validates build + tests between changes
 - Error recovery with model switching on failure
+- E2E tests validating chu do functionality
 
 **Proposed Enhancement (This Plan):**
-Decompose complex tasks into "movements" with explicit dependencies and validation.
+Decompose complex tasks into "movements" (phases) with explicit dependencies and validation between each movement.
 
 ## Solução: Maestro Pattern (Symphony Execution)
 
