@@ -13,6 +13,15 @@ description: AI coding assistant with specialized agents and validation
   </div>
 </div>
 
+<div class="section" style="text-align: center; background: #f8f9fa; padding: 4rem 2rem; border-radius: 12px; margin: 2rem 0;">
+  <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Watch AI Orchestration in Real-Time</h2>
+  <p style="font-size: 1.25rem; color: #64748b; max-width: 700px; margin: 0 auto 2rem;">
+    While other assistants are black boxes, Chuchu shows you exactly what's happening.
+    See specialized agents collaborate, smart model selection, and transparent cost tracking.
+  </p>
+  <a href="/observatory" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">Try Interactive Demo</a>
+</div>
+
 <div class="features">
   <a href="/features#agent-based-architecture" class="feature-card">
     <h3>Autonomous Execution</h3>
