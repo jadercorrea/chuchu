@@ -314,7 +314,7 @@ func runCommand(call ToolCall, workdir string) ToolResult {
 	// Block sudo commands to prevent password prompts
 	if strings.Contains(command, "sudo ") || strings.HasPrefix(command, "sudo") {
 		return ToolResult{
-			Tool: "run_command",
+			Tool:  "run_command",
 			Error: "sudo commands not allowed in autonomous mode. Present sudo commands to user for manual execution.",
 		}
 	}

@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"chuchu/internal/config"
+	"chuchu/internal/llm"
 	"chuchu/internal/modes"
 	"chuchu/internal/prompt"
-	"chuchu/internal/llm"
 	"github.com/chzyer/readline"
 )
 
@@ -97,7 +97,7 @@ func (r *ChatREPL) RunWithInitialMessage(initialMessage string) error {
 			fmt.Printf("Error: %v\n", err)
 		}
 		fmt.Println("")
-		
+
 		// If non-interactive (piped input), exit after processing
 		if !isInteractiveTTY() {
 			return nil
@@ -350,10 +350,10 @@ func RunSingleShot(input string, args []string) error {
 		setup, _ := config.LoadSetup()
 		backendName := setup.Defaults.Backend
 		backendCfg := setup.Backend[backendName]
-		
+
 		// Use query agent model from profile
 		queryModel := backendCfg.GetModelForAgent("query")
-		
+
 		var provider llm.Provider
 		if backendCfg.Type == "ollama" {
 			provider = llm.NewOllama(backendCfg.BaseURL)
