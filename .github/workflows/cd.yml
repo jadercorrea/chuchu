@@ -124,11 +124,18 @@ jobs:
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "Latest tag: $LATEST_TAG"
           
-          # Increment patch version
+          # Increment patch version until we find an available tag
           VERSION=${LATEST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
           NEW_PATCH=$((PATCH + 1))
           NEW_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+          
+          # Keep incrementing if tag already exists
+          while git ls-remote --tags origin | grep -q "refs/tags/$NEW_TAG"; do
+            echo "Tag $NEW_TAG already exists, incrementing..."
+            NEW_PATCH=$((NEW_PATCH + 1))
+            NEW_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+          done
           
           echo "New tag: $NEW_TAG"
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
