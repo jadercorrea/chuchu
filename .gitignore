@@ -29,6 +29,7 @@ bin/
 *.swp
 *.swo
 *~
+chuchu.*
 
 # OS
 .DS_Store
