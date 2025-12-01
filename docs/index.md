@@ -47,31 +47,6 @@ description: AI coding assistant with specialized agents and validation
   </a>
 </div>
 
-<div class="section">
-  <h2 class="section-title">How It Works</h2>
-  <p class="section-subtitle">Orchestrated agents with validation and auto-retry</p>
-  
-  <div class="mermaid">
-graph TB
-    User["chu do 'add feature'"] --> Orchestrator{Orchestrator}
-    
-    Orchestrator --> Analyzer["Analyzer<br/>Understands codebase<br/>Reads relevant files"]
-    Analyzer --> Planner["Planner<br/>Creates minimal plan<br/>Lists files to modify"]
-    Planner --> Validation["File Validation<br/>Extracts allowed files<br/>Blocks extras"]
-    Validation --> Editor["Editor<br/>Executes changes<br/>ONLY planned files"]
-    Editor --> Validator["Validator<br/>Checks success criteria<br/>Validates results"]
-    
-    Validator -->|Success| Done["Task Complete"]
-    Validator -->|Fail| Retry["Auto-retry<br/>with feedback"]
-    Retry --> Editor
-    
-    style Analyzer fill:#3b82f6,color:#fff
-    style Planner fill:#8b5cf6,color:#fff  
-    style Editor fill:#10b981,color:#fff
-    style Validator fill:#f59e0b,color:#fff
-    style Validation fill:#ef4444,color:#fff
-  </div>
-</div>
 
 <div class="section">
   <h2 class="section-title">Structured Workflow: Research → Plan → Implement</h2>
