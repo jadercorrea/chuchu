@@ -242,15 +242,17 @@ func runDoExecution(task string, verbose bool, supervised bool, setup *config.Se
 		fmt.Fprintf(os.Stderr, "Query Model: %s\n\n", queryModel)
 	}
 
-	// CHECK FOR AUTONOMOUS EXECUTION
-	if !supervised && modes.ShouldUseAutonomous(context.Background(), task) {
+	// ALWAYS use Symphony executor for non-supervised mode
+	// Symphony internally decides: complexity < 7 = direct, >= 7 = decompose
+	if !supervised {
 		if verbose {
-			fmt.Fprintf(os.Stderr, "🚀 Detected complex task. Using Autonomous Symphony Mode...\n")
+			fmt.Fprintf(os.Stderr, "🔍 Analyzing task complexity...\n")
 		}
 		executor := modes.NewAutonomousExecutor(orchestrator, provider, cwd, queryModel, editorModel)
 		return executor.Execute(context.Background(), task)
 	}
 
+	// Supervised mode: use guided workflow
 	if supervised {
 		guided := modes.NewGuidedMode(orchestrator, cwd, queryModel)
 

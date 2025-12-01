@@ -161,14 +161,14 @@ func TestChuDoComplexityThreshold(t *testing.T) {
 			expectedKeywords: []string{"Executing directly"},
 		},
 		{
-			name:             "complex task with reorganize",
-			task:             "reorganize all files",
+			name:             "likely complex task",
+			task:             "reorganize all files in docs folder and create index",
 			shouldBeComplex:  true,
 			expectedKeywords: []string{"Complex task", "Symphony"},
 		},
 		{
-			name:             "complex task with refactor",
-			task:             "refactor code structure",
+			name:             "multi-step task",
+			task:             "analyze all markdown files, extract headers, and create table of contents",
 			shouldBeComplex:  true,
 			expectedKeywords: []string{"Complex task", "Symphony"},
 		},

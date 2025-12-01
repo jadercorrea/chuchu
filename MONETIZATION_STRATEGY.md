@@ -2,57 +2,74 @@
 
 ## Visão Geral
 
-**Premissa central**: Chu é 100% **open-source e gratuito** (como CodeClimate OSS). Serve como **ferramenta de aquisição** para um produto SaaS pago do Zapfy.
+**Problema central**: Times de engenharia usam múltiplas ferramentas AI (Chu, Cursor, Copilot, custom scripts) mas:
+1. ❌ Não têm **visibilidade agregada** de custos
+2. ❌ Não conseguem **otimizar spending** (qual modelo usar quando?)
+3. ❌ Não têm **governance** (budgets, policies, audit)
 
-**Estratégia tipo CodeClimate**:
-- ✅ **Chu CLI** = Ferramenta gratuita individual (como CodeClimate analyzer)
-- 💰 **Zapfy AI Monitor** = SaaS pago para teams/empresas (como CodeClimate Velocity)
-- 🔗 **Conexão natural**: "Quer visibilidade de custos do time? → Zapfy AI Monitor"
+**Solução**: **Zapfy AI Monitor & Router**
+- 📊 **Universal Observability**: Monitora TODAS ferramentas AI (não só Chu)
+- 🎯 **Smart Routing**: Load balancing automático para melhor custo/benefício
+- 💰 **Cost Optimization**: Economiza $$ via intelligent routing
+- 🔒 **Governance**: Budgets, policies, compliance, audit trails
 
-**Não**: Monetizar o Chu diretamente (já há muitos CLIs pagos)
-**Sim**: Usar Chu para alimentar produto Zapfy
+**Estratégia de Aquisição** (tipo CodeClimate):
+- ✅ **Chu CLI** = Ferramenta gratuita individual (aquisição)
+- 💰 **Zapfy AI Monitor** = SaaS pago para teams (monetização)
+- 🔗 **Funil natural**: Developer usa Chu → Manager precisa visibility → Converte
+
+**Não**: Monetizar Chu diretamente (muitos CLIs pagos já existem)
+**Sim**: Chu como top-of-funnel para produto mais valioso
 
 ---
 
-## 🎯 Produto Principal: Zapfy AI Monitor
+## 🏯 Posicionamento: "Helicone + OpenRouter" em uma plataforma
 
-### Posicionamento
-**"CodeClimate Velocity for AI Coding Assistants"**
+### Vs. Competição
 
-Assim como CodeClimate oferece:
-- **Free**: CLI local para análise de código
-- **Paid**: Dashboard centralizado com métricas de time
+| **Aspecto** | **Helicone/LangSmith** | **OpenRouter/Unify** | **Zapfy AI** |
+|-------------|------------------------|----------------------|-------------|
+| Observability | ✅ Completa | ❌ Só proxied | ✅ **Universal** (todas tools) |
+| Smart Routing | ❌ Não | ✅ Sim | ✅ Sim + fallbacks |
+| Cost Optimization | ❌ Manual | ✅ Basic | ✅ **Automático** |
+| Team Governance | ❌ Limitado | ❌ Não | ✅ **Completa** |
+| Free Acquisition | ❌ Não | ❌ Não | ✅ **Chu CLI** |
+| **Differentiator** | - | - | **Observability + Routing + CLI** |
 
-Zapfy oferece:
-- **Free**: Chu CLI para coding assistant individual  
-- **Paid**: AI Monitor para visibilidade de custos/uso do time
+### Value Props por Persona
 
-### Conceito - Modelo CodeClimate
+**Individual Developer**:
+- ✅ Chu CLI free forever
+- ✅ Personal dashboard (free tier)
+- ✅ Cost tracking local + cloud
 
-**CodeClimate** = CLI free + Dashboard pago para teams  
-**Zapfy** = Chu free + AI Monitor pago para teams
+**Engineering Manager**:
+- 📊 Visibility de TODAS ferramentas AI do time
+- 💰 Otimização automática de custos (30-50% savings)
+- 📈 Budget alerts antes de estourar
+- 📊 Analytics: quem usa o quê, quando, quanto
 
-| **Analogia** | **CodeClimate** | **Zapfy** |
-|--------------|-----------------|----------|
-| **Free Tool** | CLI analyzer | Chu CLI |
-| **Dados** | Code quality metrics | AI usage metrics |
-| **Paid Product** | Velocity Dashboard | AI Monitor |
-| **Target** | Engineering teams | AI-powered teams |
-| **Value Prop** | Code health visibility | AI cost visibility |
+**CTO/VP Engineering**:
+- 🔒 Compliance & audit trails
+- 📄 Reports executivos
+- 🚫 Governance policies (e.g. "max $0.01/call")
+- 🏗️ Infrastructure optimization ROI
 
 ### Proposta de Valor (AI Monitor)
 
-**Individual (Free Chu)**:
-- CLI works standalone
-- Local cost tracking (opcional)
-- Open-source, self-hosted
+**Individual Developer (Free)**:
+- Chu CLI works standalone
+- Optional: Track personal AI usage (Chu + outras tools)
+- Dashboard pessoal com metrics
 
-**Team (Paid Monitor)**:
-- Centralized dashboard
-- Team-wide cost tracking
-- Budget alerts
-- Usage policies
-- Compliance & audit
+**Engineering Team (Paid)**:
+- 📊 **Observability Universal**: Monitora uso de QUALQUER tool AI
+  - Chu (native)
+  - Cursor/Copilot (via proxy)
+  - Custom scripts (SDK)
+- 🎯 **Smart Routing**: Load balancing automático para melhor custo/benefício
+- 💰 **Cost Optimization**: Economiza $$ roteando inteligentemente
+- 🔒 **Governance**: Budgets, policies, compliance, audit trails
 
 ### Jornada do Usuário (Funil)
 
@@ -127,8 +144,8 @@ func TrackUsage(event UsageEvent) error {
 chu setup
 # ...
 ? Send usage data to Zapfy AI Monitor? (y/N)
-  → Get team dashboard at monitor.zapfy.ai
-  → Track team costs and usage patterns
+  → Track costs across ALL your AI tools
+  → Get team dashboard + smart routing
   → 100% optional (Chu works without it)
   
 # Se usuário tem API key do Zapfy
@@ -136,49 +153,124 @@ chu setup
   
 # Se não tiver
 ℹ No problem! Chu works perfectly without Zapfy.
-ℹ Want team visibility later? Sign up at monitor.zapfy.ai
+ℹ Want cost visibility + optimization? Sign up at monitor.zapfy.ai
 ```
 
-#### 3. Backend com infraestrutura Agro+
+#### 3. Universal Observability (SDK + Proxy)
+
+**A. Native Integration (Chu)**:
+```go
+// Chu já tem telemetry built-in
+telemetry.Track(ctx, event)
+```
+
+**B. SDK para Custom Scripts**:
+```python
+# pip install zapfy-sdk
+from zapfy import track
+
+@track(api_key="zapfy_xxx")
+def my_ai_function():
+    response = openai.chat.completions.create(...)
+    return response
+```
+
+**C. Proxy para Cursor/Copilot**:
+```bash
+# Redirect Cursor's OpenAI calls to Zapfy proxy
+export OPENAI_BASE_URL="https://proxy.zapfy.ai/v1"
+export ZAPFY_API_KEY="zapfy_xxx"
+
+# Cursor agora é tracked automaticamente
+```
+
+#### 4. Smart Routing Architecture
+
+```
+[┌─ User Code ──────────────────┐
+ │ zapfy.route(               │
+ │   prompt="Fix bug...",    │
+ │   task="code_edit",       │
+ │   max_cost=0.001          │
+ │ )                          │
+ └───────────────────────────┘
+          │
+          │ 1. Zapfy Router analisa
+          v
+[┌─ Router Decision Engine ───┐
+ │ - Task type: code_edit     │
+ │ - Budget: $0.001          │
+ │ - Quality needed: 0.85    │
+ │ - Current load: Groq OK   │
+ │                           │
+ │ Decision: Groq llama-3.1  │
+ └───────────────────────────┘
+          │
+          v
+[┌─ Provider (Groq) ────────┐
+ │ Fast response (200ms)     │
+ │ Cost: $0.0003            │
+ └───────────────────────────┘
+          │
+          v (if Groq fails)
+[┌─ Fallback: OpenRouter ───┐
+ │ Backup provider           │
+ │ Cost: $0.0008            │
+ └───────────────────────────┘
+```
+
+**Routing Policies** (configuráveis):
+- **Cost-first**: Sempre o mais barato que atende quality threshold
+- **Speed-first**: Menor latência (Groq priorizado)
+- **Quality-first**: Melhor modelo (Claude/GPT-4)
+- **Balanced**: Mix de cost/speed/quality
+
+#### 5. Backend com infraestrutura Agro+
 - **TimescaleDB** para time-series de uso
 - **Phoenix LiveView** para dashboard real-time
 - **WAPI** para alertas WhatsApp
 - **Multi-tenant** desde day 1
+- **Router service** em Elixir (low latency)
 
-### Pricing Tiers (Zapfy AI Monitor)
+### Pricing Tiers (Zapfy AI Monitor + Router)
 
 **Chu CLI**: 100% gratuito sempre
 
-**Zapfy AI Monitor** (SaaS):
+**Zapfy AI Monitor & Router** (SaaS):
 
 1. **Free** (Individual)
    - 1 usuário
+   - Universal observability (todas AI tools)
    - Dashboard pessoal
-   - 30 dias histórico
-   - Dados locais somente
+   - 7 dias histórico
+   - ❌ Sem smart routing
    
-2. **Team** - $49/mês
-   - Até 10 devs
+2. **Team** - $49/mês (até 10 devs)
+   - ✅ Universal observability (Chu + Cursor + Copilot + custom)
+   - ✅ Smart routing (10K calls/mês incluídas)
    - Team dashboard centralizado
    - 90 dias histórico
    - Budget alerts (email)
-   - Cost breakdowns
+   - Cost breakdowns & optimization tips
    
-3. **Business** - $149/mês
-   - Até 50 devs
+3. **Business** - $149/mês (até 50 devs)
+   - ✅ Smart routing ilimitado
+   - ✅ Cost optimization engine (auto load balancing)
    - 1 ano histórico
    - Alertas WhatsApp/Slack
    - Usage policies enforcement
    - API access
    - Custom reports
+   - Advanced analytics
    
 4. **Enterprise** - Custom
    - Unlimited devs
+   - Dedicated routing infrastructure
    - SSO/SAML
    - Audit logs & compliance
-   - White-label
-   - Dedicated support
-   - On-premise option
+   - White-label option
+   - Dedicated support + CSM
+   - On-premise deployment (air-gapped)
 
 ### Revenue Projection (Zapfy AI Monitor)
 
@@ -416,23 +508,62 @@ Já iniciado em `docs/compare/` mas pode virar produto standalone.
 
 ## 🎯 Resumo Executivo
 
-**Estratégia**: Chu como ferramenta **100% gratuita** de aquisição, Zapfy AI Monitor como produto **pago SaaS** (modelo CodeClimate).
+### Estratégia Central
+**Zapfy AI Monitor & Router** = **Universal AI Observability + Smart Routing**
 
-**Funil**:
-1. Dev usa Chu (free CLI, open-source)
-2. Manager precisa de visibility/governance
-3. Descobre Zapfy AI Monitor via Chu
-4. Converte para Team/Business plan
+**Diferencial único**: Única plataforma que combina:
+1. 📊 Observability de TODAS ferramentas AI (Chu, Cursor, Copilot, custom)
+2. 🎯 Smart routing com load balancing automático
+3. 💰 Cost optimization (30-50% savings)
+4. 🔒 Team governance & compliance
+5. ✅ Free acquisition tool (Chu CLI)
 
-**Revenue**: $60K (Ano 1) → $300K (Ano 2) → $720K (Ano 3)
+### Funil de Aquisição
+```
+Developer → Chu (free) → Team adoption → Manager needs visibility → Zapfy (paid)
+```
 
-**Investimento inicial**: ~3 meses dev time (reuso de Agro+ reduz para ~1 mês)
+**Por que funciona**:
+- Developer escolhe Chu (melhor CLI, open-source)
+- Time naturalmente adota (network effect)
+- Manager precisa de visibility/governance
+- Zapfy é solução natural (já integrado com Chu)
 
-**Próximos passos**: Ver `AI_MONITOR_ADAPTATION_PLAN.md` para detalhes técnicos.
+### Revenue Projection
+- **Ano 1**: $60K ARR (10 teams, 2 business)
+- **Ano 2**: $300K ARR (40 teams, 8 business)
+- **Ano 3**: $720K ARR (80 teams, 20 business, 5 enterprise)
+
+### Investimento & Timeline
+- **Dev time**: ~3 meses (reuso de Agro+ infra)
+- **Custos iniciais**: ~$2.5K (infra + legal)
+- **Break-even**: Mês 6-9 (~$2K MRR)
+
+### Value Props por Tier
+**Free**: Personal observability (1 dev, 7 dias)
+**Team ($49/mês)**: Universal observability + smart routing (10K calls)
+**Business ($149/mês)**: Routing ilimitado + cost optimization engine
+**Enterprise (custom)**: Dedicated infra + SSO + on-premise
+
+### Competitive Moats
+1. ✅ **Open-source CLI** (trust + adoption)
+2. ✅ **Universal observability** (não vendor lock-in)
+3. ✅ **Smart routing** (diferencial vs. Helicone)
+4. ✅ **Team governance** (diferencial vs. OpenRouter)
+5. ✅ **Cost optimization** (ROI imediato)
+
+### Próximos Passos
+1. **Semana 1-2**: Validar com 10 potenciais clientes
+2. **Mês 1-3**: MVP do Monitor (adaptar Agro+) + telemetry no Chu
+3. **Mês 4-6**: Beta com 5 early customers
+4. **Mês 6-9**: Public launch + marketing agressivo
+
+**Detalhes técnicos**: Ver `AI_MONITOR_ADAPTATION_PLAN.md`
 
 ---
 
-**Última atualização**: 2024-12-01
+**Última atualização**: 2024-12-01  
+**Versão**: 2.0 - Universal Observability + Smart Routing
    - [ ] Pricing page v1
 
 ---

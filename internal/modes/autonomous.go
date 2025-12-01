@@ -49,31 +49,10 @@ func (a *AutonomousExecutor) Execute(ctx context.Context, task string) error {
 }
 
 // ShouldUseAutonomous determines if a task should use autonomous mode
+// This is a lightweight heuristic check before full analysis.
+// The real complexity scoring happens in TaskAnalyzer.estimateComplexity()
 func ShouldUseAutonomous(ctx context.Context, task string) bool {
-	// Check if task mentions "reorganize", "refactor", "unify", etc.
-	// These are strong indicators of complex multi-step tasks
-	complexVerbs := []string{"reorganize", "refactor", "unify", "merge", "split", "restructure"}
-
-	for _, verb := range complexVerbs {
-		if contains(task, verb) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
-		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-			findSubstring(s, substr)))
-}
-
-func findSubstring(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
+	// Always return false - let the ML-based complexity analysis decide
+	// TaskAnalyzer.Analyze() will trigger Symphony if complexity >= 7
 	return false
 }

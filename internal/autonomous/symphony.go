@@ -63,13 +63,13 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 	fmt.Printf("   Intent: %s\n", analysis.Intent)
 	fmt.Printf("   Complexity: %d/10\n", analysis.Complexity)
 
-	// 2. If simple (complexity < 7), execute directly
+	// 2. If simple (complexity < 7 from ML analysis), execute directly
 	if analysis.Complexity < 7 {
 		fmt.Println("\n✨ Executing directly (simple task)...")
 		return e.executeDirect(ctx, task, analysis)
 	}
 
-	// 3. Create symphony
+	// 3. Complex task (ML scored >= 7): decompose into Symphony movements
 	fmt.Printf("\n🎼 Complex task detected! Creating symphony with %d movements...\n\n", len(analysis.Movements))
 
 	symphony := &Symphony{
