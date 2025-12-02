@@ -44,6 +44,8 @@ func getNestedValue(setup *Setup, key string) (interface{}, error) {
 			return nil, fmt.Errorf("defaults key requires subfield (e.g., defaults.backend)")
 		}
 		switch parts[1] {
+		case "mode":
+			return setup.Defaults.Mode, nil
 		case "backend":
 			return setup.Defaults.Backend, nil
 		case "profile":
@@ -107,6 +109,11 @@ func setNestedValue(setup *Setup, key, value string) error {
 			return fmt.Errorf("defaults key requires subfield (e.g., defaults.backend)")
 		}
 		switch parts[1] {
+		case "mode":
+			if value != "cloud" && value != "local" {
+				return fmt.Errorf("mode must be 'cloud' or 'local'")
+			}
+			setup.Defaults.Mode = value
 		case "backend":
 			if _, ok := setup.Backend[value]; !ok {
 				return fmt.Errorf("backend %s does not exist", value)
