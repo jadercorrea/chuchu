@@ -33,19 +33,20 @@ func getCache() *RecommendationCache {
 	return defaultCache
 }
 
-func cacheKey(agentType string, additionalContext string) string {
+func cacheKey(agentType string, additionalContext string, mode string) string {
 	h := sha256.New()
 	h.Write([]byte(agentType))
 	h.Write([]byte(additionalContext))
+	h.Write([]byte(mode))
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func GetCachedRecommendation(agentType string, additionalContext string) (backend string, model string, reason string, found bool) {
+func GetCachedRecommendation(agentType string, additionalContext string, mode string) (backend string, model string, reason string, found bool) {
 	cache := getCache()
 	cache.mu.RLock()
 	defer cache.mu.RUnlock()
 
-	key := cacheKey(agentType, additionalContext)
+	key := cacheKey(agentType, additionalContext, mode)
 	entry, exists := cache.entries[key]
 
 	if !exists {
@@ -59,12 +60,12 @@ func GetCachedRecommendation(agentType string, additionalContext string) (backen
 	return entry.Backend, entry.Model, entry.Reason, true
 }
 
-func SetCachedRecommendation(agentType string, additionalContext string, backend string, model string, reason string) {
+func SetCachedRecommendation(agentType string, additionalContext string, mode string, backend string, model string, reason string) {
 	cache := getCache()
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
 
-	key := cacheKey(agentType, additionalContext)
+	key := cacheKey(agentType, additionalContext, mode)
 	cache.entries[key] = CacheEntry{
 		Backend: backend,
 		Model:   model,

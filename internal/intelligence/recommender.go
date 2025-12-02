@@ -221,7 +221,8 @@ func minInt(a, b int) int {
 
 func SelectBestModelForAgent(setup *config.Setup, agentType string) (backend string, model string, reason string, err error) {
 	// Check cache first
-	if cachedBackend, cachedModel, cachedReason, found := GetCachedRecommendation(agentType, ""); found {
+	mode := setup.Defaults.Mode
+	if cachedBackend, cachedModel, cachedReason, found := GetCachedRecommendation(agentType, "", mode); found {
 		return cachedBackend, cachedModel, cachedReason + " (cached)", nil
 	}
 
@@ -248,8 +249,6 @@ func SelectBestModelForAgent(setup *config.Setup, agentType string) (backend str
 	}
 
 	candidates := DefaultCatalog.GetModelsForAgent(agentType)
-
-	mode := setup.Defaults.Mode
 
 	var bestRec ModelRecommendation
 	var allRecs []ModelRecommendation
@@ -315,7 +314,7 @@ func SelectBestModelForAgent(setup *config.Setup, agentType string) (backend str
 	}
 
 	// Cache the result
-	SetCachedRecommendation(agentType, "", bestRec.Backend, modelCfg, bestRec.Reason)
+	SetCachedRecommendation(agentType, "", mode, bestRec.Backend, modelCfg, bestRec.Reason)
 
 	return bestRec.Backend, modelCfg, bestRec.Reason, nil
 }

@@ -209,7 +209,36 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 
 		recommendations, err := intelligence.RecommendModelForRetry(setup, "editor", currentBackend, currentEditorModel, task)
 		if err != nil || len(recommendations) == 0 {
-			return fmt.Errorf("no alternative models available: %w", err)
+			// No automatic recommendations - ask user
+			fmt.Fprintf(os.Stderr, "\n⚠️  No suitable models found automatically.\n")
+			fmt.Fprintf(os.Stderr, "\nAvailable backends:\n")
+			var backends []string
+			for backend := range setup.Backend {
+				backends = append(backends, backend)
+				fmt.Fprintf(os.Stderr, "  - %s\n", backend)
+			}
+			if len(backends) == 0 {
+				return fmt.Errorf("no backends configured")
+			}
+			fmt.Fprintf(os.Stderr, "\nWhich backend would you like to try? (or 'quit' to stop): ")
+			var input string
+			fmt.Scanln(&input)
+			if input == "quit" || input == "q" {
+				return fmt.Errorf("user cancelled")
+			}
+			if _, exists := setup.Backend[input]; !exists {
+				return fmt.Errorf("backend '%s' not found", input)
+			}
+			currentBackend = input
+			backendCfg := setup.Backend[currentBackend]
+			currentEditorModel = backendCfg.GetModelForAgent("editor")
+			if currentEditorModel == "" {
+				currentEditorModel = backendCfg.DefaultModel
+			}
+			if verbose {
+				fmt.Fprintf(os.Stderr, "Switching to %s/%s...\n", currentBackend, currentEditorModel)
+			}
+			continue
 		}
 
 		rec := recommendations[0]
@@ -250,33 +279,26 @@ func runDoExecution(task string, verbose bool, supervised bool, setup *config.Se
 		provider = llm.NewChatCompletion(backendCfg.BaseURL, backendName)
 	}
 
+	// Use same backend for all agents (query, research, editor) for consistency
+	// This ensures retry switches all models together
 	profileName := setup.Defaults.Profile
-	researchModelStr := backendCfg.GetModelForAgentWithProfile("research", profileName)
-	researchBackend, researchModel := setup.ResolveBackendAndModel(researchModelStr, backendName)
-	researchCfg := setup.Backend[researchBackend]
-
-	var researchProvider llm.Provider
-	if researchCfg.Type == "ollama" {
-		researchProvider = llm.NewOllama(researchCfg.BaseURL)
-	} else {
-		researchProvider = llm.NewChatCompletion(researchCfg.BaseURL, researchBackend)
+	queryModel := backendCfg.GetModelForAgentWithProfile("query", profileName)
+	if queryModel == "" {
+		queryModel = backendCfg.DefaultModel
 	}
-	orchestrator := llm.NewOrchestrator(researchCfg.BaseURL, researchBackend, researchProvider, researchModel)
 
-	queryModelStr := backendCfg.GetModelForAgentWithProfile("query", profileName)
-	queryBackend, queryModel := setup.ResolveBackendAndModel(queryModelStr, backendName)
-	queryCfg := setup.Backend[queryBackend]
-
-	var queryProvider llm.Provider
-	if queryCfg.Type == "ollama" {
-		queryProvider = llm.NewOllama(queryCfg.BaseURL)
-	} else {
-		queryProvider = llm.NewChatCompletion(queryCfg.BaseURL, queryBackend)
+	researchModel := backendCfg.GetModelForAgentWithProfile("research", profileName)
+	if researchModel == "" {
+		researchModel = backendCfg.DefaultModel
 	}
+
+	orchestrator := llm.NewOrchestrator(backendCfg.BaseURL, backendName, provider, researchModel)
+
+	queryProvider := provider
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Query: %s/%s\n", queryBackend, queryModel)
-		fmt.Fprintf(os.Stderr, "Research: %s/%s\n\n", researchBackend, researchModel)
+		fmt.Fprintf(os.Stderr, "Query: %s/%s\n", backendName, queryModel)
+		fmt.Fprintf(os.Stderr, "Research: %s/%s\n\n", backendName, researchModel)
 	}
 
 	// ALWAYS use Symphony executor for non-supervised mode

@@ -100,15 +100,15 @@ func (v *BuildVerifier) Verify(ctx context.Context) (*VerificationResult, error)
 	}
 
 	modifiedFiles := strings.Split(strings.TrimSpace(string(gitOut)), "\n")
-	
+
 	// Check if any modified file is a code file
 	hasCodeFiles := false
 	codeExtensions := map[string]bool{
-		".go": true, ".py": true, ".js": true, ".ts": true, 
-		".jsx": true, ".tsx": true, ".java": true, ".c": true, 
+		".go": true, ".py": true, ".js": true, ".ts": true,
+		".jsx": true, ".tsx": true, ".java": true, ".c": true,
 		".cpp": true, ".rs": true, ".rb": true,
 	}
-	
+
 	for _, file := range modifiedFiles {
 		if file == "" {
 			continue
@@ -123,7 +123,7 @@ func (v *BuildVerifier) Verify(ctx context.Context) (*VerificationResult, error)
 			break
 		}
 	}
-	
+
 	if !hasCodeFiles {
 		return &VerificationResult{Success: true, Output: "No code files modified, skipping build"}, nil
 	}
