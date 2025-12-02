@@ -207,7 +207,7 @@ Grok 4.1 Fast is particularly interesting for AI coding agents:
 
 2. Verify your configuration:
    ```bash
-   chu config show
+   chu profile
    ```
 
 3. Test with a chat:

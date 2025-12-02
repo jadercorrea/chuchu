@@ -189,7 +189,7 @@ Switch between model configurations instantly:
 **CLI:**
 ```bash
 chu backend list           # List configured backends
-chu backend switch groq    # Switch to Groq backend
+chu backend use groq       # Switch to Groq backend
 ```
 
 ---

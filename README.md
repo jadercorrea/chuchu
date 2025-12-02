@@ -262,16 +262,23 @@ chu implement docs/plans/my-implementation.md --auto --lint
 ### Backend Management
 
 ```bash
-# List configured backends
+# Show current backend
+chu backend
+
+# List all backends
 chu backend list
+
+# Show backend details
+chu backend show groq
+
+# Switch backend
+chu backend use groq
 
 # Create new backend
 chu backend create mygroq openai https://api.groq.com/openai/v1
 chu key mygroq  # Set API key
 chu config set backend.mygroq.default_model llama-3.3-70b-versatile
-
-# Switch default backend
-chu config set defaults.backend mygroq
+chu backend use mygroq
 
 # Delete backend
 chu backend delete mygroq
@@ -280,11 +287,17 @@ chu backend delete mygroq
 ### Profile Management
 
 ```bash
-# List profiles for a backend
-chu profiles list groq
+# Show current profile
+chu profile
 
-# Show profile configuration
-chu profiles show groq default
+# List all profiles
+chu profile list
+
+# Show profile details
+chu profile show groq.speed
+
+# Switch profile (backend + profile)
+chu profile use groq.speed
 
 # Create new profile
 chu profiles create groq speed

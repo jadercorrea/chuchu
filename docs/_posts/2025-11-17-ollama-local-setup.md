@@ -224,8 +224,8 @@ backend:
 ```
 
 **To switch backends:**
-1. In Neovim: Press `Ctrl+X` in chat buffer and select different backend
-2. Manually: Edit `defaults.backend` value and restart your session
+1. Via CLI: `chu backend use ollama` or `chu backend use groq`
+2. In Neovim: Press `Ctrl+X` in chat buffer and select different backend
 
 **Important**: Only one backend is active at a time. Each backend has its own set of agent_models. You cannot mix models from different backends in the same session.
 

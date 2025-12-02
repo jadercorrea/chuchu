@@ -314,7 +314,7 @@ chu model list groq
 ### Check Current Configuration
 ```bash
 chu profile                    # Show current backend and profile
-chu profile show groq budget   # Show specific profile details
+chu profile show groq.budget   # Show specific profile details
 ```
 
 ### Monitor Usage

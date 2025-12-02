@@ -1,37 +1,47 @@
-# Plans Directory (Temporary)
+# Plans Directory
 
-This directory contains **work-in-progress planning documents** used during feature development.
+This directory contains **planning documents** for future features and improvements.
 
-## Purpose
+## Priority System
 
-We're experimenting with different planning and execution practices to find what works best for AI-assisted development. Plans here are:
+Plans are prefixed with numbers indicating implementation priority:
 
-- ✅ Living documents that evolve during implementation
-- ✅ Used to coordinate between human and AI agents
-- ✅ Experiments in planning granularity and structure
-- ❌ Not final documentation (see blog posts instead)
-- ❌ Not committed to git (`.gitignore`d)
+- **01-** Highest priority (critical, affects all users)
+- **02-** Very high priority (major value/differentiation)
+- **03-** High priority (important but can be deferred)
+- **04-** Medium priority (nice to have)
+- **05-** Low priority (future consideration)
+
+### Current Plans (by priority)
+
+1. **01-user-friendly-commands-and-docs.md** - CLI UX improvements (many tasks already done ✅)
+2. **02-autonomous-execution-unified.md** - Programmatic tool calling pattern
+3. **03-observer-architecture.md** - CLI telemetry/tracing (🌐 marketing complete, ❌ CLI not implemented)
+4. **04-chuchu-observatory-visualization.md** - Real-time dashboard (depends on #3)
+5. **05-universal-feedback-collector.md** - Cross-tool feedback capture (Warp AI, Gemini, Claude)
+
+### Special Documents
+
+- **E2E_ROADMAP.md** - Test infrastructure roadmap (active)
 
 ## Lifecycle
 
-1. **Create plan** before major feature (e.g., `maestro-autonomous-execution-plan.md`)
-2. **Iterate** during implementation (may diverge from original)
-3. **Document lessons** in `lessons-learned.md`
-4. **Distill** into blog post when feature is complete
-5. **Archive or delete** plan after blog post is published
+1. **Create plan** for major features
+2. **Number by priority** (01-, 02-, etc.)
+3. **Iterate** during implementation
+4. **Delete or archive** after completion
 
-## Current Experiments
+## Priority Rationale
 
-- **Maestro (Autonomous Execution)**: Testing detailed upfront planning with code examples and task breakdowns
-- **Tracking**: What worked vs what didn't, velocity, rewrite rate
-
-## Future Blog Posts
-
-Lessons learned here will be synthesized into:
-- "Effective Practices for AI-Assisted Development"
-- "Building Chuchu Maestro: A Case Study"
-- "When to Plan vs When to Iterate"
+Priority is determined by:
+- **User impact**: How many users benefit?
+- **Value**: How much does it improve the product?
+- **Differentiation**: Does it set us apart?
+- **ROI**: Implementation cost vs benefit
+- **Dependencies**: What blocks other work?
 
 ## Notes
 
-If you find this directory in the repo, it means we're actively building something and haven't published the final learnings yet. Check back in `docs/_posts/` for polished documentation.
+- Implemented features should be **deleted**, not archived
+- Plans evolve - update priority numbers as context changes
+- Check implementation status before assuming something isn't done

@@ -597,6 +597,140 @@ Shows:
 
 ---
 
+## Backend Management
+
+### `chu backend`
+
+Show current backend.
+
+```bash
+chu backend
+```
+
+Shows:
+- Backend name
+- Type (openai/ollama)
+- Base URL
+- Default model
+
+### `chu backend list`
+
+List all configured backends.
+
+```bash
+chu backend list
+```
+
+### `chu backend show [name]`
+
+Show backend configuration. Shows current if no name provided.
+
+```bash
+chu backend show groq
+```
+
+Shows:
+- Type and URL
+- Default model
+- All configured models
+
+### `chu backend use <name>`
+
+Switch to a backend.
+
+```bash
+chu backend use groq
+chu backend use openrouter
+chu backend use ollama
+```
+
+### `chu backend create`
+
+Create a new backend.
+
+```bash
+chu backend create mygroq openai https://api.groq.com/openai/v1
+chu key mygroq  # Set API key
+chu config set backend.mygroq.default_model llama-3.3-70b-versatile
+chu backend use mygroq
+```
+
+### `chu backend delete`
+
+Delete a backend.
+
+```bash
+chu backend delete mygroq
+```
+
+---
+
+## Profile Management
+
+### `chu profile`
+
+Show current profile.
+
+```bash
+chu profile
+```
+
+Shows:
+- Backend and profile name
+- Agent models (router, query, editor, research)
+
+### `chu profile list [backend]`
+
+List all profiles. Optionally filter by backend.
+
+```bash
+chu profile list              # All profiles
+chu profile list groq        # Only groq profiles
+```
+
+Shows profiles in `backend.profile` format.
+
+### `chu profile show [backend.profile]`
+
+Show profile configuration. Shows current if not specified.
+
+```bash
+chu profile show groq.speed
+chu profile show              # Current profile
+```
+
+### `chu profile use <backend>.<profile>`
+
+Switch to a backend and profile in one command.
+
+```bash
+chu profile use groq.speed
+chu profile use openrouter.free
+chu profile use ollama.local
+```
+
+**Benefits:**
+- Faster than switching backend and profile separately
+- Atomic operation (both or neither)
+- Easier to remember
+
+### Advanced Profile Commands
+
+For creating and configuring profiles, use `chu profiles` (plural):
+
+```bash
+# Create new profile
+chu profiles create groq speed
+
+# Configure agents
+chu profiles set-agent groq speed router llama-3.1-8b-instant
+chu profiles set-agent groq speed query llama-3.1-8b-instant
+chu profiles set-agent groq speed editor llama-3.1-8b-instant
+chu profiles set-agent groq speed research llama-3.1-8b-instant
+```
+
+---
+
 ## Environment Variables
 
 ### `CHUCHU_DEBUG`
@@ -643,6 +777,30 @@ backends:
       fast: llama-3.3-70b-versatile
       smart: llama-3.3-70b-specdec
 ```
+
+---
+
+## Advanced Configuration
+
+### Direct Config Manipulation
+
+For advanced users who need direct access to configuration values:
+
+```bash
+# Get configuration value
+chu config get defaults.backend
+chu config get defaults.profile
+chu config get backend.groq.default_model
+
+# Set configuration value
+chu config set defaults.backend groq
+chu config set defaults.profile speed
+chu config set backend.groq.default_model llama-3.3-70b-versatile
+```
+
+**Note:** For most use cases, prefer the user-friendly commands:
+- `chu backend use` instead of `chu config set defaults.backend`
+- `chu profile use` instead of `chu config set defaults.profile`
 
 ---
 

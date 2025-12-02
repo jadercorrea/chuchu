@@ -67,11 +67,15 @@ $0-5/month vs $20-30/month subscriptions.
 ## CONFIGURATION
   chu setup                - Initialize ~/.chuchu configuration
   chu key [backend]        - Add/update API key
-  chu backend list         - List configured backends
-  chu config get <key>     - Get configuration value
-  chu config set <key> <value> - Set configuration value
+  chu backend              - Show current backend
+  chu backend list         - List all backends
+  chu backend use <name>   - Switch backend
+  chu profile              - Show current profile
+  chu profile list         - List all profiles
+  chu profile use <backend>.<profile> - Switch profile
 
 ## ADVANCED
+  chu config get/set       - Direct config manipulation (advanced)
   chu ml list|train|test|eval|predict - Machine learning features
   chu graph build|query    - Dependency graph analysis
   chu feedback good|bad    - User feedback tracking
@@ -158,7 +162,27 @@ var keyCmd = &cobra.Command{
 
 var backendCmd = &cobra.Command{
 	Use:   "backend",
-	Short: "Manage backends",
+	Short: "Show and manage backends",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		setup, err := config.LoadSetup()
+		if err != nil {
+			return fmt.Errorf("failed to load setup: %w", err)
+		}
+
+		backendName := setup.Defaults.Backend
+		backendCfg, ok := setup.Backend[backendName]
+		if !ok {
+			return fmt.Errorf("backend %s not found", backendName)
+		}
+
+		fmt.Printf("Current: %s\n", backendName)
+		fmt.Printf("  Type: %s\n", backendCfg.Type)
+		fmt.Printf("  URL: %s\n", backendCfg.BaseURL)
+		if backendCfg.DefaultModel != "" {
+			fmt.Printf("  Default model: %s\n", backendCfg.DefaultModel)
+		}
+		return nil
+	},
 }
 
 var backendListCmd = &cobra.Command{
@@ -214,7 +238,7 @@ Examples:
 			fmt.Printf("  chu key %s                    # Set API key\n", name)
 		}
 		fmt.Printf("  chu config set backend.%s.default_model <model>\n", name)
-		fmt.Printf("  chu config set defaults.backend %s\n", name)
+		fmt.Printf("  chu backend use %s            # Switch to this backend\n", name)
 		return nil
 	},
 }
@@ -231,6 +255,64 @@ var backendDeleteCmd = &cobra.Command{
 		}
 
 		fmt.Printf("✓ Deleted backend: %s\n", name)
+		return nil
+	},
+}
+
+var backendShowCmd = &cobra.Command{
+	Use:   "show [backend]",
+	Short: "Show backend configuration (current if not specified)",
+	Args:  cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		setup, err := config.LoadSetup()
+		if err != nil {
+			return fmt.Errorf("failed to load setup: %w", err)
+		}
+
+		backendName := setup.Defaults.Backend
+		if len(args) > 0 {
+			backendName = args[0]
+		}
+
+		backendCfg, ok := setup.Backend[backendName]
+		if !ok {
+			return fmt.Errorf("backend %s not found", backendName)
+		}
+
+		fmt.Printf("%s\n", backendName)
+		fmt.Printf("  Type: %s\n", backendCfg.Type)
+		fmt.Printf("  URL: %s\n", backendCfg.BaseURL)
+		if backendCfg.DefaultModel != "" {
+			fmt.Printf("  Default model: %s\n", backendCfg.DefaultModel)
+		}
+		if len(backendCfg.Models) > 0 {
+			fmt.Println("  Models:")
+			for alias, model := range backendCfg.Models {
+				fmt.Printf("    %s: %s\n", alias, model)
+			}
+		}
+		return nil
+	},
+}
+
+var backendUseCmd = &cobra.Command{
+	Use:   "use <backend>",
+	Short: "Switch to a backend",
+	Long: `Switch to a specific backend.
+
+Examples:
+  chu backend use groq
+  chu backend use openrouter
+  chu backend use ollama`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		backendName := args[0]
+
+		if err := config.SetConfig("defaults.backend", backendName); err != nil {
+			return fmt.Errorf("failed to set backend: %w", err)
+		}
+
+		fmt.Printf("✓ Switched to %s\n", backendName)
 		return nil
 	},
 }
@@ -954,6 +1036,8 @@ var feedbackHookCmd = &cobra.Command{
 
 func init() {
 	backendCmd.AddCommand(backendListCmd)
+	backendCmd.AddCommand(backendShowCmd)
+	backendCmd.AddCommand(backendUseCmd)
 	backendCmd.AddCommand(backendCreateCmd)
 	backendCmd.AddCommand(backendDeleteCmd)
 

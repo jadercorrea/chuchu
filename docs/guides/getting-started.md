@@ -15,7 +15,9 @@ go build -o ./bin/chu ./cmd/chu
 ```bash
 chu setup             # creates ~/.chuchu/setup.yaml
 chu key openrouter    # add API key(s) as needed
-chu backend list
+chu backend           # check current backend
+chu backend list      # list all backends
+chu profile           # check current profile
 ```
 
 ## Quick start: two‑keystroke feedback (Ctrl+g)

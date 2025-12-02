@@ -31,7 +31,7 @@ func TestChuChatSingleShot(t *testing.T) {
 	}
 
 	outputStr := string(output)
-	
+
 	// Should contain an answer with 4
 	if !strings.Contains(outputStr, "4") {
 		t.Errorf("Expected answer to contain '4', got: %s", outputStr)
@@ -61,7 +61,7 @@ func TestChuChatWithInitialMessage(t *testing.T) {
 	}
 
 	outputStr := string(output)
-	
+
 	// Should mention the test.go file we created
 	if !strings.Contains(outputStr, "test.go") && !strings.Contains(outputStr, "file") {
 		t.Errorf("Expected response to mention files, got: %s", outputStr)
@@ -81,16 +81,16 @@ func TestChuChatHelp(t *testing.T) {
 	}
 
 	outputStr := string(output)
-	
+
 	// Should mention REPL commands
 	if !strings.Contains(outputStr, "REPL Commands") {
 		t.Errorf("Expected help to mention REPL Commands, got: %s", outputStr)
 	}
-	
+
 	if !strings.Contains(outputStr, "/exit") {
 		t.Errorf("Expected help to mention /exit command, got: %s", outputStr)
 	}
-	
+
 	if !strings.Contains(outputStr, "/clear") {
 		t.Errorf("Expected help to mention /clear command, got: %s", outputStr)
 	}

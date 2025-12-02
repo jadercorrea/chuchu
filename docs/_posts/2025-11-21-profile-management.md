@@ -22,25 +22,49 @@ Instead of manually editing `~/.chuchu/setup.yaml`, create and switch between pr
 
 ## Quick Start
 
+### Show Current Profile
+
+```bash
+chu profile
+# Current: groq/default
+#   router: llama-3.1-8b-instant
+#   query: llama-3.3-70b-versatile
+#   editor: moonshotai/kimi-k2-instruct-0905
+#   research: groq/compound
+```
+
 ### List Available Profiles
 
 ```bash
-chu profiles list groq
-# ["default", "speed", "quality"]
+chu profile list
+# groq.default (current)
+# groq.speed
+# groq.quality
+# openrouter.default
+# openrouter.free
 
-chu profiles list openrouter
-# ["default", "free"]
+chu profile list groq
+# groq.default (current)
+# groq.speed
+# groq.quality
 ```
 
 ### Show Profile Configuration
 
 ```bash
-chu profiles show groq default
-# Profile: groq/default
+chu profile show groq.speed
+# groq/speed
 #   router: llama-3.1-8b-instant
-#   query: llama-3.3-70b-versatile
-#   editor: moonshotai/kimi-k2-instruct-0905
-#   research: groq/compound
+#   query: llama-3.1-8b-instant
+#   editor: llama-3.1-8b-instant
+#   research: llama-3.1-8b-instant
+```
+
+### Switch Profile
+
+```bash
+chu profile use groq.speed
+# ✓ Switched to groq/speed
 ```
 
 ### Create New Profile
@@ -201,7 +225,7 @@ backend:
 
 Works as:
 ```bash
-chu profiles show groq default
+chu profile show groq.default
 # Shows the models from agent_models
 ```
 
@@ -210,11 +234,11 @@ chu profiles show groq default
 ### Profile Not Found
 
 ```bash
-chu profiles list groq
+chu profile list groq
 # Check if profile exists
 
 chu profiles create groq myprofile
-# Create if missing
+# Create if missing (use plural 'profiles' for creation)
 ```
 
 ### Wrong Models Showing
@@ -222,11 +246,11 @@ chu profiles create groq myprofile
 Verify profile configuration:
 
 ```bash
-chu profiles show groq myprofile
+chu profile show groq.myprofile
 # Check each agent's model
 
 chu profiles set-agent groq myprofile router correct-model
-# Fix individual agents
+# Fix individual agents (use plural 'profiles' for configuration)
 ```
 
 ### Profile Changes Not Reflecting in Neovim

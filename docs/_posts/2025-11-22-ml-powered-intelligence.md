@@ -114,6 +114,8 @@ chu config get defaults.ml_complex_threshold
 chu config set defaults.ml_complex_threshold 0.6  # Less Guided Mode
 ```
 
+> **Note**: These use `chu config` commands for direct manipulation. For general backend/profile management, see the user-friendly `chu backend` and `chu profile` commands.
+
 **Lower threshold** = more ML, faster but riskier
 **Higher threshold** = more LLM fallback, slower but safer
 
