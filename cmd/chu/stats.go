@@ -90,10 +90,13 @@ Examples:
 			return err
 		}
 
-		var usage map[string]map[string]struct {
-			Requests  int    `json:"requests"`
-			LastError string `json:"last_error,omitempty"`
-		}
+	var usage map[string]map[string]struct {
+		Requests     int    `json:"requests"`
+		InputTokens  int    `json:"input_tokens"`
+		OutputTokens int    `json:"output_tokens"`
+		CachedTokens int    `json:"cached_tokens"`
+		LastError    string `json:"last_error,omitempty"`
+	}
 
 		if err := json.Unmarshal(data, &usage); err != nil {
 			return err
@@ -104,8 +107,11 @@ Examples:
 }
 
 func displayStatsBox(usage map[string]map[string]struct {
-	Requests  int    `json:"requests"`
-	LastError string `json:"last_error,omitempty"`
+	Requests     int    `json:"requests"`
+	InputTokens  int    `json:"input_tokens"`
+	OutputTokens int    `json:"output_tokens"`
+	CachedTokens int    `json:"cached_tokens"`
+	LastError    string `json:"last_error,omitempty"`
 }, todayOnly, weekOnly bool) error {
 	now := time.Now()
 	todayStr := now.Format("2006-01-02")
@@ -127,12 +133,18 @@ func displayStatsBox(usage map[string]map[string]struct {
 
 	totalRequests := 0
 	totalErrors := 0
+	totalInputTokens := 0
+	totalOutputTokens := 0
+	totalCachedTokens := 0
 	modelStats := make(map[string]int)
 
 	for _, date := range dates {
 		models := usage[date]
 		for model, stats := range models {
 			totalRequests += stats.Requests
+			totalInputTokens += stats.InputTokens
+			totalOutputTokens += stats.OutputTokens
+			totalCachedTokens += stats.CachedTokens
 			if stats.LastError != "" {
 				totalErrors++
 			}
@@ -143,6 +155,11 @@ func displayStatsBox(usage map[string]map[string]struct {
 	successRate := 100.0
 	if totalRequests > 0 {
 		successRate = float64(totalRequests-totalErrors) / float64(totalRequests) * 100
+	}
+
+	cacheHitRate := 0.0
+	if totalInputTokens > 0 {
+		cacheHitRate = float64(totalCachedTokens) / float64(totalInputTokens) * 100
 	}
 
 	width := 88
@@ -161,6 +178,18 @@ func displayStatsBox(usage map[string]map[string]struct {
 	fmt.Printf("  Total Requests:      %d\n", totalRequests)
 	fmt.Printf("  Success Rate:        %.1f%%\n", successRate)
 	fmt.Println()
+
+	if totalInputTokens > 0 || totalOutputTokens > 0 {
+		fmt.Println("  Token Usage")
+		fmt.Printf("  Input Tokens:        %s\n", formatNumber(totalInputTokens))
+		fmt.Printf("  Output Tokens:       %s\n", formatNumber(totalOutputTokens))
+		if totalCachedTokens > 0 {
+			fmt.Printf("  Cached Tokens:       %s (%.1f%% cache hit)\n", formatNumber(totalCachedTokens), cacheHitRate)
+			fmt.Println()
+			fmt.Printf("  💡 Cache savings: %s tokens, reducing costs\n", formatNumber(totalCachedTokens))
+		}
+		fmt.Println()
+	}
 
 	fmt.Println("  Model Usage          Requests  Status")
 	fmt.Println("  " + strings.Repeat("─", width-4))
@@ -210,6 +239,16 @@ func displayStatsBox(usage map[string]map[string]struct {
 	fmt.Println(strings.Repeat("─", width))
 
 	return nil
+}
+
+func formatNumber(n int) string {
+	if n < 1000 {
+		return fmt.Sprintf("%d", n)
+	}
+	if n < 1000000 {
+		return fmt.Sprintf("%.1fk", float64(n)/1000)
+	}
+	return fmt.Sprintf("%.1fM", float64(n)/1000000)
 }
 
 func init() {

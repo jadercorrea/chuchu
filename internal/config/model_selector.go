@@ -46,8 +46,11 @@ type ModelFeedback struct {
 }
 
 type ModelUsage struct {
-	Requests  int    `json:"requests"`
-	LastError string `json:"last_error,omitempty"`
+	Requests       int    `json:"requests"`
+	InputTokens    int    `json:"input_tokens"`
+	OutputTokens   int    `json:"output_tokens"`
+	CachedTokens   int    `json:"cached_tokens"`
+	LastError      string `json:"last_error,omitempty"`
 }
 
 type ModelSelector struct {
@@ -291,6 +294,10 @@ func (ms *ModelSelector) saveUsage() error {
 }
 
 func (ms *ModelSelector) RecordUsage(backend, model string, success bool, errorMsg string) {
+	ms.RecordUsageWithTokens(backend, model, success, errorMsg, 0, 0, 0)
+}
+
+func (ms *ModelSelector) RecordUsageWithTokens(backend, model string, success bool, errorMsg string, inputTokens, outputTokens, cachedTokens int) {
 	today := time.Now().Format("2006-01-02")
 	if ms.usage[today] == nil {
 		ms.usage[today] = make(map[string]ModelUsage)
@@ -299,6 +306,9 @@ func (ms *ModelSelector) RecordUsage(backend, model string, success bool, errorM
 	key := backend + "/" + model
 	usage := ms.usage[today][key]
 	usage.Requests++
+	usage.InputTokens += inputTokens
+	usage.OutputTokens += outputTokens
+	usage.CachedTokens += cachedTokens
 	if !success {
 		usage.LastError = errorMsg
 	}
