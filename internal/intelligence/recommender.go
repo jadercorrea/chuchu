@@ -46,6 +46,8 @@ func RecommendModelForRetry(setup *config.Setup, agentType string, failedBackend
 	// Use catalog instead of hardcoded map
 	candidateModels := DefaultCatalog.GetModelsForAgent(agentType)
 
+	mode := setup.Defaults.Mode
+
 	for _, modelInfo := range candidateModels {
 		backend := modelInfo.Backend
 		model := modelInfo.Name
@@ -56,6 +58,14 @@ func RecommendModelForRetry(setup *config.Setup, agentType string, failedBackend
 
 		backendCfg, backendExists := setup.Backend[backend]
 		if !backendExists {
+			continue
+		}
+
+		// Filter by mode
+		if mode == "local" && backend != "ollama" {
+			continue
+		}
+		if mode == "cloud" && backend == "ollama" {
 			continue
 		}
 

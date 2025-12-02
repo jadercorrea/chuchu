@@ -190,7 +190,11 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 		looksLikeToolError := strings.Contains(errMsg, "tool") || strings.Contains(errMsg, "function") ||
 			strings.Contains(errMsg, "not available") || strings.Contains(errMsg, "not supported")
 
-		if !looksLikeToolError {
+		looksLikeAPIError := strings.Contains(errMsg, "API error") || strings.Contains(errMsg, "Provider returned error") ||
+			strings.Contains(errMsg, "rate limit") || strings.Contains(errMsg, "timeout") ||
+			strings.Contains(errMsg, "connection") || strings.Contains(errMsg, "429")
+
+		if !looksLikeToolError && !looksLikeAPIError {
 			return fmt.Errorf("task failed: %w", err)
 		}
 
