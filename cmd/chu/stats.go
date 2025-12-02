@@ -90,13 +90,13 @@ Examples:
 			return err
 		}
 
-	var usage map[string]map[string]struct {
-		Requests     int    `json:"requests"`
-		InputTokens  int    `json:"input_tokens"`
-		OutputTokens int    `json:"output_tokens"`
-		CachedTokens int    `json:"cached_tokens"`
-		LastError    string `json:"last_error,omitempty"`
-	}
+		var usage map[string]map[string]struct {
+			Requests     int    `json:"requests"`
+			InputTokens  int    `json:"input_tokens"`
+			OutputTokens int    `json:"output_tokens"`
+			CachedTokens int    `json:"cached_tokens"`
+			LastError    string `json:"last_error,omitempty"`
+		}
 
 		if err := json.Unmarshal(data, &usage); err != nil {
 			return err

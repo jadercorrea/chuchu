@@ -46,11 +46,11 @@ type ModelFeedback struct {
 }
 
 type ModelUsage struct {
-	Requests       int    `json:"requests"`
-	InputTokens    int    `json:"input_tokens"`
-	OutputTokens   int    `json:"output_tokens"`
-	CachedTokens   int    `json:"cached_tokens"`
-	LastError      string `json:"last_error,omitempty"`
+	Requests     int    `json:"requests"`
+	InputTokens  int    `json:"input_tokens"`
+	OutputTokens int    `json:"output_tokens"`
+	CachedTokens int    `json:"cached_tokens"`
+	LastError    string `json:"last_error,omitempty"`
 }
 
 type ModelSelector struct {

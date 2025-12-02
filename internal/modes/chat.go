@@ -158,22 +158,6 @@ func Chat(input string, args []string) {
 		return
 	}
 
-	if IsComplexTask(lastUserMessage) {
-		fmt.Fprintln(os.Stderr, "[CHAT] Complexity detected, using guided mode")
-		fmt.Fprintf(os.Stderr, "[CHAT] Message: %s\n", lastUserMessage)
-		queryModel := backendCfg.GetModelForAgent("query")
-		guided := NewGuidedMode(orchestrator, cwd, queryModel)
-		if err := guided.Execute(context.Background(), lastUserMessage); err != nil {
-			fmt.Fprintln(os.Stderr, "Guided mode error:", err)
-			fmt.Println("Erro:", err)
-		}
-		os.Stdout.Sync()
-
-		time.Sleep(200 * time.Millisecond)
-
-		_, _ = io.Copy(io.Discard, os.Stdin)
-		return
-	}
 
 	var stopSpinner chan bool
 	if os.Getenv("CHUCHU_DEBUG") != "1" {
@@ -395,17 +379,6 @@ func ChatWithResponse(input string, args []string) (string, error) {
 		return "[Executed operational command]", nil
 	}
 
-	if IsComplexTask(lastUserMessage) {
-		if os.Getenv("CHUCHU_DEBUG") == "1" {
-			fmt.Fprintln(os.Stderr, "[CHAT] Complexity detected, using guided mode")
-		}
-		queryModel := backendCfg.GetModelForAgent("query")
-		guided := NewGuidedMode(orchestrator, cwd, queryModel)
-		if err := guided.Execute(context.Background(), lastUserMessage); err != nil {
-			return "", fmt.Errorf("guided mode error: %w", err)
-		}
-		return "[Executed complex task in guided mode]", nil
-	}
 
 	routerModel := backendCfg.GetModelForAgent("router")
 	editorModel := backendCfg.GetModelForAgent("editor")
