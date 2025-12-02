@@ -253,6 +253,10 @@ func SelectBestModelForAgent(setup *config.Setup, agentType string) (backend str
 			continue
 		}
 
+		if mode == "cloud" && modelInfo.Backend == "ollama" {
+			continue
+		}
+
 		key := modelInfo.Backend + "/" + modelInfo.Name
 		h, hasHistory := historyMap[key]
 
