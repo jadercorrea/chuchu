@@ -81,23 +81,51 @@ func LoadProfile() (*Profile, error) {
 }
 
 func (bc *BackendConfig) GetModelForAgent(agentType string) string {
+	return bc.GetModelForAgentWithProfile(agentType, "")
+}
+
+func (bc *BackendConfig) GetModelForAgentWithProfile(agentType string, profileName string) string {
+	var agentModels AgentModels
+
+	if profileName != "" && profileName != "default" {
+		if profile, ok := bc.Profiles[profileName]; ok {
+			agentModels = profile.AgentModels
+		} else {
+			agentModels = bc.AgentModels
+		}
+	} else {
+		agentModels = bc.AgentModels
+	}
+
 	switch agentType {
 	case "router":
-		if bc.AgentModels.Router != "" {
-			return bc.AgentModels.Router
+		if agentModels.Router != "" {
+			return agentModels.Router
 		}
 	case "query":
-		if bc.AgentModels.Query != "" {
-			return bc.AgentModels.Query
+		if agentModels.Query != "" {
+			return agentModels.Query
 		}
 	case "editor":
-		if bc.AgentModels.Editor != "" {
-			return bc.AgentModels.Editor
+		if agentModels.Editor != "" {
+			return agentModels.Editor
 		}
 	case "research":
-		if bc.AgentModels.Research != "" {
-			return bc.AgentModels.Research
+		if agentModels.Research != "" {
+			return agentModels.Research
 		}
 	}
 	return bc.DefaultModel
+}
+
+// ResolveBackendAndModel determines the backend for a model
+// Model strings can be:
+// - "llama-3.3-70b" -> uses defaultBackend
+// - "groq/compound" -> model slug for the current backend (groq), use as-is
+// - "moonshotai/kimi-k2" -> model slug for the current backend, use as-is
+// We only change backend if the prefix is a DIFFERENT backend than default
+func (s *Setup) ResolveBackendAndModel(modelStr string, defaultBackend string) (backend string, model string) {
+	// Always use the defaultBackend and full model string
+	// The model string itself is the slug that the API expects
+	return defaultBackend, modelStr
 }

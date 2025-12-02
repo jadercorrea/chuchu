@@ -65,9 +65,9 @@ func RunReview(opts ReviewOptions) error {
 
 	reviewPrompt := buildReviewPrompt(targetPath, info.IsDir(), opts.Focus)
 
-	fmt.Printf("🔍 Reviewing: %s\n", target)
+	fmt.Printf("Reviewing: %s\n", target)
 	if opts.Focus != "" {
-		fmt.Printf("📋 Focus: %s\n", opts.Focus)
+		fmt.Printf("Focus: %s\n", opts.Focus)
 	}
 	fmt.Println()
 
@@ -89,7 +89,7 @@ func RunReview(opts ReviewOptions) error {
 	}
 
 	fmt.Println("\n" + strings.Repeat("=", 80))
-	fmt.Println("📝 CODE REVIEW")
+	fmt.Println("CODE REVIEW")
 	fmt.Println(strings.Repeat("=", 80) + "\n")
 	fmt.Println(result)
 	fmt.Println()

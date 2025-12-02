@@ -84,7 +84,7 @@ func runE2ETests(cmd *cobra.Command, args []string) error {
 			if err := saveDefaultE2EProfile(profile); err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: Could not save default profile: %v\n", err)
 			} else {
-				fmt.Printf("✓ Saved '%s' as default E2E profile\n", profile)
+				fmt.Printf("[OK] Saved '%s' as default E2E profile\n", profile)
 			}
 		}
 	}

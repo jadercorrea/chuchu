@@ -130,7 +130,7 @@ func runInteractiveImplement(planPath string) error {
 	m := maestro.NewMaestro(provider, cwd, model)
 	steps := m.ParsePlan(string(planContent))
 
-	fmt.Fprintf(os.Stderr, "📋 Plan loaded: %d steps\n\n", len(steps))
+	fmt.Fprintf(os.Stderr, "Plan loaded: %d steps\n\n", len(steps))
 
 	reader := bufio.NewReader(os.Stdin)
 

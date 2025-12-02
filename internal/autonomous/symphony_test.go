@@ -33,9 +33,9 @@ func TestSymphonyExecution(t *testing.T) {
 	analyzer := NewTaskAnalyzer(classifier, provider, "/tmp", "test-model")
 	planner := agents.NewPlanner(provider, "test-model")
 	editor := agents.NewEditorWithFileValidation(provider, "/tmp", "test-model", []string{})
-	validator := agents.NewValidator(provider, "/tmp", "test-model")
+	reviewer := agents.NewReviewer(provider, "/tmp", "test-model")
 
-	executor := NewExecutor(analyzer, planner, editor, validator, "/tmp")
+	executor := NewExecutor(analyzer, planner, editor, reviewer, "/tmp")
 
 	// NOTE: This would actually try to execute - keeping as placeholder
 	// In real test, we'd need more sophisticated mocking

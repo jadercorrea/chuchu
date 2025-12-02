@@ -187,7 +187,7 @@ func (g *GuidedMode) Implement(ctx context.Context, plan string) error {
 		_ = g.events.Status(status)
 	}
 
-	validatorAgent := agents.NewValidator(g.baseProvider, g.cwd, g.model)
+	reviewerAgent := agents.NewReviewer(g.baseProvider, g.cwd, g.model)
 
 	maxRetries := 2
 	for attempt := 0; attempt <= maxRetries; attempt++ {
@@ -228,13 +228,13 @@ Execute the plan directly and minimally.`, plan)
 			return fmt.Errorf("editor reached max iterations without completing task")
 		}
 
-		// Use actually modified files for validation if available, otherwise fallback to plan files
+		// Use actually modified files for review if available, otherwise fallback to plan files
 		filesToValidate := allowedFiles
 		if len(modifiedFiles) > 0 {
 			filesToValidate = modifiedFiles
 		}
 
-		validationResult, err := validatorAgent.Validate(ctx, plan, filesToValidate, statusCallback)
+		reviewResult, err := reviewerAgent.Review(ctx, plan, filesToValidate, statusCallback)
 		if err != nil {
 			if os.Getenv("CHUCHU_DEBUG") == "1" {
 				fmt.Fprintf(os.Stderr, "[IMPLEMENT] Validation failed: %v\n", err)
@@ -242,7 +242,7 @@ Execute the plan directly and minimally.`, plan)
 			return err
 		}
 
-		if validationResult.Success {
+		if reviewResult.Success {
 			_ = g.events.Message("Implementation validated successfully.")
 			return nil
 		}
@@ -251,7 +251,7 @@ Execute the plan directly and minimally.`, plan)
 			_ = g.events.Message(fmt.Sprintf("Validation failed. Retrying... (attempt %d/%d)", attempt+2, maxRetries+1))
 
 			feedback := "VALIDATION FAILED. Issues found:\n"
-			for _, issue := range validationResult.Issues {
+			for _, issue := range reviewResult.Issues {
 				feedback += "- " + issue + "\n"
 			}
 			feedback += "\nFix these issues and try again."
@@ -262,11 +262,11 @@ Execute the plan directly and minimally.`, plan)
 
 			editorAgent = agents.NewEditorWithFileValidation(g.baseProvider, g.cwd, g.editorModel, allowedFiles)
 		} else {
-			_ = g.events.Message("Implementation completed but validation failed after max retries.")
-			for _, issue := range validationResult.Issues {
+			_ = g.events.Message("Implementation completed but review failed after max retries.")
+			for _, issue := range reviewResult.Issues {
 				_ = g.events.Message("  - " + issue)
 			}
-			return fmt.Errorf("validation failed: %v", validationResult.Issues)
+			return fmt.Errorf("review failed: %v", reviewResult.Issues)
 		}
 	}
 

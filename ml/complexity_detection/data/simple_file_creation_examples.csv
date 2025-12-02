@@ -1,0 +1,51 @@
+message,label,notes
+"create file test.txt",0,Simple file creation
+"create test.txt with hello world",0,Simple file with content
+"create empty file output.log",0,Empty file creation
+"create file config.json",0,Simple file creation
+"write hello to file.txt",0,Simple write
+"create README.md file",0,Simple file
+"make new file data.csv",0,Simple creation
+"create .gitignore file",0,Simple config file
+"create file main.go",0,Simple source file
+"create package.json",0,Simple config
+"write test content to output.txt",0,Simple write
+"create empty directory structure",0,Simple mkdir
+"create file with content abc",0,Simple content
+"make file notes.md",0,Simple creation
+"create LICENSE file",0,Simple file
+"write hello world to test.txt",0,Simple write with content
+"create temp.txt",0,Temp file
+"make file backup.sql",0,Simple backup file
+"create test file",0,Generic test file
+"create file example.py",0,Simple Python file
+"write data to results.json",0,Simple data write
+"create log file",0,Simple log
+"make config file",0,Simple config
+"create script.sh",0,Simple script
+"write message to file",0,Simple message write
+"create file index.html",0,Simple HTML file
+"make file styles.css",0,Simple CSS file
+"create component.tsx",0,Simple component file
+"write output to file.log",0,Simple log output
+"create file utils.js",0,Simple utility file
+"make test file test_main.py",0,Simple test file
+"create file helpers.go",0,Simple helper file
+"write results to output.csv",0,Simple CSV output
+"create file constants.ts",0,Simple constants
+"make file types.d.ts",0,Simple type definitions
+"create docker-compose.yml",0,Simple Docker config
+"write config to settings.yaml",0,Simple YAML config
+"create file routes.rb",0,Simple routes file
+"make file models.py",0,Simple models file
+"create file views.py",0,Simple views file
+"create a simple text file",0,Simple file description
+"make an empty file",0,Empty file
+"create new file document.txt",0,Simple document
+"write simple text to file",0,Simple text write
+"create file with one line",0,Single line file
+"make file with hello",0,Simple greeting file
+"create basic config file",0,Basic config
+"write string to file",0,Simple string write
+"create small test file",0,Small file
+"make quick note file",0,Quick note

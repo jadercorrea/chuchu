@@ -80,7 +80,7 @@ Example:
 			return fmt.Errorf("execution failed: %w", err)
 		}
 
-		fmt.Println("✓ Execution completed successfully!")
+		fmt.Println("[OK] Execution completed successfully!")
 		return nil
 	},
 }

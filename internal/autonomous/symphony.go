@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"chuchu/internal/agents"
-	"chuchu/internal/llm"
+	"chuchu/internal/maestro"
 )
 
 // Symphony represents a multi-movement task execution
@@ -27,11 +27,9 @@ type Symphony struct {
 
 // Executor executes tasks using the Symphony pattern
 type Executor struct {
-	analyzer  *TaskAnalyzer
-	planner   *agents.PlannerAgent
-	editor    *agents.EditorAgent
-	validator *agents.ValidatorAgent
-	cwd       string
+	analyzer *TaskAnalyzer
+	maestro  *maestro.Conductor
+	cwd      string
 }
 
 // NewExecutor creates a new symphony executor
@@ -39,22 +37,21 @@ func NewExecutor(
 	analyzer *TaskAnalyzer,
 	planner *agents.PlannerAgent,
 	editor *agents.EditorAgent,
-	validator *agents.ValidatorAgent,
+	reviewer *agents.ReviewerAgent,
 	cwd string,
 ) *Executor {
+	conductor := maestro.NewConductor(nil, planner, editor, reviewer, cwd)
 	return &Executor{
-		analyzer:  analyzer,
-		planner:   planner,
-		editor:    editor,
-		validator: validator,
-		cwd:       cwd,
+		analyzer: analyzer,
+		maestro:  conductor,
+		cwd:      cwd,
 	}
 }
 
 // Execute executes a task autonomously
 func (e *Executor) Execute(ctx context.Context, task string) error {
 	// 1. Analyze task
-	fmt.Println("🔍 Analyzing task...")
+	fmt.Println("Analyzing task...")
 	analysis, err := e.analyzer.Analyze(ctx, task)
 	if err != nil {
 		return fmt.Errorf("failed to analyze task: %w", err)
@@ -63,14 +60,14 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 	fmt.Printf("   Intent: %s\n", analysis.Intent)
 	fmt.Printf("   Complexity: %d/10\n", analysis.Complexity)
 
-	// 2. If simple (complexity < 7 from ML analysis), execute directly
-	if analysis.Complexity < 7 {
-		fmt.Println("\n✨ Executing directly (simple task)...")
+	// 2. If simple (complexity <= 5 from ML analysis), execute directly
+	if analysis.Complexity <= 5 {
+		fmt.Println("\nExecuting directly (simple task)...")
 		return e.executeDirect(ctx, task, analysis)
 	}
 
 	// 3. Complex task (ML scored >= 7): decompose into Symphony movements
-	fmt.Printf("\n🎼 Complex task detected! Creating symphony with %d movements...\n\n", len(analysis.Movements))
+	fmt.Printf("\nComplex task detected! Creating symphony with %d movements...\n\n", len(analysis.Movements))
 
 	symphony := &Symphony{
 		ID:              generateID(),
@@ -85,7 +82,7 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 	for i, movement := range symphony.Movements {
 		symphony.CurrentMovement = i
 
-		fmt.Printf("🎵 Movement %d/%d: %s\n", i+1, len(symphony.Movements), movement.Name)
+		fmt.Printf("Movement %d/%d: %s\n", i+1, len(symphony.Movements), movement.Name)
 		fmt.Printf("   Goal: %s\n", movement.Goal)
 
 		err := e.executeMovement(ctx, &symphony.Movements[i])
@@ -94,11 +91,11 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 			return fmt.Errorf("movement %d failed: %w", i+1, err)
 		}
 
-		fmt.Printf("   ✅ Movement %d complete\n\n", i+1)
+		fmt.Printf("   [OK] Movement %d complete\n\n", i+1)
 
 		// Save checkpoint (enable resume)
 		if err := e.saveCheckpoint(symphony); err != nil {
-			fmt.Printf("   ⚠️  Warning: failed to save checkpoint: %v\n", err)
+			fmt.Printf("   [WARNING] Failed to save checkpoint: %v\n", err)
 		}
 	}
 
@@ -106,74 +103,25 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 	symphony.Status = "completed"
 	symphony.CompletedAt = &now
 
-	fmt.Println("✅ Symphony complete!")
+	fmt.Println("[OK] Symphony complete!")
 	return nil
 }
 
 // executeDirect executes a simple task without decomposition
 func (e *Executor) executeDirect(ctx context.Context, task string, analysis *TaskAnalysis) error {
-	// Use existing orchestrated mode workflow
-	// For now, just create a plan and execute
-
-	// 1. Create plan
-	plan, err := e.planner.CreatePlan(ctx, task, "", nil)
-	if err != nil {
-		return fmt.Errorf("failed to create plan: %w", err)
-	}
-
-	// 2. Execute with editor
-	history := []llm.ChatMessage{
-		{Role: "user", Content: plan},
-	}
-
-	result, modifiedFiles, err := e.editor.Execute(ctx, history, nil)
-	if err != nil {
-		return fmt.Errorf("failed to execute: %w", err)
-	}
-
-	fmt.Printf("\n✅ Task complete!\n")
-	fmt.Printf("   Modified: %d files\n", len(modifiedFiles))
-	if result != "" {
-		fmt.Printf("   %s\n", result)
-	}
-
-	return nil
+	// Delegate to Maestro
+	return e.maestro.ExecuteTask(ctx, task)
 }
 
-// executeMovement executes a single movement
+// executeMovement executes a single movement with retry on review failure
 func (e *Executor) executeMovement(ctx context.Context, movement *Movement) error {
 	movement.Status = "executing"
 
-	// 1. Create plan for this movement only
-	fmt.Println("   📋 Creating plan...")
-	plan, err := e.planner.CreatePlan(ctx, movement.Goal, "", nil)
+	// Delegate to Maestro (movements are just tasks with specific goals)
+	err := e.maestro.ExecuteTask(ctx, movement.Goal)
 	if err != nil {
-		return fmt.Errorf("failed to create plan: %w", err)
-	}
-
-	// 2. Execute with editor
-	fmt.Println("   ✏️  Executing changes...")
-	history := []llm.ChatMessage{
-		{Role: "user", Content: plan},
-	}
-
-	_, modifiedFiles, err := e.editor.Execute(ctx, history, nil)
-	if err != nil {
-		return fmt.Errorf("failed to execute movement: %w", err)
-	}
-
-	// 3. Validate success criteria
-	if len(movement.SuccessCriteria) > 0 {
-		fmt.Println("   🔎 Validating...")
-		validation, err := e.validator.Validate(ctx, plan, modifiedFiles, nil)
-		if err != nil {
-			return fmt.Errorf("validation failed: %w", err)
-		}
-
-		if !validation.Success {
-			movement.Status = "failed"
-			return fmt.Errorf("validation failed: %v", validation.Issues)
-		}
+		movement.Status = "failed"
+		return err
 	}
 
 	movement.Status = "completed"

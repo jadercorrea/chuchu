@@ -25,7 +25,7 @@ var graphBuildCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println("🏗️  Building dependency graph...")
+		fmt.Println(" Building dependency graph...")
 		start := time.Now()
 
 		builder := graph.NewBuilder(cwd)
@@ -41,7 +41,7 @@ var graphBuildCmd = &cobra.Command{
 		g.PageRank(0.85, 20)
 
 		duration := time.Since(start)
-		fmt.Printf("✅ Done in %v\n", duration)
+		fmt.Printf("[OK] Done in %v\n", duration)
 
 		return nil
 	},
@@ -68,7 +68,7 @@ var graphQueryCmd = &cobra.Command{
 		optimizer := graph.NewOptimizer(g)
 		results := optimizer.OptimizeContext(query, 10)
 
-		fmt.Printf("\n🔍 Query: %q\n", query)
+		fmt.Printf("\n Query: %q\n", query)
 		fmt.Println("📂 Relevant Context:")
 		for _, path := range results {
 			nodeID := g.Paths[path]

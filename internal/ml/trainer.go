@@ -95,8 +95,8 @@ func (t *Trainer) Train(modelName string) error {
 	}
 
 	// Display info
-	fmt.Printf("\n🤖 Training model: %s\n", model.Name)
-	fmt.Printf("📝 %s\n", model.Description)
+	fmt.Printf("\n Training model: %s\n", model.Name)
+	fmt.Printf(" %s\n", model.Description)
 	fmt.Printf("📂 Location: %s\n", modelPath)
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Println()
@@ -114,7 +114,7 @@ func (t *Trainer) Train(modelName string) error {
 
 	fmt.Println()
 	fmt.Println(strings.Repeat("=", 60))
-	fmt.Printf("✅ Model '%s' trained successfully!\n", model.Name)
+	fmt.Printf("[OK] Model '%s' trained successfully!\n", model.Name)
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Println()
 

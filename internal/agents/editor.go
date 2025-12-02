@@ -48,6 +48,7 @@ CRITICAL RULES:
 - For apply_patch, the "search" block must MATCH EXACTLY (including whitespace).
 - For write_file, provide the COMPLETE file content.
 - NEVER use placeholders like "[previous content]" or "[rest of file]".
+- **GO PACKAGE NAMES**: When editing Go files, NEVER change the package declaration unless explicitly asked. If main.go has "package main", ALL files in the same directory MUST use "package main". Do NOT infer package names from filenames (e.g., utils.go should NOT have "package utils" if it's in a package main directory).
 
 EXAMPLE 1 - Using apply_patch (preferred for small changes):
 Task: "Add JWT verification to auth handler"

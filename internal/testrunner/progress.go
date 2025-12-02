@@ -82,7 +82,7 @@ func (pt *ProgressTracker) printProgress() {
 		test = test[:47] + "..."
 	}
 
-	fmt.Printf("\r⏱️  %s | ✅ %d passed | ❌ %d failed | ⏳ %s remaining | 🔄 %s",
+	fmt.Printf("\r %s | [OK] %d passed | [ERROR] %d failed |  %s remaining | [RETRY] %s",
 		formatDuration(elapsed),
 		pt.passedTests,
 		pt.failedTests,
@@ -128,26 +128,26 @@ func (pt *ProgressTracker) Finish(success bool) {
 
 	if pt.totalTests == 0 {
 		if success {
-			fmt.Println("✅ All tests passed!")
+			fmt.Println("[OK] All tests passed!")
 		} else {
-			fmt.Println("❌ Tests failed!")
+			fmt.Println("[ERROR] Tests failed!")
 		}
 	} else {
 		if success {
 			total := pt.passedTests + pt.failedTests + pt.skippedTests
-			fmt.Printf("✅ All tests passed! (%d/%d)\n", pt.passedTests, total)
+			fmt.Printf("[OK] All tests passed! (%d/%d)\n", pt.passedTests, total)
 			if pt.skippedTests > 0 {
-				fmt.Printf("   ⏭️  %d skipped\n", pt.skippedTests)
+				fmt.Printf("   [SKIP]  %d skipped\n", pt.skippedTests)
 			}
 		} else {
-			fmt.Printf("❌ Tests failed! (%d passed, %d failed)\n", pt.passedTests, pt.failedTests)
+			fmt.Printf("[ERROR] Tests failed! (%d passed, %d failed)\n", pt.passedTests, pt.failedTests)
 			if pt.skippedTests > 0 {
-				fmt.Printf("   ⏭️  %d skipped\n", pt.skippedTests)
+				fmt.Printf("   [SKIP]  %d skipped\n", pt.skippedTests)
 			}
 		}
 	}
 
-	fmt.Printf("⏱️  Total time: %s\n", formatDuration(elapsed))
+	fmt.Printf(" Total time: %s\n", formatDuration(elapsed))
 
 	if pt.notify {
 		pt.sendNotification(success)
@@ -164,10 +164,10 @@ func (pt *ProgressTracker) sendNotification(success bool) {
 	var sound string
 
 	if success {
-		message = fmt.Sprintf("✅ All tests passed (%d/%d)", pt.passedTests, pt.totalTests)
+		message = fmt.Sprintf("[OK] All tests passed (%d/%d)", pt.passedTests, pt.totalTests)
 		sound = "Glass"
 	} else {
-		message = fmt.Sprintf("❌ Tests failed (%d passed, %d failed)", pt.passedTests, pt.failedTests)
+		message = fmt.Sprintf("[ERROR] Tests failed (%d passed, %d failed)", pt.passedTests, pt.failedTests)
 		sound = "Basso"
 	}
 

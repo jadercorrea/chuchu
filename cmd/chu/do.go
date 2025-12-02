@@ -113,24 +113,39 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 		return fmt.Errorf("failed to load setup: %w", err)
 	}
 
-	editorBackend, editorModel, editorReason, err := intelligence.SelectBestModelForAgent(setup, "editor")
-	if err != nil {
-		editorBackend = setup.Defaults.Backend
-		backendCfg := setup.Backend[editorBackend]
-		editorModel = backendCfg.GetModelForAgent("editor")
-		editorReason = "Fallback to default"
-	}
+	var editorBackend, editorModel, editorReason string
+	var queryBackend, queryModel, queryReason string
 
-	queryBackend, queryModel, queryReason, err := intelligence.SelectBestModelForAgent(setup, "query")
-	if err != nil {
+	profileName := setup.Defaults.Profile
+	if profileName != "" {
+		editorBackend = setup.Defaults.Backend
 		queryBackend = setup.Defaults.Backend
-		backendCfg := setup.Backend[queryBackend]
-		queryModel = backendCfg.GetModelForAgent("query")
-		queryReason = "Fallback to default"
+		backendCfg := setup.Backend[editorBackend]
+		editorModel = backendCfg.GetModelForAgentWithProfile("editor", profileName)
+		queryModel = backendCfg.GetModelForAgentWithProfile("query", profileName)
+		editorReason = fmt.Sprintf("Using profile: %s/%s", editorBackend, profileName)
+		queryReason = fmt.Sprintf("Using profile: %s/%s", queryBackend, profileName)
+	} else {
+		var err error
+		editorBackend, editorModel, editorReason, err = intelligence.SelectBestModelForAgent(setup, "editor")
+		if err != nil {
+			editorBackend = setup.Defaults.Backend
+			backendCfg := setup.Backend[editorBackend]
+			editorModel = backendCfg.GetModelForAgent("editor")
+			editorReason = "Fallback to default"
+		}
+
+		queryBackend, queryModel, queryReason, err = intelligence.SelectBestModelForAgent(setup, "query")
+		if err != nil {
+			queryBackend = setup.Defaults.Backend
+			backendCfg := setup.Backend[queryBackend]
+			queryModel = backendCfg.GetModelForAgent("query")
+			queryReason = "Fallback to default"
+		}
 	}
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "🤖 Auto-selected models:\n")
+		fmt.Fprintf(os.Stderr, "Auto-selected models:\n")
 		fmt.Fprintf(os.Stderr, "   Editor: %s/%s - %s\n", editorBackend, editorModel, editorReason)
 		fmt.Fprintf(os.Stderr, "   Query: %s/%s - %s\n", queryBackend, queryModel, queryReason)
 		fmt.Fprintf(os.Stderr, "\n")
@@ -158,7 +173,7 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 			})
 
 			if verbose {
-				fmt.Fprintf(os.Stderr, "\n✓ Task completed successfully\n")
+				fmt.Fprintf(os.Stderr, "\n[OK] Task completed successfully\n")
 			}
 			return nil
 		}
@@ -184,8 +199,8 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 		}
 
 		if verbose {
-			fmt.Fprintf(os.Stderr, "\n❌ Attempt %d failed: %v\n", attempt, err)
-			fmt.Fprintf(os.Stderr, "🤔 Asking intelligence system for alternative model...\n")
+			fmt.Fprintf(os.Stderr, "\n[ERROR] Attempt %d failed: %v\n", attempt, err)
+			fmt.Fprintf(os.Stderr, "Asking intelligence system for alternative model...\n")
 		}
 
 		recommendations, err := intelligence.RecommendModelForRetry(setup, "editor", currentBackend, currentEditorModel, task)
@@ -196,7 +211,7 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 		rec := recommendations[0]
 
 		if verbose {
-			fmt.Fprintf(os.Stderr, "\n💡 Intelligence recommends: %s/%s\n", rec.Backend, rec.Model)
+			fmt.Fprintf(os.Stderr, "\n[RECOMMENDATION] Intelligence recommends: %s/%s\n", rec.Backend, rec.Model)
 			fmt.Fprintf(os.Stderr, "   Overall Score: %.2f\n", rec.Score)
 			fmt.Fprintf(os.Stderr, "   Success Rate: %.0f%% | Speed: %d TPS | Cost: $%.3f/1M | Latency: %dms\n",
 				rec.Metrics.SuccessRate*100,
@@ -204,7 +219,7 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 				rec.Metrics.CostPer1M,
 				rec.Metrics.AvgLatencyMs)
 			fmt.Fprintf(os.Stderr, "   Reason: %s\n", rec.Reason)
-			fmt.Fprintf(os.Stderr, "\n🔄 Retrying with recommended model...\n")
+			fmt.Fprintf(os.Stderr, "\nRetrying with recommended model...\n")
 		}
 
 		if rec.Backend != currentBackend {
@@ -231,24 +246,54 @@ func runDoExecution(task string, verbose bool, supervised bool, setup *config.Se
 		provider = llm.NewChatCompletion(backendCfg.BaseURL, backendName)
 	}
 
-	researchModel := backendCfg.GetModelForAgent("research")
-	orchestrator := llm.NewOrchestrator(backendCfg.BaseURL, backendName, provider, researchModel)
+	profileName := setup.Defaults.Profile
+	researchModelStr := backendCfg.GetModelForAgentWithProfile("research", profileName)
+	researchBackend, researchModel := setup.ResolveBackendAndModel(researchModelStr, backendName)
+	researchCfg := setup.Backend[researchBackend]
 
-	queryModel := backendCfg.GetModelForAgent("query")
+	var researchProvider llm.Provider
+	if researchCfg.Type == "ollama" {
+		researchProvider = llm.NewOllama(researchCfg.BaseURL)
+	} else {
+		researchProvider = llm.NewChatCompletion(researchCfg.BaseURL, researchBackend)
+	}
+	orchestrator := llm.NewOrchestrator(researchCfg.BaseURL, researchBackend, researchProvider, researchModel)
+
+	queryModelStr := backendCfg.GetModelForAgentWithProfile("query", profileName)
+	queryBackend, queryModel := setup.ResolveBackendAndModel(queryModelStr, backendName)
+	queryCfg := setup.Backend[queryBackend]
+
+	var queryProvider llm.Provider
+	if queryCfg.Type == "ollama" {
+		queryProvider = llm.NewOllama(queryCfg.BaseURL)
+	} else {
+		queryProvider = llm.NewChatCompletion(queryCfg.BaseURL, queryBackend)
+	}
+
+	editorBackend, resolvedEditorModel := setup.ResolveBackendAndModel(editorModel, backendName)
+	editorCfg := setup.Backend[editorBackend]
+
+	var editorProvider llm.Provider
+	if editorCfg.Type == "ollama" {
+		editorProvider = llm.NewOllama(editorCfg.BaseURL)
+	} else {
+		editorProvider = llm.NewChatCompletion(editorCfg.BaseURL, editorBackend)
+	}
 
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Backend: %s\n", backendName)
-		fmt.Fprintf(os.Stderr, "Editor Model: %s\n", editorModel)
-		fmt.Fprintf(os.Stderr, "Query Model: %s\n\n", queryModel)
+		fmt.Fprintf(os.Stderr, "Query: %s/%s\n", queryBackend, queryModel)
+		fmt.Fprintf(os.Stderr, "Editor: %s/%s\n", editorBackend, resolvedEditorModel)
+		fmt.Fprintf(os.Stderr, "Research: %s/%s\n\n", researchBackend, researchModel)
 	}
 
 	// ALWAYS use Symphony executor for non-supervised mode
 	// Symphony internally decides: complexity < 7 = direct, >= 7 = decompose
 	if !supervised {
 		if verbose {
-			fmt.Fprintf(os.Stderr, "🔍 Analyzing task complexity...\n")
+			fmt.Fprintf(os.Stderr, "Analyzing task complexity...\n")
 		}
-		executor := modes.NewAutonomousExecutor(orchestrator, provider, cwd, queryModel, editorModel)
+		// Use queryProvider for analyzer/planner/classifier, editorProvider for editor
+		executor := modes.NewAutonomousExecutor(queryProvider, editorProvider, cwd, queryModel, resolvedEditorModel)
 		return executor.Execute(context.Background(), task)
 	}
 

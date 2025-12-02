@@ -27,9 +27,9 @@ func NewAutonomousExecutor(provider llm.Provider, baseProvider llm.Provider, cwd
 	analyzer := autonomous.NewTaskAnalyzer(classifier, provider, cwd, model)
 	planner := agents.NewPlanner(provider, model)
 	editor := agents.NewEditor(baseProvider, cwd, editorModel)
-	validator := agents.NewValidator(baseProvider, cwd, model)
+	reviewer := agents.NewReviewer(baseProvider, cwd, model)
 
-	executor := autonomous.NewExecutor(analyzer, planner, editor, validator, cwd)
+	executor := autonomous.NewExecutor(analyzer, planner, editor, reviewer, cwd)
 
 	return &AutonomousExecutor{
 		events:       events.NewEmitter(nil),

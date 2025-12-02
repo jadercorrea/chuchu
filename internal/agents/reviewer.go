@@ -10,38 +10,43 @@ import (
 	"chuchu/internal/tools"
 )
 
-type ValidatorAgent struct {
+type ReviewerAgent struct {
 	provider llm.Provider
 	cwd      string
 	model    string
 }
 
-type ValidationResult struct {
+type ReviewResult struct {
 	Success     bool
 	Issues      []string
 	Suggestions string
 }
 
-type ValidatorConfig struct {
+type ReviewerConfig struct {
 	OnValidationFail func(issues []string) (shouldRetry bool, newBackend string, newModel string)
 }
 
-func NewValidator(provider llm.Provider, cwd string, model string) *ValidatorAgent {
-	return &ValidatorAgent{
+func NewReviewer(provider llm.Provider, cwd string, model string) *ReviewerAgent {
+	return &ReviewerAgent{
 		provider: provider,
 		cwd:      cwd,
 		model:    model,
 	}
 }
 
-const validatorPrompt = `You are a code validator. Your job is to verify if changes meet the success criteria.
+const reviewerPrompt = `You are a code reviewer. Your job is to verify if changes meet the success criteria.
 
 WORKFLOW:
 1. Read the files that were modified
-2. Compare against the success criteria
-3. Report pass/fail with specific issues
+2. Run commands to verify (build, test, lint, etc)
+3. Compare against the success criteria
+4. Report pass/fail with specific issues
 
 CRITICAL RULES:
+- ALWAYS run build/compile commands to verify code compiles
+- For Go: run 'go build' to check compilation
+- For TypeScript/Node: run 'npm run build' or 'tsc'
+- For Python: check syntax with 'python -m py_compile file.py'
 - Be specific about what's wrong
 - If something is missing, say exactly what
 - If criteria is met, say "SUCCESS"
@@ -92,9 +97,9 @@ GOOD:
 
 Be direct and precise.`
 
-func (v *ValidatorAgent) Validate(ctx context.Context, plan string, modifiedFiles []string, statusCallback StatusCallback) (*ValidationResult, error) {
+func (v *ReviewerAgent) Review(ctx context.Context, plan string, modifiedFiles []string, statusCallback StatusCallback) (*ReviewResult, error) {
 	if statusCallback != nil {
-		statusCallback("Validator: Analyzing changes...")
+		statusCallback("Reviewer: Analyzing changes...")
 	}
 
 	toolDefs := []interface{}{
@@ -115,6 +120,23 @@ func (v *ValidatorAgent) Validate(ctx context.Context, plan string, modifiedFile
 				},
 			},
 		},
+		map[string]interface{}{
+			"type": "function",
+			"function": map[string]interface{}{
+				"name":        "run_command",
+				"description": "Run shell command to verify build, tests, linter, etc",
+				"parameters": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"command": map[string]interface{}{
+							"type":        "string",
+							"description": "Command to execute (e.g. 'go build', 'npm test')",
+						},
+					},
+					"required": []string{"command"},
+				},
+			},
+		},
 	}
 
 	filesStr := ""
@@ -122,7 +144,7 @@ func (v *ValidatorAgent) Validate(ctx context.Context, plan string, modifiedFile
 		filesStr = fmt.Sprintf("\nFiles that were modified: %v", modifiedFiles)
 	}
 
-	validationPrompt := fmt.Sprintf(`Validate if the implementation meets the requirements.
+	reviewPrompt := fmt.Sprintf(`Validate if the implementation meets the requirements.
 
 Plan and Success Criteria:
 ---
@@ -132,15 +154,18 @@ Plan and Success Criteria:
 
 TASK:
 1. Read the modified files to see what was changed
-2. Check if changes meet the success criteria from the plan
-3. Report:
-   - If SUCCESS: just say "SUCCESS"
-   - If FAIL: list specific issues and what needs to be fixed
+2. **CRITICAL**: Run 'go build' command to verify code compiles
+3. Check if changes meet the success criteria from the plan
+4. Report:
+   - Only say "SUCCESS" if go build exits with code 0 (no errors)
+   - If go build fails, report "FAIL" with the specific compilation errors
+   - If there are other issues, list them
 
+You MUST run 'go build' for Go projects. Do not skip this step.
 Be precise and specific.`, plan, filesStr)
 
 	history := []llm.ChatMessage{
-		{Role: "user", Content: validationPrompt},
+		{Role: "user", Content: reviewPrompt},
 	}
 
 	maxIterations := 3
@@ -150,7 +175,7 @@ Be precise and specific.`, plan, filesStr)
 		}
 
 		resp, err := v.provider.Chat(ctx, llm.ChatRequest{
-			SystemPrompt: validatorPrompt,
+			SystemPrompt: reviewerPrompt,
 			Messages:     history,
 			Tools:        toolDefs,
 			Model:        v.model,
@@ -160,7 +185,7 @@ Be precise and specific.`, plan, filesStr)
 		}
 
 		if len(resp.ToolCalls) == 0 {
-			result := &ValidationResult{
+			result := &ReviewResult{
 				Success:     false,
 				Issues:      []string{},
 				Suggestions: resp.Text,
@@ -210,16 +235,22 @@ Be precise and specific.`, plan, filesStr)
 		}
 	}
 
-	return &ValidationResult{
+	return &ReviewResult{
 		Success:     false,
 		Issues:      []string{"Validator reached max iterations"},
-		Suggestions: "Unable to complete validation",
+		Suggestions: "Unable to complete review",
 	}, nil
 }
 
 func containsSuccess(text string) bool {
 	lowerText := strings.ToLower(text)
-	return strings.Contains(lowerText, "success") && !strings.Contains(lowerText, "fail")
+	// Must explicitly say SUCCESS and not have any failure indicators
+	hasSuccess := strings.Contains(lowerText, "success")
+	hasFail := strings.Contains(lowerText, "fail") ||
+		strings.Contains(lowerText, "error") ||
+		strings.Contains(lowerText, "issue") ||
+		strings.Contains(lowerText, "problem")
+	return hasSuccess && !hasFail
 }
 
 func extractIssues(text string) []string {

@@ -232,7 +232,7 @@ Examples:
 			return err
 		}
 
-		fmt.Printf("✓ Created backend: %s\n", name)
+		fmt.Printf("[OK] Created backend: %s\n", name)
 		fmt.Println("\nNext steps:")
 		if backendType == "openai" {
 			fmt.Printf("  chu key %s                    # Set API key\n", name)
@@ -254,7 +254,7 @@ var backendDeleteCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("✓ Deleted backend: %s\n", name)
+		fmt.Printf("[OK] Deleted backend: %s\n", name)
 		return nil
 	},
 }
@@ -312,7 +312,7 @@ Examples:
 			return fmt.Errorf("failed to set backend: %w", err)
 		}
 
-		fmt.Printf("✓ Switched to %s\n", backendName)
+		fmt.Printf("[OK] Switched to %s\n", backendName)
 		return nil
 	},
 }
@@ -359,7 +359,7 @@ Examples:
 		if err := config.SetConfig(key, value); err != nil {
 			return err
 		}
-		fmt.Printf("✓ Set %s = %s\n", key, value)
+		fmt.Printf("[OK] Set %s = %s\n", key, value)
 		return nil
 	},
 }
@@ -416,7 +416,7 @@ var modelsUpdateCmd = &cobra.Command{
 		if err := catalog.FetchAndSave(catalogPath, apiKeys); err != nil {
 			return fmt.Errorf("failed to update catalog: %w", err)
 		}
-		fmt.Printf("✓ Model catalog updated: %s\n", catalogPath)
+		fmt.Printf("[OK] Model catalog updated: %s\n", catalogPath)
 		return nil
 	},
 }
@@ -510,7 +510,7 @@ var modelsInstallCmd = &cobra.Command{
 		}
 
 		if installed {
-			fmt.Printf("✓ Model %s already installed\n", modelName)
+			fmt.Printf("[OK] Model %s already installed\n", modelName)
 			return nil
 		}
 
@@ -523,7 +523,7 @@ var modelsInstallCmd = &cobra.Command{
 			return fmt.Errorf("failed to install model: %w", err)
 		}
 
-		fmt.Printf("✓ Model %s installed successfully\n", modelName)
+		fmt.Printf("[OK] Model %s installed successfully\n", modelName)
 		return nil
 	},
 }
@@ -667,7 +667,7 @@ Examples:
 			return fmt.Errorf("failed to set profile: %w", err)
 		}
 
-		fmt.Printf("✓ Switched to %s/%s\n", backend, profile)
+		fmt.Printf("[OK] Switched to %s/%s\n", backend, profile)
 		return nil
 	},
 }
@@ -728,7 +728,7 @@ var profilesCreateCmd = &cobra.Command{
 			return fmt.Errorf("failed to create profile: %w", err)
 		}
 
-		fmt.Printf("✓ Created profile: %s/%s\n", backend, name)
+		fmt.Printf("[OK] Created profile: %s/%s\n", backend, name)
 		fmt.Println("\nConfigure agent models using:")
 		fmt.Printf("  chu profiles set-agent %s %s router <model>\n", backend, name)
 		fmt.Printf("  chu profiles set-agent %s %s query <model>\n", backend, name)
@@ -758,7 +758,7 @@ Example:
 			return fmt.Errorf("failed to set agent model: %w", err)
 		}
 
-		fmt.Printf("✓ Set %s/%s %s = %s\n", backend, profile, agent, model)
+		fmt.Printf("[OK] Set %s/%s %s = %s\n", backend, profile, agent, model)
 		return nil
 	},
 }
@@ -775,7 +775,7 @@ var profilesDeleteCmd = &cobra.Command{
 			return fmt.Errorf("failed to delete profile: %w", err)
 		}
 
-		fmt.Printf("✓ Deleted profile: %s/%s\n", backend, profile)
+		fmt.Printf("[OK] Deleted profile: %s/%s\n", backend, profile)
 		return nil
 	},
 }
@@ -807,7 +807,7 @@ Examples:
 			return fmt.Errorf("failed to set profile: %w", err)
 		}
 
-		fmt.Printf("✓ Switched to %s/%s\n", backend, profile)
+		fmt.Printf("[OK] Switched to %s/%s\n", backend, profile)
 		return nil
 	},
 }
@@ -850,7 +850,7 @@ var feedbackGoodCmd = &cobra.Command{
 			return fmt.Errorf("failed to record feedback: %w", err)
 		}
 
-		fmt.Println("✓ Positive feedback recorded")
+		fmt.Println("[OK] Positive feedback recorded")
 		return nil
 	},
 }
@@ -888,7 +888,7 @@ var feedbackBadCmd = &cobra.Command{
 			return fmt.Errorf("failed to record feedback: %w", err)
 		}
 
-		fmt.Println("✓ Negative feedback recorded")
+		fmt.Println("[OK] Negative feedback recorded")
 		return nil
 	},
 }
@@ -939,7 +939,7 @@ var feedbackSubmitCmd = &cobra.Command{
 			if err := feedback.Record(e); err != nil {
 				return fmt.Errorf("failed to record feedback: %w", err)
 			}
-			fmt.Println("✓ Feedback submitted")
+			fmt.Println("[OK] Feedback submitted")
 			return nil
 		}
 
@@ -991,7 +991,7 @@ var feedbackSubmitCmd = &cobra.Command{
 		if err := feedback.Record(e); err != nil {
 			return fmt.Errorf("failed to record feedback: %w", err)
 		}
-		fmt.Println("✓ Feedback submitted")
+		fmt.Println("[OK] Feedback submitted")
 		return nil
 	},
 }
@@ -1024,7 +1024,7 @@ var demoFeedbackCreateCmd = &cobra.Command{
 		if err := sh.Run(); err != nil {
 			return fmt.Errorf("failed to build demos: %w", err)
 		}
-		fmt.Println("✓ Demos built in docs/assets")
+		fmt.Println("[OK] Demos built in docs/assets")
 		return nil
 	},
 }
@@ -1204,7 +1204,7 @@ add-zsh-hook precmd precmd_chu_feedback
 					return err
 				}
 			}
-			fmt.Println("✓ Installed zsh hook. Restart your shell or run: source ~/.zshrc")
+			fmt.Println("[OK] Installed zsh hook. Restart your shell or run: source ~/.zshrc")
 			if andSource {
 				_ = exec.Command("zsh", "-ic", "source ~/.zshrc").Run()
 			}
@@ -1269,7 +1269,7 @@ PROMPT_COMMAND="chu_precmd; $PROMPT_COMMAND"
 					return err
 				}
 			}
-			fmt.Println("✓ Installed bash hook. Restart your shell or run: source ~/.bashrc")
+			fmt.Println("[OK] Installed bash hook. Restart your shell or run: source ~/.bashrc")
 			if andSource {
 				_ = exec.Command("bash", "-ic", "source ~/.bashrc").Run()
 			}
@@ -1320,7 +1320,7 @@ end
 			if err := os.WriteFile(hookPath, []byte(hook), 0644); err != nil {
 				return err
 			}
-			fmt.Println("✓ Installed fish hook. Restart fish or open a new session")
+			fmt.Println("[OK] Installed fish hook. Restart fish or open a new session")
 			if andSource {
 				_ = exec.Command("fish", "-ic", "source ~/.config/fish/conf.d/chu_feedback.fish").Run()
 			}

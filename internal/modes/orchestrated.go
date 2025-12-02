@@ -76,7 +76,7 @@ func (o *OrchestratedMode) Execute(ctx context.Context, userMessage string) erro
 		editorAgent = agents.NewEditor(o.baseProvider, o.cwd, o.editorModel)
 	}
 
-	validatorAgent := agents.NewValidator(o.baseProvider, o.cwd, o.model)
+	reviewerAgent := agents.NewReviewer(o.baseProvider, o.cwd, o.model)
 
 	maxRetries := 2
 	for attempt := 0; attempt <= maxRetries; attempt++ {
@@ -105,36 +105,36 @@ ONLY modify files listed in the plan. ONLY make changes described. NO extras.`, 
 			fmt.Fprintf(os.Stderr, "[ORCHESTRATED] Editor result: %s\n", result)
 		}
 
-		// Use actually modified files for validation if available
+		// Use actually modified files for review if available
 		filesToValidate := allowedFiles
 		if len(modifiedFiles) > 0 {
 			filesToValidate = modifiedFiles
 		}
 
-		validationResult, err := validatorAgent.Validate(ctx, plan, filesToValidate, statusCallback)
+		reviewResult, err := reviewerAgent.Review(ctx, plan, filesToValidate, statusCallback)
 		if err != nil {
-			return fmt.Errorf("validation failed: %w", err)
+			return fmt.Errorf("review failed: %w", err)
 		}
 
-		if validationResult.Success {
-			_ = o.events.Message("✓ Implementation validated successfully")
+		if reviewResult.Success {
+			_ = o.events.Message("[OK] Implementation validated successfully")
 			return nil
 		}
 
 		if attempt < maxRetries {
 			_ = o.events.Message(fmt.Sprintf("Validation failed. Retrying... (%d/%d)", attempt+2, maxRetries+1))
-			for _, issue := range validationResult.Issues {
+			for _, issue := range reviewResult.Issues {
 				_ = o.events.Message(fmt.Sprintf("  Issue: %s", issue))
 			}
 
-			// Try to get better model recommendation based on validation failure
+			// Try to get better model recommendation based on review failure
 			if o.setup != nil {
 				currentBackend := o.setup.Defaults.Backend
 				recommendations, err := intelligence.RecommendModelForRetry(o.setup, "editor", currentBackend, o.editorModel, userMessage)
 				if err == nil && len(recommendations) > 0 {
 					rec := recommendations[0]
 					if rec.Model != o.editorModel {
-						_ = o.events.Message(fmt.Sprintf("💡 Validation suggests trying different model: %s/%s", rec.Backend, rec.Model))
+						_ = o.events.Message(fmt.Sprintf("[SUGGESTION] Validation suggests trying different model: %s/%s", rec.Backend, rec.Model))
 						_ = o.events.Message(fmt.Sprintf("   Reason: %s", rec.Reason))
 
 						// Update editor model for next attempt
@@ -145,11 +145,11 @@ ONLY modify files listed in the plan. ONLY make changes described. NO extras.`, 
 
 			editorAgent = agents.NewEditorWithFileValidation(o.baseProvider, o.cwd, o.editorModel, allowedFiles)
 		} else {
-			_ = o.events.Message("Implementation completed but validation failed.")
-			for _, issue := range validationResult.Issues {
+			_ = o.events.Message("Implementation completed but review failed.")
+			for _, issue := range reviewResult.Issues {
 				_ = o.events.Message(fmt.Sprintf("  - %s", issue))
 			}
-			return fmt.Errorf("validation failed after max retries")
+			return fmt.Errorf("review failed after max retries")
 		}
 	}
 

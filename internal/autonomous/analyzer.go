@@ -9,6 +9,7 @@ import (
 
 	"chuchu/internal/agents"
 	"chuchu/internal/llm"
+	"chuchu/internal/ml"
 )
 
 // TaskAnalysis represents the result of analyzing a task
@@ -36,19 +37,25 @@ type Movement struct {
 
 // TaskAnalyzer analyzes tasks and decomposes them into movements if complex
 type TaskAnalyzer struct {
-	classifier *agents.Classifier
-	llm        llm.Provider
-	cwd        string
-	model      string
+	classifier          *agents.Classifier
+	llm                 llm.Provider
+	cwd                 string
+	model               string
+	complexityPredictor *ml.Predictor
 }
 
 // NewTaskAnalyzer creates a new task analyzer
 func NewTaskAnalyzer(classifier *agents.Classifier, llmProvider llm.Provider, cwd string, model string) *TaskAnalyzer {
+	complexityPredictor, err := ml.LoadEmbedded("complexity_detection")
+	if err != nil {
+		fmt.Printf("Warning: failed to load complexity model: %v\n", err)
+	}
 	return &TaskAnalyzer{
-		classifier: classifier,
-		llm:        llmProvider,
-		cwd:        cwd,
-		model:      model,
+		classifier:          classifier,
+		llm:                 llmProvider,
+		cwd:                 cwd,
+		model:               model,
+		complexityPredictor: complexityPredictor,
 	}
 }
 
@@ -74,8 +81,8 @@ func (a *TaskAnalyzer) Analyze(ctx context.Context, task string) (*TaskAnalysis,
 	}
 	analysis.Complexity = complexity
 
-	// 4. If complex (>= 7), decompose into movements
-	if complexity >= 7 {
+	// 4. If complex (>= 6), decompose into movements
+	if complexity >= 6 {
 		movements, err := a.decomposeIntoMovements(ctx, task, analysis)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decompose into movements: %w", err)
@@ -130,58 +137,24 @@ func extractFileMentions(task string) []string {
 
 // estimateComplexity uses LLM to score task complexity 1-10
 func (a *TaskAnalyzer) estimateComplexity(ctx context.Context, task string) (int, error) {
-	prompt := fmt.Sprintf(`Rate the complexity of this task on a scale of 1-10.
-
-Task: %s
-
-Complexity scale:
-- 1-3: Simple (single file, clear action)
-  Examples: "create hello.md with greeting", "read main.go"
-  
-- 4-6: Medium (2-5 files, straightforward)
-  Examples: "add error handling to auth.go", "update docs/readme.md with new commands"
-  
-- 7-8: Complex (multiple files, requires planning)
-  Examples: "reorganize docs files into categories", "refactor authentication system"
-  
-- 9-10: Very complex (many files, multiple phases)
-  Examples: "migrate entire codebase from X to Y", "redesign application architecture"
-
-Consider:
-- Number of files involved
-- Number of distinct steps required
-- Ambiguity in requirements
-- Potential for errors
-
-Respond with ONLY a number 1-10, nothing else.`, task)
-
-	resp, err := a.llm.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      a.model,
-	})
-	if err != nil {
-		return 0, err
+	if a.complexityPredictor == nil {
+		return 5, fmt.Errorf("complexity predictor not loaded")
 	}
 
-	// Parse response
-	scoreStr := strings.TrimSpace(resp.Text)
+	class, probs := a.complexityPredictor.Predict(task)
+	fmt.Printf("   ML Class: %s (probs: simple=%.2f complex=%.2f multistep=%.2f)\n",
+		class, probs["simple"], probs["complex"], probs["multistep"])
+
 	var score int
-	_, err = fmt.Sscanf(scoreStr, "%d", &score)
-	if err != nil {
-		// Fallback: try to find first number
-		re := regexp.MustCompile(`\d+`)
-		match := re.FindString(scoreStr)
-		if match != "" {
-			fmt.Sscanf(match, "%d", &score)
-		}
-	}
-
-	// Clamp to 1-10
-	if score < 1 {
-		score = 1
-	}
-	if score > 10 {
-		score = 10
+	switch class {
+	case "simple":
+		score = 3
+	case "complex":
+		score = 7
+	case "multistep":
+		score = 8
+	default:
+		score = 5
 	}
 
 	return score, nil
@@ -239,8 +212,9 @@ Response:
 Return ONLY valid JSON array of movements, no explanation.`, task, analysis.Intent, analysis.Verb)
 
 	resp, err := a.llm.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      a.model,
+		SystemPrompt: "You are a task decomposition assistant. Return only valid JSON.",
+		UserPrompt:   prompt,
+		Model:        a.model,
 	})
 	if err != nil {
 		return nil, err
