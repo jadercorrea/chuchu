@@ -158,7 +158,6 @@ func Chat(input string, args []string) {
 		return
 	}
 
-
 	var stopSpinner chan bool
 	if os.Getenv("CHUCHU_DEBUG") != "1" {
 		stopSpinner = make(chan bool, 1)
@@ -378,7 +377,6 @@ func ChatWithResponse(input string, args []string) (string, error) {
 		RunExecute(builder, provider, queryModel, []string{lastUserMessage})
 		return "[Executed operational command]", nil
 	}
-
 
 	routerModel := backendCfg.GetModelForAgent("router")
 	editorModel := backendCfg.GetModelForAgent("editor")

@@ -239,11 +239,17 @@ func SelectBestModelForAgent(setup *config.Setup, agentType string) (backend str
 
 	candidates := DefaultCatalog.GetModelsForAgent(agentType)
 
+	mode := setup.Defaults.Mode
+
 	var bestRec ModelRecommendation
 	var allRecs []ModelRecommendation
 
 	for _, modelInfo := range candidates {
 		if _, exists := setup.Backend[modelInfo.Backend]; !exists {
+			continue
+		}
+
+		if mode == "local" && modelInfo.Backend != "ollama" {
 			continue
 		}
 
