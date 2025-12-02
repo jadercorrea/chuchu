@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"chuchu/internal/agents"
 	"chuchu/internal/maestro"
 )
 
@@ -35,15 +34,12 @@ type Executor struct {
 // NewExecutor creates a new symphony executor
 func NewExecutor(
 	analyzer *TaskAnalyzer,
-	planner *agents.PlannerAgent,
-	editor *agents.EditorAgent,
-	reviewer *agents.ReviewerAgent,
+	maestro *maestro.Conductor,
 	cwd string,
 ) *Executor {
-	conductor := maestro.NewConductor(nil, planner, editor, reviewer, cwd)
 	return &Executor{
 		analyzer: analyzer,
-		maestro:  conductor,
+		maestro:  maestro,
 		cwd:      cwd,
 	}
 }
@@ -109,21 +105,27 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 
 // executeDirect executes a simple task without decomposition
 func (e *Executor) executeDirect(ctx context.Context, task string, analysis *TaskAnalysis) error {
-	// Delegate to Maestro
-	return e.maestro.ExecuteTask(ctx, task)
+	// Delegate to Maestro with complexity
+	complexityStr := "simple"
+	if analysis.Complexity >= 7 {
+		complexityStr = "complex"
+	} else if analysis.Complexity >= 5 {
+		complexityStr = "medium"
+	}
+	return e.maestro.ExecuteTask(ctx, task, complexityStr)
 }
 
 // executeMovement executes a single movement with retry on review failure
 func (e *Executor) executeMovement(ctx context.Context, movement *Movement) error {
 	movement.Status = "executing"
-
-	// Delegate to Maestro (movements are just tasks with specific goals)
-	err := e.maestro.ExecuteTask(ctx, movement.Goal)
+	
+	// Delegate to Maestro (movements are complex by definition)
+	err := e.maestro.ExecuteTask(ctx, movement.Goal, "complex")
 	if err != nil {
 		movement.Status = "failed"
 		return err
 	}
-
+	
 	movement.Status = "completed"
 	return nil
 }

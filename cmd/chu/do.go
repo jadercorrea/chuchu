@@ -270,19 +270,8 @@ func runDoExecution(task string, verbose bool, supervised bool, setup *config.Se
 		queryProvider = llm.NewChatCompletion(queryCfg.BaseURL, queryBackend)
 	}
 
-	editorBackend, resolvedEditorModel := setup.ResolveBackendAndModel(editorModel, backendName)
-	editorCfg := setup.Backend[editorBackend]
-
-	var editorProvider llm.Provider
-	if editorCfg.Type == "ollama" {
-		editorProvider = llm.NewOllama(editorCfg.BaseURL)
-	} else {
-		editorProvider = llm.NewChatCompletion(editorCfg.BaseURL, editorBackend)
-	}
-
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Query: %s/%s\n", queryBackend, queryModel)
-		fmt.Fprintf(os.Stderr, "Editor: %s/%s\n", editorBackend, resolvedEditorModel)
 		fmt.Fprintf(os.Stderr, "Research: %s/%s\n\n", researchBackend, researchModel)
 	}
 
@@ -292,8 +281,13 @@ func runDoExecution(task string, verbose bool, supervised bool, setup *config.Se
 		if verbose {
 			fmt.Fprintf(os.Stderr, "Analyzing task complexity...\n")
 		}
-		// Use queryProvider for analyzer/planner/classifier, editorProvider for editor
-		executor := modes.NewAutonomousExecutor(queryProvider, editorProvider, cwd, queryModel, resolvedEditorModel)
+		// Detect language
+		language := setup.Defaults.Lang
+		if language == "" {
+			language = "go" // default
+		}
+		// Use queryProvider for analyzer/classifier
+		executor := modes.NewAutonomousExecutor(queryProvider, cwd, queryModel, language)
 		return executor.Execute(context.Background(), task)
 	}
 

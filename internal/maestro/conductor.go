@@ -3,42 +3,55 @@ package maestro
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"chuchu/internal/agents"
+	"chuchu/internal/config"
 	"chuchu/internal/llm"
 )
 
 // Conductor is the central coordinator (Maestro) that orchestrates all agents
 type Conductor struct {
-	classifier *agents.Classifier
-	planner    *agents.PlannerAgent
-	editor     *agents.EditorAgent
-	reviewer   *agents.ReviewerAgent
-	cwd        string
+	selector *config.ModelSelector
+	setup    *config.Setup
+	cwd      string
+	language string
 }
 
 // NewConductor creates a new Maestro conductor
 func NewConductor(
-	classifier *agents.Classifier,
-	planner *agents.PlannerAgent,
-	editor *agents.EditorAgent,
-	reviewer *agents.ReviewerAgent,
+	selector *config.ModelSelector,
+	setup *config.Setup,
 	cwd string,
+	language string,
 ) *Conductor {
 	return &Conductor{
-		classifier: classifier,
-		planner:    planner,
-		editor:     editor,
-		reviewer:   reviewer,
-		cwd:        cwd,
+		selector: selector,
+		setup:    setup,
+		cwd:      cwd,
+		language: language,
 	}
 }
 
 // ExecuteTask orchestrates the execution of a task
-func (c *Conductor) ExecuteTask(ctx context.Context, task string) error {
+func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity string) error {
+	// Select model for planning
+	planBackend, planModel, err := c.selector.SelectModel(config.ActionPlan, c.language, complexity)
+	if err != nil {
+		return fmt.Errorf("failed to select planner model: %w", err)
+	}
+
+	if os.Getenv("CHUCHU_DEBUG") == "1" {
+		fmt.Fprintf(os.Stderr, "[MAESTRO] Planner: %s/%s\n", planBackend, planModel)
+	}
+
+	// Create planner with selected model
+	planProvider := c.createProvider(planBackend)
+	planner := agents.NewPlanner(planProvider, planModel)
+
 	fmt.Println("Creating plan...")
-	plan, err := c.planner.CreatePlan(ctx, task, "", nil)
+	plan, err := planner.CreatePlan(ctx, task, "", nil)
 	if err != nil {
 		return fmt.Errorf("planning failed: %w", err)
 	}
@@ -54,9 +67,23 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string) error {
 			fmt.Printf("Retrying (attempt %d/%d)...\n", attempt, maxAttempts)
 		}
 
+		// Select model for editing
+		editBackend, editModel, err := c.selector.SelectModel(config.ActionEdit, c.language, complexity)
+		if err != nil {
+			return fmt.Errorf("failed to select editor model: %w", err)
+		}
+
+		if os.Getenv("CHUCHU_DEBUG") == "1" && attempt == 1 {
+			fmt.Fprintf(os.Stderr, "[MAESTRO] Editor: %s/%s\n", editBackend, editModel)
+		}
+
+		// Create editor with selected model
+		editProvider := c.createProvider(editBackend)
+		editor := agents.NewEditor(editProvider, c.cwd, editModel)
+
 		// Execute with editor
 		fmt.Println("Executing changes...")
-		result, modifiedFiles, err := c.editor.Execute(ctx, history, nil)
+		result, modifiedFiles, err := editor.Execute(ctx, history, nil)
 		if err != nil {
 			if attempt < maxAttempts {
 				fmt.Printf("[WARNING] Execution error: %v\n", err)
@@ -70,9 +97,23 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string) error {
 			return fmt.Errorf("execution failed: %w", err)
 		}
 
+		// Select model for review
+		reviewBackend, reviewModel, err := c.selector.SelectModel(config.ActionReview, c.language, complexity)
+		if err != nil {
+			return fmt.Errorf("failed to select reviewer model: %w", err)
+		}
+
+		if os.Getenv("CHUCHU_DEBUG") == "1" && attempt == 1 {
+			fmt.Fprintf(os.Stderr, "[MAESTRO] Reviewer: %s/%s\n", reviewBackend, reviewModel)
+		}
+
+		// Create reviewer with selected model
+		reviewProvider := c.createProvider(reviewBackend)
+		reviewer := agents.NewReviewer(reviewProvider, c.cwd, reviewModel)
+
 		// Validate
 		fmt.Println("Validating...")
-		review, err := c.reviewer.Review(ctx, plan, modifiedFiles, nil)
+		review, err := reviewer.Review(ctx, plan, modifiedFiles, nil)
 		if err != nil {
 			if attempt < maxAttempts {
 				fmt.Printf("[WARNING] Validation error: %v\n", err)
@@ -110,6 +151,21 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string) error {
 	}
 
 	return fmt.Errorf("task failed after %d attempts", maxAttempts)
+}
+
+// createProvider creates an LLM provider for the given backend
+func (c *Conductor) createProvider(backendName string) llm.Provider {
+	backendCfg, ok := c.setup.Backend[backendName]
+	if !ok {
+		// Fallback to default
+		backendName = c.setup.Defaults.Backend
+		backendCfg = c.setup.Backend[backendName]
+	}
+
+	if backendCfg.Type == "ollama" {
+		return llm.NewOllama(backendCfg.BaseURL)
+	}
+	return llm.NewChatCompletion(backendCfg.BaseURL, backendName)
 }
 
 // formatExecutionError creates clear feedback for execution errors
