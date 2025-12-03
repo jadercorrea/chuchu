@@ -199,6 +199,41 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 		}
 
 		if attempt >= maxAttempts {
+			// If we hit max attempts with API errors, offer to try a different backend
+			if looksLikeAPIError {
+				fmt.Fprintf(os.Stderr, "\n⚠️  All %d attempts failed with API/rate limit errors.\n", maxAttempts)
+				fmt.Fprintf(os.Stderr, "\nAvailable backends:\n")
+				var backends []string
+				for backend := range setup.Backend {
+					backends = append(backends, backend)
+					fmt.Fprintf(os.Stderr, "  - %s\n", backend)
+				}
+				if len(backends) == 0 {
+					return fmt.Errorf("no backends configured")
+				}
+				fmt.Fprintf(os.Stderr, "\nWould you like to try a different backend?\n")
+				fmt.Fprintf(os.Stderr, "Enter backend name (or 'quit' to stop): ")
+				var input string
+				fmt.Scanln(&input)
+				if input == "quit" || input == "q" || input == "" {
+					return fmt.Errorf("task failed after %d attempts: %w", maxAttempts, err)
+				}
+				if _, exists := setup.Backend[input]; !exists {
+					return fmt.Errorf("backend '%s' not found", input)
+				}
+				currentBackend = input
+				backendCfg := setup.Backend[currentBackend]
+				currentEditorModel = backendCfg.GetModelForAgent("editor")
+				if currentEditorModel == "" {
+					currentEditorModel = backendCfg.DefaultModel
+				}
+				if verbose {
+					fmt.Fprintf(os.Stderr, "\nSwitching to %s/%s...\n", currentBackend, currentEditorModel)
+				}
+				// Reset attempt counter to give the new backend a fair chance
+				attempt = 0
+				continue
+			}
 			return fmt.Errorf("task failed after %d attempts: %w", maxAttempts, err)
 		}
 
