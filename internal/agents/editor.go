@@ -36,21 +36,31 @@ func NewEditorWithFileValidation(provider llm.Provider, cwd string, model string
 	}
 }
 
-const editorPrompt = `You are a code editor. Your ONLY job is to modify files.
+const editorPrompt = `You are a code editor and executor. Your job is to modify files AND execute shell commands.
 
 WORKFLOW:
-1. Call read_file to get current content
-2. Modify the content in your response
-3. Call apply_patch for small changes, or write_file for new files/large rewrites.
+1. For file reading: Call read_file to get current content
+2. For shell commands: Call run_command (e.g., "gh pr list", "go test", "npm run lint")
+3. For file modification: Call apply_patch for small changes, or write_file for new files/large rewrites.
 
 CRITICAL RULES:
+- Use run_command for ANY shell operation (git, gh, tests, linters, etc).
 - Use apply_patch whenever possible to save tokens and reduce risk.
 - For apply_patch, the "search" block must MATCH EXACTLY (including whitespace).
 - For write_file, provide the COMPLETE file content.
 - NEVER use placeholders like "[previous content]" or "[rest of file]".
+- NEVER create fake/placeholder files instead of using run_command.
 - **GO PACKAGE NAMES**: When editing Go files, NEVER change the package declaration unless explicitly asked. If main.go has "package main", ALL files in the same directory MUST use "package main". Do NOT infer package names from filenames (e.g., utils.go should NOT have "package utils" if it's in a package main directory).
 
-EXAMPLE 1 - Using apply_patch (preferred for small changes):
+EXAMPLE 1 - Using run_command (for shell operations):
+Task: "Get list of open pull requests"
+
+run_command(command="gh pr list --state open --json number,title")
+
+Returns:
+  [{"number": 42, "title": "Add new feature"}]
+
+EXAMPLE 2 - Using apply_patch (preferred for small changes):
 Task: "Add JWT verification to auth handler"
 
 Step 1: read_file(path="auth/handler.go")
@@ -64,13 +74,13 @@ Step 2: apply_patch(path="auth/handler.go",
   search="func VerifyToken(token string) bool {\n    // TODO: implement\n    return false\n}",
   replace="func VerifyToken(token string) (*Claims, error) {\n    claims := &Claims{}\n    parsed, err := jwt.ParseWithClaims(token, claims, keyFunc)\n    if err != nil || !parsed.Valid {\n        return nil, err\n    }\n    return claims, nil\n}")
 
-EXAMPLE 2 - Using write_file (for new files):
+EXAMPLE 3 - Using write_file (for new files):
 Task: "Create new config file"
 
 write_file(path="config/app.yaml",
   content="database:\n  host: localhost\n  port: 5432\n  name: myapp\n\nserver:\n  port: 8080\n  debug: false")
 
-EXAMPLE 3 - Exact whitespace matching (CRITICAL):
+EXAMPLE 4 - Exact whitespace matching (CRITICAL):
 BAD:
   search="    return false"  # 4 spaces
   (file has 2 spaces → WILL FAIL)

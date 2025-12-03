@@ -106,13 +106,31 @@ func (v *BuildVerifier) Verify(ctx context.Context) (*VerificationResult, error)
 	codeExtensions := map[string]bool{
 		".go": true, ".py": true, ".js": true, ".ts": true,
 		".jsx": true, ".tsx": true, ".java": true, ".c": true,
-		".cpp": true, ".rs": true, ".rb": true,
+		".cpp": true, ".rs": true, ".rb": true, ".ex": true,
+		".exs": true,
+	}
+	// Explicitly ignore documentation and data files
+	nonCodeExtensions := map[string]bool{
+		".md": true, ".txt": true, ".json": true, ".yaml": true,
+		".yml": true, ".xml": true, ".html": true, ".css": true,
 	}
 
 	for _, file := range modifiedFiles {
 		if file == "" {
 			continue
 		}
+		// Skip if it's a non-code file
+		isNonCode := false
+		for ext := range nonCodeExtensions {
+			if strings.HasSuffix(file, ext) {
+				isNonCode = true
+				break
+			}
+		}
+		if isNonCode {
+			continue
+		}
+		// Check if it's a code file
 		for ext := range codeExtensions {
 			if strings.HasSuffix(file, ext) {
 				hasCodeFiles = true
