@@ -100,6 +100,11 @@ func (v *BuildVerifier) Verify(ctx context.Context) (*VerificationResult, error)
 	}
 
 	modifiedFiles := strings.Split(strings.TrimSpace(string(gitOut)), "\n")
+	
+	// If no files modified at all, skip build (likely a read-only task)
+	if len(modifiedFiles) == 0 || (len(modifiedFiles) == 1 && modifiedFiles[0] == "") {
+		return &VerificationResult{Success: true, Output: "No files modified, skipping build"}, nil
+	}
 
 	// Check if any modified file is a code file
 	hasCodeFiles := false

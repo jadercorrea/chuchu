@@ -43,10 +43,12 @@ WORKFLOW:
 4. Report pass/fail with specific issues
 
 CRITICAL RULES:
-- ALWAYS run build/compile commands to verify code compiles
-- For Go: run 'go build' to check compilation
-- For TypeScript/Node: run 'npm run build' or 'tsc'
-- For Python: check syntax with 'python -m py_compile file.py'
+- ONLY run build/compile commands if code files were modified
+- Skip build if no files were modified (read-only tasks like git status, gh pr list)
+- Skip build if only documentation files (.md, .txt, .json) were modified
+- For Go code changes: run 'go build' to check compilation
+- For TypeScript/Node code changes: run 'npm run build' or 'tsc'
+- For Python code changes: check syntax with 'python -m py_compile file.py'
 - Be specific about what's wrong
 - If something is missing, say exactly what
 - If criteria is met, say "SUCCESS"
@@ -153,15 +155,18 @@ Plan and Success Criteria:
 %s
 
 TASK:
-1. Read the modified files to see what was changed
-2. **CRITICAL**: Run 'go build' command to verify code compiles
-3. Check if changes meet the success criteria from the plan
-4. Report:
-   - Only say "SUCCESS" if go build exits with code 0 (no errors)
-   - If go build fails, report "FAIL" with the specific compilation errors
-   - If there are other issues, list them
+1. Read the modified files to see what was changed (if any)
+2. **ONLY** run build commands if code files (.go, .py, .js, .ts, etc) were modified
+3. Skip build if:
+   - No files were modified (read-only task like 'git status')
+   - Only docs (.md, .txt, .json, .yaml) were modified
+4. Check if changes meet the success criteria from the plan
+5. Report:
+   - Say "SUCCESS" if all criteria are met
+   - If build was needed and failed, report "FAIL" with specific errors
+   - If requirements not met, list specific issues
 
-You MUST run 'go build' for Go projects. Do not skip this step.
+Be smart: Don't run 'go build' if this is not a Go project or no Go files changed.
 Be precise and specific.`, plan, filesStr)
 
 	history := []llm.ChatMessage{
