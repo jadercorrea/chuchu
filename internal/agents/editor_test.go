@@ -310,7 +310,7 @@ func TestEditor_EditTask_ContinuesUntilDone(t *testing.T) {
 	// to apply_patch. The fix is too aggressive.
 	t.Logf("Result: %s", result)
 	t.Logf("Mock call count: %d", mock.callCount)
-	
+
 	// This test shows the problem: read_file returns early even for edit tasks
 	// Expected: should continue to apply_patch and return "Patch applied successfully"
 	// Actual: returns file content after read_file

@@ -13,9 +13,9 @@ type MockProvider struct {
 	ToolCalls []llm.ChatToolCall
 
 	// Multi-response mode (for sequential calls)
-	Responses   []llm.ChatResponse
-	CallCount   int
-	
+	Responses []llm.ChatResponse
+	CallCount int
+
 	// Legacy compatibility
 	ToolCallsAt [][]llm.ChatToolCall
 }

@@ -282,10 +282,13 @@ func (e *EditorAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 						content = "Success"
 					}
 
-					// For read-only operations, return result immediately
-					if tc.Name == "read_file" || (tc.Name == "run_command" && result.Error == "") {
+					// For read-only operations on pure query tasks, return immediately
+					if len(modifiedFiles) == 0 && (tc.Name == "read_file" || (tc.Name == "run_command" && result.Error == "")) {
 						if result.Result != "" && result.Error == "" {
-							return result.Result, modifiedFiles, nil
+							isQueryTask := len(messages) > 0 && !containsEditKeywords(messages[0].Content)
+							if isQueryTask {
+								return result.Result, modifiedFiles, nil
+							}
 						}
 					}
 
@@ -349,10 +352,13 @@ func (e *EditorAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 				content = "Success"
 			}
 
-			// For read-only operations (read_file, run_command that reads), return result immediately
-			if tc.Name == "read_file" || (tc.Name == "run_command" && result.Error == "") {
+			// For read-only operations on pure query tasks, return immediately
+			if len(modifiedFiles) == 0 && (tc.Name == "read_file" || (tc.Name == "run_command" && result.Error == "")) {
 				if result.Result != "" && result.Error == "" {
-					return result.Result, modifiedFiles, nil
+					isQueryTask := len(messages) > 0 && !containsEditKeywords(messages[0].Content)
+					if isQueryTask {
+						return result.Result, modifiedFiles, nil
+					}
 				}
 			}
 
@@ -377,6 +383,39 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func containsEditKeywords(text string) bool {
+	lower := strings.ToLower(text)
+	
+	// Strong indicators: plan explicitly mentions files to modify/create
+	// But if it says "Files to Modify: None" or "Files to Create: None", that's NOT an edit
+	if strings.Contains(lower, "files to modify:") {
+		if !strings.Contains(lower, "files to modify:\nnone") && !strings.Contains(lower, "files to modify: none") {
+			return true
+		}
+	}
+	if strings.Contains(lower, "files to create:") {
+		if !strings.Contains(lower, "files to create:\nnone") && !strings.Contains(lower, "files to create: none") {
+			return true
+		}
+	}
+	
+	// Check for file operations (but exclude "change" which appears in plan headings)
+	editKeywords := []string{
+		"write_file", "apply_patch",  // Tool calls
+		"modify file", "create file", "update file", "patch file",
+		"add to", "append to", "insert into",
+		"delete from", "remove from",
+		"rename", "move file", "rewrite",
+	}
+	for _, keyword := range editKeywords {
+		if strings.Contains(lower, keyword) {
+			return true
+		}
+	}
+	
+	return false
 }
 
 func (e *EditorAgent) validateFileWrite(args map[string]interface{}) error {
