@@ -232,6 +232,69 @@ func (e *EditorAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 		}
 
 		if len(resp.ToolCalls) == 0 {
+			parsedCalls := llm.ParseToolCallsFromText(resp.Text)
+			if len(parsedCalls) > 0 {
+				if os.Getenv("CHUCHU_DEBUG") == "1" {
+					fmt.Fprintf(os.Stderr, "[EDITOR] Parsed %d tool calls from text\n", len(parsedCalls))
+				}
+				resp.ToolCalls = parsedCalls
+				messages = append(messages, llm.ChatMessage{
+					Role:      "assistant",
+					Content:   "",
+					ToolCalls: resp.ToolCalls,
+				})
+
+				for _, tc := range resp.ToolCalls {
+					llmCall := tools.LLMToolCall{
+						ID:        tc.ID,
+						Name:      tc.Name,
+						Arguments: tc.Arguments,
+					}
+					if statusCallback != nil {
+						statusCallback(fmt.Sprintf("Editor: Executing %s...", tc.Name))
+					}
+
+					if tc.Name == "write_file" || tc.Name == "apply_patch" {
+						var argsMap map[string]interface{}
+						if err := json.Unmarshal([]byte(tc.Arguments), &argsMap); err == nil {
+							if err := e.validateFileWrite(argsMap); err != nil {
+								messages = append(messages, llm.ChatMessage{
+									Role:       "tool",
+									Content:    fmt.Sprintf("Error: %s. Only modify files mentioned in the plan.", err.Error()),
+									Name:       tc.Name,
+									ToolCallID: tc.ID,
+								})
+								continue
+							}
+						}
+					}
+
+					result := tools.ExecuteToolFromLLM(llmCall, e.cwd)
+					if len(result.ModifiedFiles) > 0 {
+						modifiedFiles = append(modifiedFiles, result.ModifiedFiles...)
+					}
+
+					content := result.Result
+					if result.Error != "" {
+						content = "Error: " + result.Error
+					}
+					if content == "" {
+						content = "Success"
+					}
+
+					messages = append(messages, llm.ChatMessage{
+						Role:       "tool",
+						Content:    content,
+						Name:       tc.Name,
+						ToolCallID: tc.ID,
+					})
+
+					if os.Getenv("CHUCHU_DEBUG") == "1" {
+						fmt.Fprintf(os.Stderr, "[EDITOR] Executed %s: %s\n", tc.Name, result.Result[:min(50, len(result.Result))])
+					}
+				}
+				continue
+			}
 			return resp.Text, modifiedFiles, nil
 		}
 
