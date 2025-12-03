@@ -192,7 +192,8 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 
 		looksLikeAPIError := strings.Contains(errMsg, "API error") || strings.Contains(errMsg, "Provider returned error") ||
 			strings.Contains(errMsg, "rate limit") || strings.Contains(errMsg, "timeout") ||
-			strings.Contains(errMsg, "connection") || strings.Contains(errMsg, "429")
+			strings.Contains(errMsg, "connection") || strings.Contains(errMsg, "429") ||
+			strings.Contains(errMsg, "empty movements array") || strings.Contains(errMsg, "decomposition failed")
 
 		if !looksLikeToolError && !looksLikeAPIError {
 			return fmt.Errorf("task failed: %w", err)
