@@ -44,6 +44,30 @@ func NewModelCatalog() *ModelCatalog {
 				Agents:            []string{"editor"},
 			},
 			// Groq models
+			"groq/llama-3.3-70b-versatile": {
+				Backend:           "groq",
+				Name:              "llama-3.3-70b-versatile",
+				SupportsFunctions: true,
+				CostPer1M:         0.59,
+				SpeedTPS:          800,
+				Agents:            []string{"editor", "query"},
+			},
+			"groq/llama-3.1-8b-instant": {
+				Backend:           "groq",
+				Name:              "llama-3.1-8b-instant",
+				SupportsFunctions: true,
+				CostPer1M:         0.05,
+				SpeedTPS:          1000,
+				Agents:            []string{"editor", "query"},
+			},
+			"groq/compound": {
+				Backend:           "groq",
+				Name:              "groq/compound",
+				SupportsFunctions: true,
+				CostPer1M:         1.0,
+				SpeedTPS:          600,
+				Agents:            []string{"editor", "query"},
+			},
 			"groq/moonshotai/kimi-k2-instruct-0905": {
 				Backend:           "groq",
 				Name:              "moonshotai/kimi-k2-instruct-0905",
