@@ -40,7 +40,7 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 	if os.Getenv("CHUCHU_DEBUG") == "1" {
 		fmt.Fprintf(os.Stderr, "[MAESTRO] ExecuteTask called: task=%s complexity=%s lang=%s\n", task, complexity, c.language)
 	}
-	
+
 	// Select model for planning
 	planBackend, planModel, err := c.selector.SelectModel(config.ActionPlan, c.language, complexity)
 	if err != nil {

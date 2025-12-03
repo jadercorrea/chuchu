@@ -339,7 +339,7 @@ func (ms *ModelSelector) SelectModel(action ActionType, language string, complex
 		fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] SelectModel called: action=%s lang=%s complexity=%s\n",
 			action, language, complexity)
 	}
-	
+
 	mode := ms.setup.Defaults.Mode
 	defaultBackend := ms.setup.Defaults.Backend
 
@@ -349,13 +349,13 @@ func (ms *ModelSelector) SelectModel(action ActionType, language string, complex
 		score   float64
 	}
 	var scored []scoredModel
-	
+
 	if os.Getenv("CHUCHU_DEBUG") == "1" {
 		fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] SelectModel action=%s lang=%s mode=%s defaultBackend=%s\n",
 			action, language, mode, defaultBackend)
 		fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] Catalog has %d backends\n", len(ms.catalog))
 	}
-	
+
 	for backend, models := range ms.catalog {
 		if mode == "local" && backend != "ollama" {
 			continue
@@ -363,7 +363,7 @@ func (ms *ModelSelector) SelectModel(action ActionType, language string, complex
 		if mode == "cloud" && backend == "ollama" {
 			continue
 		}
-		
+
 		if os.Getenv("CHUCHU_DEBUG") == "1" {
 			fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] Checking backend=%s with %d models\n", backend, len(models))
 		}
