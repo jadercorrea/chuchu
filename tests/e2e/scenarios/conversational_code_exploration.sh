@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/lib/helpers.sh"
 
 TEST_NAME="Conversational Code Exploration"
 
-echo "🧪 Scenario: $TEST_NAME"
+echo " Scenario: $TEST_NAME"
 echo "========================================="
 echo ""
 echo "Simulating: Developer exploring codebase through multi-turn conversation"
@@ -105,4 +105,4 @@ cleanup_test_dir
 
 echo ""
 echo "========================================="
-echo "✅ Scenario passed: $TEST_NAME"
+echo " Scenario passed: $TEST_NAME"

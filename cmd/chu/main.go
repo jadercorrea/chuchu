@@ -366,30 +366,31 @@ Examples:
 
 var detectLanguageCmd = &cobra.Command{
 	Use:   "detect-language [path]",
-	Short: "Detect project language",
-	Long: `Detect the primary programming language of a project.
+	Aliases: []string{"detect"},
+	Short: "Detect project language distribution using GitHub Linguist",
+	Long: `Analyze the project and show language breakdown.
 
-Checks for language-specific files:
-- Elixir: mix.exs
-- Ruby: Gemfile, config/application.rb
-- Go: go.mod
-- TypeScript/JavaScript: tsconfig.json, package.json
-- Python: requirements.txt, setup.py, pyproject.toml
-
-If no marker files found, analyzes file extensions in directory.
+Uses go-enry (GitHub Linguist port) for accurate multi-language detection.
+Automatically excludes vendored code, generated files, and documentation.
 
 Examples:
-  chu detect-language
-  chu detect-language /path/to/project
-  chu detect-language .`,
+  chu detect language
+  chu detect language /path/to/project
+  chu detect language .`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := "."
 		if len(args) > 0 {
 			path = args[0]
 		}
-		lang := langdetect.DetectLanguage(path)
-		fmt.Println(lang)
+		
+		detector := langdetect.NewDetector(path)
+		breakdown, err := detector.Detect()
+		if err != nil {
+			return fmt.Errorf("failed to detect languages: %w", err)
+		}
+		
+		fmt.Print(langdetect.FormatBreakdown(breakdown))
 		return nil
 	},
 }

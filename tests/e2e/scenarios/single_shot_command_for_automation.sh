@@ -12,7 +12,7 @@ source "$SCRIPT_DIR/lib/helpers.sh"
 
 TEST_NAME="Single-Shot Command for Automation"
 
-echo "🧪 Scenario: $TEST_NAME"
+echo " Scenario: $TEST_NAME"
 echo "========================================="
 echo ""
 echo "Simulating: CI/CD pipeline running automated commands"
@@ -62,4 +62,4 @@ cleanup_test_dir
 
 echo ""
 echo "========================================="
-echo "✅ Scenario passed: $TEST_NAME"
+echo " Scenario passed: $TEST_NAME"

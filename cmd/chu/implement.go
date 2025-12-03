@@ -93,7 +93,7 @@ func runAutonomousImplement(cmd *cobra.Command, planPath string) error {
 	}
 
 	if !resume {
-		fmt.Fprintf(os.Stderr, "🚀 Starting autonomous execution of %s...\n", planPath)
+		fmt.Fprintf(os.Stderr, " Starting autonomous execution of %s...\n", planPath)
 		if err := m.ExecutePlan(context.Background(), string(planContent)); err != nil {
 			return fmt.Errorf("execution failed: %w", err)
 		}
@@ -165,7 +165,7 @@ func runInteractiveImplement(planPath string) error {
 		}
 	}
 
-	fmt.Fprintln(os.Stderr, "\n🎉 Implementation completed!")
+	fmt.Fprintln(os.Stderr, "\n Implementation completed!")
 	fmt.Fprintln(os.Stderr, "\nNext steps:")
 	fmt.Fprintln(os.Stderr, "  • Review changes: git diff")
 	fmt.Fprintln(os.Stderr, "  • Run tests")

@@ -202,7 +202,7 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 		if attempt >= maxAttempts {
 			// If we hit max attempts with API errors, offer to try a different backend
 			if looksLikeAPIError {
-				fmt.Fprintf(os.Stderr, "\n⚠️  All %d attempts failed with API/rate limit errors.\n", maxAttempts)
+				fmt.Fprintf(os.Stderr, "\n  All %d attempts failed with API/rate limit errors.\n", maxAttempts)
 				fmt.Fprintf(os.Stderr, "\nAvailable backends:\n")
 				var backends []string
 				for backend := range setup.Backend {
@@ -246,7 +246,7 @@ func runDoExecutionWithRetry(task string, verbose bool, maxAttempts int, supervi
 		recommendations, err := intelligence.RecommendModelForRetry(setup, "editor", currentBackend, currentEditorModel, task)
 		if err != nil || len(recommendations) == 0 {
 			// No automatic recommendations - ask user
-			fmt.Fprintf(os.Stderr, "\n⚠️  No suitable models found automatically.\n")
+			fmt.Fprintf(os.Stderr, "\n  No suitable models found automatically.\n")
 			fmt.Fprintf(os.Stderr, "\nAvailable backends:\n")
 			var backends []string
 			for backend := range setup.Backend {

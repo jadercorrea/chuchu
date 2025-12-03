@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/lib/helpers.sh"
 
 TEST_NAME="Working Directory and Environment Management"
 
-echo "🧪 Scenario: $TEST_NAME"
+echo " Scenario: $TEST_NAME"
 echo "========================================="
 echo ""
 echo "Simulating: Developer navigating directories and setting"
@@ -75,4 +75,4 @@ cleanup_test_dir
 
 echo ""
 echo "========================================="
-echo "✅ Scenario passed: $TEST_NAME"
+echo " Scenario passed: $TEST_NAME"

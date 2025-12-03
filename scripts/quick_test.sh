@@ -8,7 +8,7 @@ set +e  # Don't exit on error
 CHU="/Users/jadercorrea/workspace/opensource/chuchu/chu"
 TEST_DIR="/Users/jadercorrea/workspace/opensource/chu-test-workspace"
 
-echo "🧪 Quick Capability Test"
+echo " Quick Capability Test"
 echo "========================"
 echo ""
 
@@ -24,10 +24,10 @@ test_task() {
     
     cd "$dir"
     if timeout 60 "$CHU" do "$task" >/dev/null 2>&1; then
-        echo "✅ PASSED"
+        echo " PASSED"
         ((PASSED++))
     else
-        echo "❌ FAILED"
+        echo " FAILED"
         ((FAILED++))
     fi
 }
@@ -73,11 +73,11 @@ echo "test" > file.txt
 git add . && git commit -m "init" >/dev/null 2>&1
 
 # Just check if these don't crash completely
-timeout 60 "$CHU" do "show git status" >/dev/null 2>&1 && echo "✅ Git status" || echo "❌ Git status"
+timeout 60 "$CHU" do "show git status" >/dev/null 2>&1 && echo " Git status" || echo " Git status"
 
 echo ""
 echo "========================"
-echo "Results: ✅ $PASSED passed, ❌ $FAILED failed"
+echo "Results:  $PASSED passed,  $FAILED failed"
 echo ""
 
 exit 0

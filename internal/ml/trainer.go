@@ -144,7 +144,7 @@ func (t *Trainer) Test(modelName, query string) error {
 		return fmt.Errorf("model not trained yet. Run 'chu ml train %s' first", modelName)
 	}
 
-	fmt.Printf("\n🧪 Testing model: %s\n", model.Name)
+	fmt.Printf("\n Testing model: %s\n", model.Name)
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Println()
 
@@ -187,7 +187,7 @@ func (t *Trainer) Eval(modelName, evalFile string) error {
 	if _, err := os.Stat(venvPath); os.IsNotExist(err) {
 		return fmt.Errorf("model not trained yet. Run 'chu ml train %s' first", modelName)
 	}
-	fmt.Printf("\n🧪 Evaluating model: %s\n", model.Name)
+	fmt.Printf("\n Evaluating model: %s\n", model.Name)
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Println()
 	var cmd *exec.Cmd

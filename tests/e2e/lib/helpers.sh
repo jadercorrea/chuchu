@@ -21,7 +21,7 @@ setup_e2e_backend() {
     # Check if Ollama is available
     if ! command -v ollama &> /dev/null; then
         echo ""
-        echo "❌ ERROR: Ollama is required for E2E tests but not found"
+        echo " ERROR: Ollama is required for E2E tests but not found"
         echo ""
         echo "To run E2E tests, you need:"
         echo "  1. Install Ollama: https://ollama.ai"
@@ -50,7 +50,7 @@ setup_e2e_backend() {
     
     if [ ${#missing_models[@]} -gt 0 ]; then
         echo ""
-        echo "❌ ERROR: Missing required models for 'local' profile:"
+        echo " ERROR: Missing required models for 'local' profile:"
         for model in "${missing_models[@]}"; do
             echo "  - $model"
         done
@@ -115,7 +115,7 @@ run_chu_command_with_timeout() {
     set -e
     
     if [ "$EXIT_CODE" -eq 124 ]; then
-        echo "❌ Command timed out after ${timeout_seconds}s"
+        echo " Command timed out after ${timeout_seconds}s"
         echo "This usually means:"
         echo "  - Backend not properly configured"
         echo "  - Model taking too long to respond"
@@ -224,7 +224,7 @@ create_test_file() {
     else
         touch "$filename"
     fi
-    echo "📝 Created test file: $filename"
+    echo " Created test file: $filename"
 }
 
 create_go_project() {

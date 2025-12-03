@@ -23,7 +23,7 @@ FAILED=0
 PARTIAL=0
 SKIPPED=0
 
-echo "🧪 Chu Capabilities Test Suite"
+echo " Chu Capabilities Test Suite"
 echo "================================"
 echo ""
 
@@ -35,10 +35,10 @@ Generated: $(date)
 
 ## Summary
 
-- ✅ Passed: 0
-- ⚠️ Partial: 0
-- ❌ Failed: 0
-- 🔲 Skipped: 0
+-  Passed: 0
+-  Partial: 0
+-  Failed: 0
+-  Skipped: 0
 
 ## Detailed Results
 
@@ -56,17 +56,17 @@ test_capability() {
     # Run the test
     if eval "$command" > /tmp/chu_test.log 2>&1; then
         if [ -n "$validation" ] && eval "$validation" > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ PASSED${NC}"
-            echo "- ✅ **$category > $name**: PASSED" >> "$RESULTS_FILE"
+            echo -e "${GREEN} PASSED${NC}"
+            echo "-  **$category > $name**: PASSED" >> "$RESULTS_FILE"
             ((PASSED++))
         else
-            echo -e "${YELLOW}⚠️ PARTIAL${NC}"
-            echo "- ⚠️ **$category > $name**: PARTIAL (command succeeded but validation failed)" >> "$RESULTS_FILE"
+            echo -e "${YELLOW} PARTIAL${NC}"
+            echo "-  **$category > $name**: PARTIAL (command succeeded but validation failed)" >> "$RESULTS_FILE"
             ((PARTIAL++))
         fi
     else
-        echo -e "${RED}❌ FAILED${NC}"
-        echo "- ❌ **$category > $name**: FAILED" >> "$RESULTS_FILE"
+        echo -e "${RED} FAILED${NC}"
+        echo "-  **$category > $name**: FAILED" >> "$RESULTS_FILE"
         echo "  \`\`\`" >> "$RESULTS_FILE"
         tail -5 /tmp/chu_test.log >> "$RESULTS_FILE"
         echo "  \`\`\`" >> "$RESULTS_FILE"
@@ -79,8 +79,8 @@ skip_test() {
     local name="$2"
     local reason="$3"
     
-    echo -e "${YELLOW}⏭️  SKIPPED${NC}: $category > $name ($reason)"
-    echo "- 🔲 **$category > $name**: SKIPPED ($reason)" >> "$RESULTS_FILE"
+    echo -e "${YELLOW}  SKIPPED${NC}: $category > $name ($reason)"
+    echo "-  **$category > $name**: SKIPPED ($reason)" >> "$RESULTS_FILE"
     ((SKIPPED++))
 }
 
@@ -224,12 +224,12 @@ cd "$PROJECT_ROOT"
 
 echo ""
 echo "================================"
-echo "📊 Test Results"
+echo " Test Results"
 echo "================================"
-echo -e "✅ Passed:  ${GREEN}$PASSED${NC}"
-echo -e "⚠️  Partial: ${YELLOW}$PARTIAL${NC}"
-echo -e "❌ Failed:  ${RED}$FAILED${NC}"
-echo -e "🔲 Skipped: $SKIPPED"
+echo -e " Passed:  ${GREEN}$PASSED${NC}"
+echo -e "  Partial: ${YELLOW}$PARTIAL${NC}"
+echo -e " Failed:  ${RED}$FAILED${NC}"
+echo -e " Skipped: $SKIPPED"
 echo ""
 echo "Detailed results saved to: $RESULTS_FILE"
 

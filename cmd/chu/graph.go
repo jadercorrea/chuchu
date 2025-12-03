@@ -37,7 +37,7 @@ var graphBuildCmd = &cobra.Command{
 		fmt.Printf("   Nodes: %d\n", len(g.Nodes))
 		fmt.Printf("   Edges: %d\n", countEdges(g))
 
-		fmt.Println("📊 Calculating PageRank...")
+		fmt.Println(" Calculating PageRank...")
 		g.PageRank(0.85, 20)
 
 		duration := time.Since(start)

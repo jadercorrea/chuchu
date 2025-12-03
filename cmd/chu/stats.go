@@ -186,7 +186,7 @@ func displayStatsBox(usage map[string]map[string]struct {
 		if totalCachedTokens > 0 {
 			fmt.Printf("  Cached Tokens:       %s (%.1f%% cache hit)\n", formatNumber(totalCachedTokens), cacheHitRate)
 			fmt.Println()
-			fmt.Printf("  💡 Cache savings: %s tokens, reducing costs\n", formatNumber(totalCachedTokens))
+			fmt.Printf("   Cache savings: %s tokens, reducing costs\n", formatNumber(totalCachedTokens))
 		}
 		fmt.Println()
 	}

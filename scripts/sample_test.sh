@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TEST_DIR="$PROJECT_ROOT/../chu-test-workspace"
-CHU_BIN="$PROJECT_ROOT/chu"
+CHU_BIN="$PROJECT_ROOT/bin/chu"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -18,7 +18,7 @@ NC='\033[0m'
 PASSED=0
 FAILED=0
 
-echo "🧪 Chu Sample Capabilities Test"
+echo " Chu Sample Capabilities Test"
 echo "================================"
 echo ""
 
@@ -31,13 +31,13 @@ test_cap() {
     
     if eval "$command" > /tmp/chu_test.log 2>&1; then
         if [ -z "$validation" ] || eval "$validation" > /dev/null 2>&1; then
-            echo -e "${GREEN}✅${NC}"
+            echo -e "${GREEN}${NC}"
             ((PASSED++))
             return 0
         fi
     fi
     
-    echo -e "${RED}❌${NC}"
+    echo -e "${RED}${NC}"
     echo "  Last output: $(tail -1 /tmp/chu_test.log)"
     ((FAILED++))
     return 1
@@ -151,13 +151,13 @@ test_cap "Search codebase" \
 
 echo ""
 echo "================================"
-echo -e "Results: ${GREEN}✅ $PASSED passed${NC}, ${RED}❌ $FAILED failed${NC}"
+echo -e "Results: ${GREEN} $PASSED passed${NC}, ${RED} $FAILED failed${NC}"
 echo "Total: $((PASSED + FAILED)) tests"
 
 if [ $FAILED -eq 0 ]; then
-    echo -e "\n${GREEN}🎉 All tests passed!${NC}"
+    echo -e "\n${GREEN} All tests passed!${NC}"
     exit 0
 else
-    echo -e "\n${YELLOW}⚠️  Some tests failed${NC}"
+    echo -e "\n${YELLOW}  Some tests failed${NC}"
     exit 1
 fi

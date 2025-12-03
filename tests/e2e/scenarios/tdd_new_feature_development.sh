@@ -12,13 +12,13 @@ source "$SCRIPT_DIR/lib/helpers.sh"
 
 TEST_NAME="TDD New Feature Development"
 
-echo "🧪 Scenario: $TEST_NAME"
+echo " Scenario: $TEST_NAME"
 echo "========================================="
 echo ""
 echo "Simulating: Developer using TDD to build a new feature"
 echo ""
 
-setup_e2e_backend || echo "⚠️  Proceeding without Ollama backend"
+setup_e2e_backend || echo "  Proceeding without Ollama backend"
 
 setup_test_dir "$TEST_NAME"
 
@@ -71,4 +71,4 @@ cleanup_test_dir
 
 echo ""
 echo "========================================="
-echo "✅ Scenario passed: $TEST_NAME"
+echo " Scenario passed: $TEST_NAME"

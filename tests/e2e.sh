@@ -12,13 +12,13 @@ E2E_DIR="$SCRIPT_DIR/e2e"
 
 source "$E2E_DIR/lib/helpers.sh"
 
-echo "🚀 Chuchu E2E Test Suite"
+echo " Chuchu E2E Test Suite"
 echo "============================"
 echo ""
 
 check_chu_installed() {
     if ! command -v chu &> /dev/null; then
-        echo "❌ Error: chu command not found"
+        echo " Error: chu command not found"
         echo ""
         echo "Please install chu first:"
         echo "  cd $(dirname "$SCRIPT_DIR")"
@@ -35,14 +35,14 @@ run_scenario() {
     local scenario_name=$(basename "$scenario_file" .sh | tr '_' ' ' | sed 's/.*/\u&/')
     
     echo ""
-    echo "🧪 Running scenario: $scenario_name"
+    echo " Running scenario: $scenario_name"
     echo "---"
     
     if bash "$scenario_file"; then
-        echo "✅ PASSED: $scenario_name"
+        echo " PASSED: $scenario_name"
         return 0
     else
-        echo "❌ FAILED: $scenario_name"
+        echo " FAILED: $scenario_name"
         return 1
     fi
 }
@@ -71,7 +71,7 @@ main() {
     
     echo ""
     echo "============================"
-    echo "📊 Test Results"
+    echo " Test Results"
     echo "============================"
     echo "Total:  $total"
     echo "Passed: $passed"
@@ -79,10 +79,10 @@ main() {
     echo ""
     
     if [ $failed -eq 0 ]; then
-        echo "✅ All scenarios passed!"
+        echo " All scenarios passed!"
         exit 0
     else
-        echo "❌ Some scenarios failed"
+        echo " Some scenarios failed"
         exit 1
     fi
 }
