@@ -59,11 +59,11 @@ language_count,primary_ratio,secondary_ratio,has_docs,has_tests,has_scripts,has_
 2,0.6699999999999999,0.25,1,1,0,0,1,data_science
 2,0.6799999999999999,0.25,1,1,0,0,1,data_science
 2,0.69,0.25,1,1,0,0,1,data_science
-21,0.795,0.1169999999999999,1,1,0,0,1,pure_code
-21,0.67,0.0969999999999999,1,1,1,0,1,pure_code
+21,0.795,0.11699999999999999,1,1,0,0,1,pure_code
+21,0.67,0.09699999999999999,1,1,1,0,1,pure_code
 27,0.757,0.077,1,1,1,1,0,pure_code
-19,0.73,0.0819999999999999,1,1,1,1,0,pure_code
-23,0.831,0.104,1,1,0,0,0,polyglot_balanced
+19,0.73,0.08199999999999999,1,1,1,1,0,pure_code
+23,0.831,0.10400000000000001,1,1,0,0,0,polyglot_balanced
 43,0.81,0.077,0,1,0,0,1,polyglot_balanced
 26,0.521,0.251,0,1,0,0,1,polyglot_scripted
 19,0.813,0.14,1,1,0,0,0,polyglot_scripted

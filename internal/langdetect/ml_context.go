@@ -39,21 +39,21 @@ func NewContextPredictor() (*ContextPredictor, error) {
 	if err := json.Unmarshal(contextModelJSON, &model); err != nil {
 		return nil, fmt.Errorf("failed to load context model: %w", err)
 	}
-	
+
 	return &ContextPredictor{model: &model}, nil
 }
 
 // Predict classifies project context based on language breakdown
 func (p *ContextPredictor) Predict(breakdown *LanguageBreakdown) string {
 	features := p.extractFeatures(breakdown)
-	
+
 	// Get predictions from all trees
 	votes := make(map[string]int)
 	for _, tree := range p.model.Trees {
 		class := p.predictTree(&tree, features)
 		votes[class]++
 	}
-	
+
 	// Return class with most votes
 	var bestClass string
 	var maxVotes int
@@ -63,7 +63,7 @@ func (p *ContextPredictor) Predict(breakdown *LanguageBreakdown) string {
 			bestClass = class
 		}
 	}
-	
+
 	return bestClass
 }
 
@@ -75,7 +75,7 @@ func (p *ContextPredictor) extractFeatures(breakdown *LanguageBreakdown) []float
 			langCount++
 		}
 	}
-	
+
 	// Get primary and secondary ratios
 	type langPct struct {
 		lang string
@@ -85,7 +85,7 @@ func (p *ContextPredictor) extractFeatures(breakdown *LanguageBreakdown) []float
 	for lang, pct := range breakdown.Languages {
 		sorted = append(sorted, langPct{lang, pct})
 	}
-	
+
 	// Sort by percentage descending
 	for i := 0; i < len(sorted); i++ {
 		for j := i + 1; j < len(sorted); j++ {
@@ -94,7 +94,7 @@ func (p *ContextPredictor) extractFeatures(breakdown *LanguageBreakdown) []float
 			}
 		}
 	}
-	
+
 	primaryRatio := 0.0
 	secondaryRatio := 0.0
 	if len(sorted) > 0 {
@@ -103,14 +103,14 @@ func (p *ContextPredictor) extractFeatures(breakdown *LanguageBreakdown) []float
 	if len(sorted) > 1 {
 		secondaryRatio = sorted[1].pct
 	}
-	
+
 	// Check for specific language types
 	hasDocs := p.hasLanguageType(breakdown, []string{"markdown", "rst", "asciidoc"})
 	hasTests := p.hasLanguageType(breakdown, []string{"test"})
 	hasScripts := p.hasLanguageType(breakdown, []string{"shell", "bash", "makefile", "powershell"})
 	hasInfra := p.hasLanguageType(breakdown, []string{"dockerfile", "terraform", "hcl"})
 	hasData := p.hasLanguageType(breakdown, []string{"csv", "json", "yaml", "toml", "xml"})
-	
+
 	return []float64{
 		float64(langCount),
 		primaryRatio,
@@ -137,7 +137,7 @@ func (p *ContextPredictor) hasLanguageType(breakdown *LanguageBreakdown, keyword
 
 func (p *ContextPredictor) predictTree(tree *TreeNode, features []float64) string {
 	nodeIdx := 0
-	
+
 	for {
 		// Check if leaf node
 		if tree.ChildrenLeft[nodeIdx] == -1 {
@@ -153,11 +153,11 @@ func (p *ContextPredictor) predictTree(tree *TreeNode, features []float64) strin
 			}
 			return p.model.Classes[maxIdx]
 		}
-		
+
 		// Internal node - follow left or right
 		featureIdx := tree.Feature[nodeIdx]
 		threshold := tree.Threshold[nodeIdx]
-		
+
 		if features[featureIdx] <= threshold {
 			nodeIdx = tree.ChildrenLeft[nodeIdx]
 		} else {

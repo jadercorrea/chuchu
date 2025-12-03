@@ -1,0 +1,13 @@
+language_count,primary_ratio,secondary_ratio,has_docs,has_tests,has_scripts,has_infrastructure,has_data,context
+21,0.795,0.11699999999999999,1,1,0,0,1,pure_code
+21,0.67,0.09699999999999999,1,1,1,0,1,pure_code
+27,0.757,0.077,1,1,1,1,0,pure_code
+19,0.73,0.08199999999999999,1,1,1,1,0,pure_code
+23,0.831,0.10400000000000001,1,1,0,0,0,polyglot_balanced
+43,0.81,0.077,0,1,0,0,1,polyglot_balanced
+26,0.521,0.251,0,1,0,0,1,polyglot_scripted
+19,0.813,0.14,1,1,0,0,0,polyglot_scripted
+15,0.515,0.368,1,1,0,0,0,documentation
+22,0.62,0.349,1,1,0,0,1,infrastructure
+25,0.7759999999999999,0.14,0,1,1,0,1,data_science
+25,0.35,0.281,1,1,0,0,0,data_science
