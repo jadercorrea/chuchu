@@ -335,10 +335,12 @@ func (ms *ModelSelector) getTodayUsage(backend, model string) ModelUsage {
 }
 
 func (ms *ModelSelector) SelectModel(action ActionType, language string, complexity string) (backend string, model string, err error) {
-	// First check if profile has configured model for this action
+	mode := ms.setup.Defaults.Mode
 	profileName := ms.setup.Defaults.Profile
 	defaultBackend := ms.setup.Defaults.Backend
 	
+	// Get profile-configured model for this action (if any)
+	var profileModel string
 	if profileName != "" {
 		if backendCfg, ok := ms.setup.Backend[defaultBackend]; ok {
 			var agentType string
@@ -356,19 +358,10 @@ func (ms *ModelSelector) SelectModel(action ActionType, language string, complex
 			}
 			
 			if agentType != "" {
-				configuredModel := backendCfg.GetModelForAgentWithProfile(agentType, profileName)
-				if configuredModel != "" {
-					if os.Getenv("CHUCHU_DEBUG") == "1" {
-						fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] Using profile '%s': %s/%s for action=%s\n",
-							profileName, defaultBackend, configuredModel, action)
-					}
-					return defaultBackend, configuredModel, nil
-				}
+				profileModel = backendCfg.GetModelForAgentWithProfile(agentType, profileName)
 			}
 		}
 	}
-	
-	mode := ms.setup.Defaults.Mode
 
 	type scoredModel struct {
 		backend string
@@ -390,6 +383,14 @@ func (ms *ModelSelector) SelectModel(action ActionType, language string, complex
 				// Boost score for default backend to prioritize it
 				if backend == defaultBackend {
 					score += 100
+				}
+				// Huge boost for profile-configured model (if it has required capabilities)
+				if profileModel != "" && backend == defaultBackend && modelInfo.ID == profileModel {
+					score += 500
+					if os.Getenv("CHUCHU_DEBUG") == "1" {
+						fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] Profile boost: %s/%s for action=%s (score now %.2f)\n",
+							backend, modelInfo.ID, action, score)
+					}
 				}
 				scored = append(scored, scoredModel{
 					backend: backend,
