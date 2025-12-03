@@ -232,8 +232,12 @@ func SelectBestModelForAgent(setup *config.Setup, agentType string) (backend str
 		return "", "", "", fmt.Errorf("backend %s not configured", currentBackend)
 	}
 
-	configuredModel := backendCfg.GetModelForAgent(agentType)
+	profileName := setup.Defaults.Profile
+	configuredModel := backendCfg.GetModelForAgentWithProfile(agentType, profileName)
 	if configuredModel != "" && configuredModel != backendCfg.DefaultModel {
+		if profileName != "" {
+			return currentBackend, configuredModel, fmt.Sprintf("Profile '%s' configured", profileName), nil
+		}
 		return currentBackend, configuredModel, "User configured", nil
 	}
 

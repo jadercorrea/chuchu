@@ -6,93 +6,15 @@ TEST_DIR=""
 OUTPUT=""
 EXIT_CODE=0
 
-# E2E Test Configuration
-# Uses 'local' profile with optimized model allocation:
-#   router: llama3.1:8b (fast)
-#   query: gpt-oss:latest (reasoning)
-#   editor: qwen3-coder:latest (coding)
-#   research: gpt-oss:latest (reasoning)
-CHUCHU_E2E_BACKEND="${CHUCHU_E2E_BACKEND:-ollama}"
-CHUCHU_E2E_PROFILE="${CHUCHU_E2E_PROFILE:-local}"
-
-setup_e2e_backend() {
-    local backend_arg="${1:-}"
-    local profile_arg="${2:-}"
-    
-    if [ -n "$backend_arg" ]; then
-        CHUCHU_E2E_BACKEND="$backend_arg"
-    fi
-    
-    if [ -n "$profile_arg" ]; then
-        CHUCHU_E2E_PROFILE="$profile_arg"
-    fi
-    
-    echo "Configuring E2E test backend..."
-    echo "  Backend: $CHUCHU_E2E_BACKEND"
-    echo "  Profile: $CHUCHU_E2E_PROFILE"
+show_current_profile() {
+    echo "E2E Test Configuration"
+    echo "======================"
     echo ""
-    
-    if [ "$CHUCHU_E2E_BACKEND" = "ollama" ]; then
-        if ! command -v ollama &> /dev/null; then
-            echo ""
-            echo " ERROR: Ollama backend selected but ollama not found"
-            echo ""
-            echo "To run E2E tests with Ollama, you need:"
-            echo "  1. Install Ollama: https://ollama.ai"
-            echo "  2. Pull a recommended model:"
-            echo "     ollama pull qwen2.5-coder:7b  (recommended, ~4GB)"
-            echo "     ollama pull llama3.1:8b       (alternative, ~4.7GB)"
-            echo "     ollama pull codellama:7b      (alternative, ~3.8GB)"
-            echo ""
-            exit 1
-        fi
-        
-        echo "✓ Ollama found"
-        
-        if [ "$CHUCHU_E2E_PROFILE" = "local" ]; then
-            local required_models=("llama3.1:8b" "qwen3-coder:latest" "gpt-oss:latest")
-            local missing_models=()
-            
-            set +e +o pipefail
-            for model in "${required_models[@]}"; do
-                ollama list | grep -q "$model"
-                if [ $? -ne 0 ]; then
-                    missing_models+=("$model")
-                fi
-            done
-            set -e -o pipefail
-            
-            if [ ${#missing_models[@]} -gt 0 ]; then
-                echo ""
-                echo " ERROR: Missing required models for 'local' profile:"
-                for model in "${missing_models[@]}"; do
-                    echo "  - $model"
-                done
-                echo ""
-                echo "Please pull the missing models:"
-                for model in "${missing_models[@]}"; do
-                    echo "  ollama pull $model"
-                done
-                echo ""
-                exit 1
-            fi
-            
-            echo "✓ All required models available (llama3.1:8b, qwen3-coder:latest, gpt-oss:latest)"
-        fi
-    fi
-    
-    export CHUCHU_BACKEND="$CHUCHU_E2E_BACKEND"
-    
-    echo "Configuring chu backend and profile..."
-    chu config set defaults.backend "$CHUCHU_E2E_BACKEND" 2>&1 > /dev/null
-    chu config set defaults.profile "$CHUCHU_E2E_PROFILE" 2>&1 > /dev/null
-    
-    echo "✓ Backend configured: $CHUCHU_E2E_BACKEND with profile $CHUCHU_E2E_PROFILE"
-    if [ "$CHUCHU_E2E_BACKEND" = "ollama" ] && [ "$CHUCHU_E2E_PROFILE" = "local" ]; then
-        echo "  Router: llama3.1:8b | Query: gpt-oss:latest | Editor: qwen3-coder:latest"
-    elif [ "$CHUCHU_E2E_BACKEND" = "groq" ] && [ "$CHUCHU_E2E_PROFILE" = "budget" ]; then
-        echo "  Router: llama-3.1-8b-instant | Query: openai/gpt-oss-120b | Editor: qwen/qwen3-32b"
-    fi
+    echo "Using current chu profile:"
+    chu profile 2>&1 | head -6
+    echo ""
+    echo "Note: Configure profile with 'chu profile use <backend>.<profile>'"
+    echo "      Example: chu profile use groq.budget"
     echo ""
 }
 

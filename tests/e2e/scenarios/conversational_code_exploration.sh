@@ -19,8 +19,6 @@ echo ""
 echo "Simulating: Developer exploring codebase through multi-turn conversation"
 echo ""
 
-setup_e2e_backend
-
 setup_test_dir "$TEST_NAME"
 
 echo "Step 1: Create sample Go code"

@@ -18,8 +18,6 @@ echo ""
 echo "Simulating: Developer researching codebase and planning new feature"
 echo ""
 
-setup_e2e_backend || echo "  Proceeding without Ollama backend"
-
 setup_test_dir "$TEST_NAME"
 
 echo "Step 1: Create sample Go project with auth"

@@ -335,6 +335,39 @@ func (ms *ModelSelector) getTodayUsage(backend, model string) ModelUsage {
 }
 
 func (ms *ModelSelector) SelectModel(action ActionType, language string, complexity string) (backend string, model string, err error) {
+	// First check if profile has configured model for this action
+	profileName := ms.setup.Defaults.Profile
+	defaultBackend := ms.setup.Defaults.Backend
+	
+	if profileName != "" {
+		if backendCfg, ok := ms.setup.Backend[defaultBackend]; ok {
+			var agentType string
+			switch action {
+			case ActionEdit:
+				agentType = "editor"
+			case ActionReview:
+				agentType = "reviewer"
+			case ActionPlan:
+				agentType = "query"
+			case ActionRoute:
+				agentType = "router"
+			case ActionResearch:
+				agentType = "research"
+			}
+			
+			if agentType != "" {
+				configuredModel := backendCfg.GetModelForAgentWithProfile(agentType, profileName)
+				if configuredModel != "" {
+					if os.Getenv("CHUCHU_DEBUG") == "1" {
+						fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] Using profile '%s': %s/%s for action=%s\n",
+							profileName, defaultBackend, configuredModel, action)
+					}
+					return defaultBackend, configuredModel, nil
+				}
+			}
+		}
+	}
+	
 	mode := ms.setup.Defaults.Mode
 
 	type scoredModel struct {
@@ -343,8 +376,6 @@ func (ms *ModelSelector) SelectModel(action ActionType, language string, complex
 		score   float64
 	}
 	var scored []scoredModel
-
-	defaultBackend := ms.setup.Defaults.Backend
 	for backend, models := range ms.catalog {
 		if mode == "local" && backend != "ollama" {
 			continue
