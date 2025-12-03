@@ -101,8 +101,7 @@ func Chat(input string, args []string) {
 		provider = llm.NewChatCompletion(backendCfg.BaseURL, backendName)
 	}
 
-	profileName := setup.Defaults.Profile
-	researchModel := backendCfg.GetModelForAgentWithProfile("research", profileName)
+	researchModel := backendCfg.GetModelForAgent("research")
 	orchestrator := llm.NewOrchestrator(backendCfg.BaseURL, backendName, provider, researchModel)
 
 	if len(history.Messages) == 0 || history.Messages[len(history.Messages)-1].Role != "user" {
@@ -124,7 +123,7 @@ func Chat(input string, args []string) {
 			fmt.Fprintln(os.Stderr, "[CHAT] Ops query detected, routing to run mode")
 		}
 		builder := prompt.NewDefaultBuilder(nil)
-		queryModel := backendCfg.GetModelForAgentWithProfile("query", profileName)
+		queryModel := backendCfg.GetModelForAgent("query")
 		RunExecute(builder, provider, queryModel, []string{lastUserMessage})
 		return
 	}
@@ -141,7 +140,7 @@ func Chat(input string, args []string) {
 		}
 
 		fmt.Fprintln(os.Stderr, "[CHAT] Starting implementation")
-		queryModel := backendCfg.GetModelForAgentWithProfile("query", profileName)
+		queryModel := backendCfg.GetModelForAgent("query")
 		guided := NewGuidedMode(orchestrator, cwd, queryModel)
 
 		_ = guided.events.Status("Implementing plan...")
@@ -165,9 +164,9 @@ func Chat(input string, args []string) {
 		go showSpinner(stopSpinner)
 	}
 
-	routerModel := backendCfg.GetModelForAgentWithProfile("router", profileName)
-	editorModel := backendCfg.GetModelForAgentWithProfile("editor", profileName)
-	queryModel := backendCfg.GetModelForAgentWithProfile("query", profileName)
+	routerModel := backendCfg.GetModelForAgent("router")
+	editorModel := backendCfg.GetModelForAgent("editor")
+	queryModel := backendCfg.GetModelForAgent("query")
 
 	// Dependency Graph Integration
 	// We build the graph and find relevant context to prepend to the message
