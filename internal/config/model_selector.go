@@ -339,14 +339,22 @@ func (ms *ModelSelector) SelectModel(action ActionType, language string, complex
 	}
 	var scored []scoredModel
 
+	defaultBackend := ms.setup.Defaults.Backend
 	for backend, models := range ms.catalog {
 		if mode == "local" && backend != "ollama" {
+			continue
+		}
+		if mode == "cloud" && backend == "ollama" {
 			continue
 		}
 
 		for _, modelInfo := range models {
 			score := ms.scoreModel(modelInfo, action, language, complexity)
 			if score > 0 {
+				// Boost score for default backend to prioritize it
+				if backend == defaultBackend {
+					score += 100
+				}
 				scored = append(scored, scoredModel{
 					backend: backend,
 					model:   modelInfo.ID,

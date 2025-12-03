@@ -348,8 +348,8 @@ func runDoExecution(task string, verbose bool, supervised bool, setup *config.Se
 		if language == "" {
 			language = "go" // default
 		}
-		// Use queryProvider for analyzer/classifier
-		executor := modes.NewAutonomousExecutor(queryProvider, cwd, queryModel, language)
+		// Use queryProvider for analyzer/classifier with selected backend
+		executor := modes.NewAutonomousExecutorWithBackend(queryProvider, cwd, queryModel, language, backendName)
 		return executor.Execute(context.Background(), task)
 	}
 

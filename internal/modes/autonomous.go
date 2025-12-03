@@ -23,6 +23,11 @@ type AutonomousExecutor struct {
 
 // NewAutonomousExecutor creates a new autonomous executor
 func NewAutonomousExecutor(provider llm.Provider, cwd string, model string, language string) *AutonomousExecutor {
+	return NewAutonomousExecutorWithBackend(provider, cwd, model, language, "")
+}
+
+// NewAutonomousExecutorWithBackend creates executor with specific backend override
+func NewAutonomousExecutorWithBackend(provider llm.Provider, cwd string, model string, language string, backendName string) *AutonomousExecutor {
 	// Load setup
 	setup, err := config.LoadSetup()
 	if err != nil {
@@ -32,6 +37,11 @@ func NewAutonomousExecutor(provider llm.Provider, cwd string, model string, lang
 			Backend: make(map[string]config.BackendConfig),
 		}
 		setup.Defaults.Backend = "groq"
+	}
+
+	// Override backend if specified (for retry system)
+	if backendName != "" {
+		setup.Defaults.Backend = backendName
 	}
 
 	// Create model selector
