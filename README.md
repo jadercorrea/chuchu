@@ -15,19 +15,64 @@ Chuchu (pronounced "shoo-shoo", Brazilian slang for something small and cute) is
 
 ## Features
 
-- **TDD-First**: Writes tests before implementation
-- **Multi-Agent Architecture**: Router, Query, Editor, and Research agents
-- **Cost Control**: Mix and match cheap/free models per agent
-- **Profile Management**: Switch between multiple model configurations
-- **Model Flexibility**: Groq, Ollama, OpenRouter, OpenAI, Anthropic
-- **Neovim Native**: Deep integration with LSP, Tree-sitter, file navigation
-- **Web Search**: Research agent can search and summarize web content
-- **Auto-Install Models**: Discover and install 193+ Ollama models from Neovim
-- **Feedback & Learning**: Track model performance and improve recommendations
+### Core Capabilities
+- 🤖 **Autonomous Copilot** (`chu do`) - Full task execution with agent orchestration
+- 💬 **Interactive Chat** - Code-focused conversations with context awareness
+- 🔄 **Structured Workflow** - Research → Plan → Implement with verification
+- 🧪 **TDD Mode** - Test-driven development with auto-generated tests
+- 🔍 **Code Review** - Automated bug detection, security analysis, and improvements
 
-## The Chuchu Way: Research → Plan → Implement
+### Intelligence & Optimization
+- 🧠 **Multi-Agent Architecture** - Specialized agents (Router, Query, Editor, Research)
+- 📊 **ML-Powered** - Embedded complexity detection and intent classification (1ms, zero API calls)
+- 🗺️ **Dependency Graph** - Smart context selection (5x token reduction)
+- 💰 **Cost Optimized** - Mix cheap/free models per agent ($0-5/month vs $20-30/month)
+- 📈 **Feedback Learning** - Improves recommendations from user feedback
 
-Unlike traditional AI coding assistants that generate code immediately, Chuchu uses a structured workflow:
+### Developer Experience
+- ⚡ **Profile Management** - Switch between cost/speed/quality configurations
+- 🎯 **Model Flexibility** - Groq, Ollama, OpenRouter, OpenAI, Anthropic, DeepSeek
+- 🔌 **Neovim Integration** - Deep LSP, Tree-sitter, file navigation
+- 🔎 **Model Discovery** - Search, install, and configure 300+ models
+- 📚 **Web Research** - Built-in web search and documentation lookup
+
+## Three Ways to Work with Chuchu
+
+### 1. 🤖 Autonomous Copilot (Fastest)
+
+Let chuchu handle everything - analysis, planning, execution, and validation:
+
+```bash
+chu do "add user authentication"
+chu do "fix bug in payment processing"
+chu do "add password reset feature" --supervised
+```
+
+**Features:**
+- Automatic agent orchestration (Query → Plan → Edit → Validate)
+- Built-in error recovery and retries
+- Language-specific testing (Go, TypeScript, Python, Ruby, Elixir)
+- Optional supervision mode (confirm before execution)
+
+### 2. 💬 Interactive Chat (Most Flexible)
+
+Conversational interface for exploration and quick tasks:
+
+```bash
+chu chat "explain this function"
+chu chat "add error handling to the database connection"
+chu chat  # Enter interactive REPL
+```
+
+**Features:**
+- ML-powered complexity detection (auto-triggers guided mode)
+- Smart context selection (dependency graph analysis)
+- Follow-up questions and refinement
+- Seamless Neovim integration
+
+### 3. 🔄 Structured Workflow (Most Control)
+
+Manual control over each phase for complex changes:
 
 ```bash
 # 1. Research: Understand your codebase
@@ -41,13 +86,23 @@ chu implement plan.md              # Interactive (step-by-step)
 chu implement plan.md --auto       # Autonomous (fully automated)
 ```
 
-**Why this matters:**
-- ✅ Context-aware changes that fit your codebase
+**Why use structured workflow:**
+- ✅ Review and adjust plans before execution
 - ✅ Incremental verification at each step
-- ✅ Choose your control level (interactive or autonomous)
-- ✅ Lower costs through better planning
+- ✅ Better for large, complex changes
+- ✅ Lower costs through explicit planning
 
-**[Read the Complete Workflow Guide](docs/workflow-guide.md)**
+### Special Modes
+
+```bash
+chu tdd                  # Test-driven development
+chu feature "user auth"  # Auto-generate tests + implementation
+chu review               # Code review for current changes
+chu review path/to/file  # Review specific file
+chu run "deploy to prod" # Task execution with follow-up
+```
+
+**[Complete Workflow Guide](docs/workflow-guide.md)** | **[Autonomous Mode Deep Dive](docs/autonomous-mode.md)**
 
 ## Quick Start
 
@@ -195,29 +250,67 @@ chu chat "fix bug in authentication"
 # With graph: Sends auth.go + user.go + middleware.go + session.go + config.go (18k tokens)
 ```
 
-## Usage
+## Usage Examples
 
-**[Complete Workflow Guide](docs/workflow-guide.md)** - Learn the full research → plan → implement workflow
-
-### Chat Mode
+### Quick Tasks (Autonomous)
 
 ```bash
-chu chat "explain this function"
-chu chat "add error handling to the database connection"
+# Let chu handle everything
+chu do "add logging to the API handlers"
+chu do "create a dockerfile for this project"
+chu do "fix the failing tests in user_test.go"
+
+# With supervision (confirm before changes)
+chu do "refactor the authentication module" --supervised
 ```
 
-### Research Mode
+### Exploration & Learning (Chat)
 
 ```bash
-chu research "how does goroutine scheduling work"
-chu research "best practices for error handling in Go"
+# Ask questions about your codebase
+chu chat "how does the auth system work?"
+chu chat "where is user validation happening?"
+
+# Quick fixes and modifications
+chu chat "add error handling to database connections"
+chu chat "optimize the query in getUsers"
 ```
 
-### Planning & Implementation
+### Complex Changes (Structured Workflow)
 
 ```bash
-chu plan "add user authentication with JWT"
-chu implement plan.md
+# Step 1: Research the codebase
+chu research "current authentication implementation"
+
+# Step 2: Create detailed plan
+chu plan "add OAuth2 support"
+
+# Step 3: Execute plan
+chu implement docs/plans/oauth2-implementation.md
+chu implement docs/plans/oauth2-implementation.md --auto  # Fully autonomous
+```
+
+### Specialized Workflows
+
+```bash
+# Test-driven development
+chu tdd
+# 1. Describe feature
+# 2. Generate tests
+# 3. Implement
+# 4. Refine
+
+# Feature generation (tests + implementation)
+chu feature "user registration with email verification"
+
+# Code review
+chu review                # Review staged changes
+chu review src/auth.go    # Review specific file
+chu review --full         # Full codebase review
+
+# Task execution with context
+chu run "deploy to staging"
+chu run "migrate database"
 ```
 
 ### Autonomous Execution (Maestro)
@@ -335,63 +428,137 @@ chu feedback stats
 
 Chuchu learns from your feedback to recommend better models over time.
 
-## Configuration Examples
+## Configuration & Profiles
 
-### Budget Setup ($2-5/month)
+Chuchu supports multiple backends and profiles optimized for different use cases.
 
-```yaml
-defaults:
-  backend: groq
-  
-backend:
-  groq:
-    agent_models:
-      router: llama-3.1-8b-instant      # $0.05/$0.08 per 1M tokens
-      query: llama-3.3-70b-versatile    # $0.59/$0.79 per 1M tokens
-      editor: llama-3.3-70b-versatile
-      research: groq/compound           # Free!
+### Quick Profile Switching
+
+```bash
+# List available profiles
+chu profile list
+
+# Switch profiles
+chu profile use ollama.default      # $0/month (local)
+chu profile use openrouter.free    # $0/month (cloud, rate-limited)
+chu profile use groq.budget        # ~$0.85/month (3M tokens)
+chu profile use groq.performance   # ~$2.41/month (3M tokens)
+
+# Show current profile
+chu profile
 ```
 
-### Free Local Setup ($0/month)
+### Pre-configured Profiles
+
+#### Free Local (`ollama.default`)
+**Cost**: $0/month | **Setup**: Requires Ollama installed
 
 ```yaml
 defaults:
   backend: ollama
-  
+  profile: default
+
 backend:
   ollama:
-    agent_models:
-      router: llama3.1:8b
-      query: qwen3-coder:latest
-      editor: qwen3-coder:latest
-      research: qwen3-coder:latest
+    profiles:
+      default:
+        agent_models:
+          router: llama3.1:8b
+          query: gpt-oss:latest
+          editor: qwen3-coder:latest
+          research: gpt-oss:latest
 ```
 
-### Multiple Profiles per Backend
+#### Free Cloud (`openrouter.free`)
+**Cost**: $0/month | **Setup**: Get free API key at openrouter.ai
 
 ```yaml
 defaults:
-  backend: groq
-  profile: speed  # or: default, quality, free
-  
+  backend: openrouter
+  profile: free
+
+backend:
+  openrouter:
+    profiles:
+      free:
+        agent_models:
+          router: google/gemini-2.0-flash-exp:free
+          query: deepseek/deepseek-chat-v3.1:free
+          editor: moonshotai/kimi-k2:free
+          research: google/gemini-2.0-flash-exp:free
+```
+
+#### Budget ($0.85/month for 3M tokens)
+**Cost**: ~$0.28/1M tokens | **Setup**: Get API key at console.groq.com
+
+```yaml
 backend:
   groq:
     profiles:
-      speed:
+      budget:
         agent_models:
-          router: llama-3.1-8b-instant
-          query: llama-3.1-8b-instant
-          editor: llama-3.1-8b-instant
-          research: llama-3.1-8b-instant
-      quality:
-        agent_models:
-          router: llama-3.1-8b-instant
-          query: llama-3.3-70b-versatile
-          editor: llama-3.3-70b-versatile
-          research: groq/compound
+          router: llama-3.1-8b-instant      # $0.05/$0.08
+          query: openai/gpt-oss-120b        # $0.15/$0.60
+          editor: qwen/qwen3-32b            # $0.29/$0.59 (coding-focused)
+          research: groq/compound           # $0.15/$0.60 base
 ```
 
-[See more configurations →](https://jadercorrea.github.io/chuchu/blog/2025-11-15-groq-optimal-configs)
+**Why these models?**
+- Router: 8B for speed (called most frequently)
+- Query: 120B for reasoning
+- Editor: 32B coding-specialized (40% cheaper than generic 70B)
+- Research: Compound with built-in tools
+
+#### Performance ($2.41/month for 3M tokens)
+**Cost**: ~$0.80/1M tokens | **Premium quality**
+
+```yaml
+backend:
+  groq:
+    profiles:
+      performance:
+        agent_models:
+          router: llama-3.1-8b-instant           # Speed still matters
+          query: openai/gpt-oss-120b             # Same (already optimal)
+          editor: moonshotai/kimi-k2-instruct    # $1.00/$3.00 (262K context)
+          research: groq/compound                # Same (best with tools)
+```
+
+**Cost breakdown** (3M tokens/month):
+- Router (40%): $0.06
+- Query (30%): $0.34  
+- Editor (25%): $1.95 (81% of total cost!)
+- Research (5%): $0.06
+
+### Creating Custom Profiles
+
+```bash
+# Create new profile
+chu profiles create groq myprofile
+
+# Configure agents
+chu profiles set-agent groq myprofile router llama-3.1-8b-instant
+chu profiles set-agent groq myprofile query openai/gpt-oss-120b
+chu profiles set-agent groq myprofile editor llama-3.3-70b-versatile
+chu profiles set-agent groq myprofile research groq/compound
+
+# Use it
+chu profile use groq.myprofile
+```
+
+### Cost Comparison
+
+| Profile | Monthly Cost | Per 1M Tokens | Use Case |
+|---------|--------------|---------------|----------|
+| **ollama.default** | $0 | $0 | Local, privacy, no internet |
+| **openrouter.free** | $0 | $0 | Cloud free tier, rate limits |
+| **groq.budget** | $0.85 (3M) | $0.28 | Cost-optimized cloud |
+| **groq.performance** | $2.41 (3M) | $0.80 | Quality-first cloud |
+| **Claude Pro** | $200 | $41.67 | Traditional subscription |
+
+**Groq is 99% cheaper** than Claude Pro for equivalent usage!
+
+**[Complete Profile Guide](https://jadercorrea.github.io/chuchu/blog/2025-11-15-groq-optimal-configs)**
 
 ## Architecture
 
