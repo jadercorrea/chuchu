@@ -387,23 +387,29 @@ func min(a, b int) int {
 
 func containsEditKeywords(text string) bool {
 	lower := strings.ToLower(text)
-	
+
 	// Strong indicators: plan explicitly mentions files to modify/create
-	// But if it says "Files to Modify: None" or "Files to Create: None", that's NOT an edit
-	if strings.Contains(lower, "files to modify:") {
-		if !strings.Contains(lower, "files to modify:\nnone") && !strings.Contains(lower, "files to modify: none") {
+	// But if it says "None" right after, that's NOT an edit
+	// Check both "Files to modify:" and "## Files to modify" formats
+	if strings.Contains(lower, "files to modify") {
+		// Make sure it's not "Files to Modify: None" or "Files to modify\nNone"
+		if !strings.Contains(lower, "modify\nnone") && 
+		   !strings.Contains(lower, "modify: none") &&
+		   !strings.Contains(lower, "modify:\nnone") {
 			return true
 		}
 	}
-	if strings.Contains(lower, "files to create:") {
-		if !strings.Contains(lower, "files to create:\nnone") && !strings.Contains(lower, "files to create: none") {
+	if strings.Contains(lower, "files to create") {
+		if !strings.Contains(lower, "create\nnone") && 
+		   !strings.Contains(lower, "create: none") &&
+		   !strings.Contains(lower, "create:\nnone") {
 			return true
 		}
 	}
-	
+
 	// Check for file operations (but exclude "change" which appears in plan headings)
 	editKeywords := []string{
-		"write_file", "apply_patch",  // Tool calls
+		"write_file", "apply_patch", // Tool calls
 		"modify file", "create file", "update file", "patch file",
 		"add to", "append to", "insert into",
 		"delete from", "remove from",
@@ -414,7 +420,7 @@ func containsEditKeywords(text string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
