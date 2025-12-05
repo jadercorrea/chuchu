@@ -50,31 +50,31 @@ Output: "Editor reached max iterations"  # Should show struct code
 
 ---
 
-### 4. Git Operations ❌ (REVIEWER BUG - CRITICAL)
-**Issue**: Validator marks SUCCESS as FAIL
-**Root cause**: `extractIssues()` treats **any line starting with `-`** as an issue
-**Evidence**:
-```
-Validator output:
-Issues:
-- Command `git log -1` executed successfully  ← This is SUCCESS!
-- Command output includes commit hash          ← This is SUCCESS!
-- Command completed without errors             ← This is SUCCESS!
+### 4. Git Operations ❌ (REVIEWER BUG - PARTIALLY FIXED)
+**Issue**: Validator marks SUCCESS as FAIL  
+**Status**: Parsing bugs FIXED, but LLM behavior still problematic
 
-Result: FAIL  ← WRONG! Should be SUCCESS
-```
+**Fixes applied**:
+1. ✅ Improved `extractIssues()` to require failure keywords AND exclude success phrases
+2. ✅ Improved `containsSuccess()` to detect more success patterns
+3. ✅ Skip header lines (ending with `:`)
+4. ✅ Use 70b model for reviewer (8b enters infinite tool call loop)
 
-**Bug location**: `internal/agents/reviewer.go:285`
-```go
-if trimmed != "" && (strings.HasPrefix(trimmed, "-") || ...) {
-    issues = append(issues, trimmed)  // BUG: treats bullets as issues
-}
-```
+**Remaining issue**: LLM inconsistently marks query tasks as SUCCESS/FAIL
+- Sometimes returns SUCCESS, sometimes FAIL for same scenario
+- Query tasks (git status, read file) confuse the reviewer
+- No files modified + query command = should auto-pass, but doesn't
 
-**Fix needed**: Change `extractIssues()` to:
-1. Only extract lines that contain actual failure keywords (FAIL, error, missing, not met)
-2. Ignore bullet-formatted success messages
-3. Better detect if text is positive (success) vs negative (failure)
+**Root cause**: **Symphony (autonomous mode) design issue**
+- Symphony breaks tasks into movements, but movements 2+ for query tasks are pointless
+- Movement 1: "Run git status" → executes successfully
+- Movement 2: "Display git status" → redundant, confuses validator
+- Validator doesn't know what to validate when no files changed
+
+**Proper fix needed**: 
+1. Symphony should NOT create multiple movements for simple query tasks
+2. OR Editor should return query results immediately (early return) without validator
+3. OR Validator should auto-pass when: no files modified + command succeeded + no build needed
 
 ---
 

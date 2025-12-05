@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"chuchu/internal/maestro"
@@ -56,7 +57,17 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 	fmt.Printf("   Intent: %s\n", analysis.Intent)
 	fmt.Printf("   Complexity: %d/10\n", analysis.Complexity)
 
-	// 2. If simple (complexity <= 5 from ML analysis), execute directly
+	// 2. If query task with read-only movements, execute directly
+	if os.Getenv("CHUCHU_DEBUG") == "1" {
+		fmt.Fprintf(os.Stderr, "[SYMPHONY] Intent=%s, #movements=%d, isReadOnly=%v\n", 
+			analysis.Intent, len(analysis.Movements), isReadOnlyMovements(analysis.Movements))
+	}
+	if analysis.Intent == "query" && isReadOnlyMovements(analysis.Movements) {
+		fmt.Println("\nQuery task detected! Executing directly (no decomposition)...")
+		return e.executeDirect(ctx, task, analysis)
+	}
+
+	// 3. If simple (complexity <= 5 from ML analysis), execute directly
 	if analysis.Complexity <= 5 {
 		fmt.Println("\nExecuting directly (simple task)...")
 		return e.executeDirect(ctx, task, analysis)
@@ -80,7 +91,11 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 		StartTime:       time.Now(),
 	}
 
-	// 4. Execute each movement
+	// 4. Optimize movements: collapse redundant display/show movements
+	symphony.Movements = collapseDisplayMovements(symphony.Movements)
+	fmt.Printf("Optimized to %d movements\n\n", len(symphony.Movements))
+
+	// 5. Execute each movement
 	for i, movement := range symphony.Movements {
 		symphony.CurrentMovement = i
 
@@ -167,4 +182,46 @@ func generateID() string {
 	b := make([]byte, 8)
 	rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+// isReadOnlyMovements checks if all movements are read-only (query tasks)
+func isReadOnlyMovements(movements []Movement) bool {
+	for _, m := range movements {
+		lower := strings.ToLower(m.Goal)
+		if strings.Contains(lower, "modify") ||
+			strings.Contains(lower, "write") ||
+			strings.Contains(lower, "create") ||
+			strings.Contains(lower, "update") ||
+			strings.Contains(lower, "delete") {
+			return false
+		}
+	}
+	return true
+}
+
+// collapseDisplayMovements merges redundant display/show movements with their execution
+func collapseDisplayMovements(movements []Movement) []Movement {
+	if len(movements) <= 1 {
+		return movements
+	}
+
+	var optimized []Movement
+	for i, m := range movements {
+		lower := strings.ToLower(m.Goal)
+		isDisplay := strings.Contains(lower, "display") || strings.Contains(lower, "show")
+
+		// If this is a display movement and previous was execution, skip it
+		if i > 0 && isDisplay {
+			prev := &optimized[len(optimized)-1]
+			prevLower := strings.ToLower(prev.Goal)
+			if strings.Contains(prevLower, "run") || strings.Contains(prevLower, "execute") || strings.Contains(prevLower, "retrieve") {
+				// Skip redundant display movement - execution handles it
+				continue
+			}
+		}
+
+		optimized = append(optimized, m)
+	}
+
+	return optimized
 }

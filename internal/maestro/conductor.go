@@ -110,6 +110,18 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 			return fmt.Errorf("execution failed: %w", err)
 		}
 
+		// Check if this is a query-only task (no validation needed)
+		if c.isQueryTask(plan, modifiedFiles) {
+			c.recordFeedback(editBackend, editModel, "editor", task, true)
+
+			fmt.Printf("\n[OK] Task complete!\n")
+			fmt.Printf("   Modified: %d files\n", len(modifiedFiles))
+			if result != "" {
+				fmt.Printf("   %s\n", result)
+			}
+			return nil
+		}
+
 		// Select model for review
 		reviewBackend, reviewModel, err := c.selector.SelectModel(config.ActionReview, c.language, complexity)
 		if err != nil {
@@ -280,4 +292,35 @@ func (c *Conductor) formatValidationIssues(issues []string) string {
 	sb.WriteString("3. Do NOT change what's already correct\n")
 	sb.WriteString("4. Only fix the specific problems mentioned\n")
 	return sb.String()
+}
+
+// isQueryTask checks if task is query-only (no validation needed)
+func (c *Conductor) isQueryTask(plan string, modifiedFiles []string) bool {
+	if len(modifiedFiles) > 0 {
+		return false
+	}
+
+	lower := strings.ToLower(plan)
+	queryIndicators := []string{
+		"run command",
+		"execute command",
+		"git status",
+		"git log",
+		"gh pr list",
+		"read file",
+		"show",
+		"display",
+		"files to modify\nnone",
+		"files to modify: none",
+		"files to create\nnone",
+		"files to create: none",
+	}
+
+	for _, indicator := range queryIndicators {
+		if strings.Contains(lower, indicator) {
+			return true
+		}
+	}
+
+	return false
 }

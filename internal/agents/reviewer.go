@@ -292,11 +292,11 @@ func extractIssues(text string) []string {
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		lower := strings.ToLower(trimmed)
-		
+
 		if trimmed == "" {
 			continue
 		}
-		
+
 		if strings.HasSuffix(trimmed, ":") {
 			continue
 		}
@@ -311,7 +311,7 @@ func extractIssues(text string) []string {
 			strings.Contains(lower, "did not") ||
 			strings.Contains(lower, "no such") ||
 			strings.Contains(lower, "cannot")
-		
+
 		isSuccessPhrase := strings.Contains(lower, "success") ||
 			strings.Contains(lower, "complete") ||
 			strings.Contains(lower, "correct") ||
@@ -321,7 +321,7 @@ func extractIssues(text string) []string {
 			strings.Contains(lower, "show") ||
 			strings.Contains(lower, "executed successfully") ||
 			strings.Contains(lower, "no errors")
-		
+
 		if isFailureKeyword && !isSuccessPhrase {
 			issues = append(issues, trimmed)
 		} else if strings.HasPrefix(trimmed, "-") || strings.HasPrefix(trimmed, "•") {
