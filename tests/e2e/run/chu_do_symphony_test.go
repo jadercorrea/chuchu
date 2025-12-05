@@ -95,9 +95,9 @@ func TestChuDoComplexTaskAnalysis(t *testing.T) {
 		}
 		if matched > 0 && matched < len(keywordSet) {
 			// Partial match - might be mixed format, check if at least 2 core keywords exist
-			if (strings.Contains(strings.ToLower(outputStr), "complexity") &&
+			if strings.Contains(strings.ToLower(outputStr), "complexity") &&
 				(strings.Contains(strings.ToLower(outputStr), "intent") ||
-					strings.Contains(strings.ToLower(outputStr), "task"))) {
+					strings.Contains(strings.ToLower(outputStr), "task")) {
 				break
 			}
 		}
