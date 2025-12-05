@@ -10,29 +10,35 @@ import (
 
 // Issue represents a GitHub issue
 type Issue struct {
-	Number      int      `json:"number"`
-	Title       string   `json:"title"`
-	Body        string   `json:"body"`
-	State       string   `json:"state"`
-	Labels      []string `json:"labels"`
-	Author      string   `json:"author"`
-	URL         string   `json:"url"`
-	Assignees   []string `json:"assignees"`
-	Milestone   string   `json:"milestone"`
-	CreatedAt   string   `json:"createdAt"`
-	UpdatedAt   string   `json:"updatedAt"`
-	Comments    int      `json:"comments"`
-	Repository  string   `json:"repository"`
+	Number     int      `json:"number"`
+	Title      string   `json:"title"`
+	Body       string   `json:"body"`
+	State      string   `json:"state"`
+	Labels     []string `json:"labels"`
+	Author     string   `json:"author"`
+	URL        string   `json:"url"`
+	Assignees  []string `json:"assignees"`
+	Milestone  string   `json:"milestone"`
+	CreatedAt  string   `json:"createdAt"`
+	UpdatedAt  string   `json:"updatedAt"`
+	Comments   int      `json:"comments"`
+	Repository string   `json:"repository"`
 }
 
 // Client represents a GitHub client using gh CLI
 type Client struct {
-	repo string // owner/repo format
+	repo    string // owner/repo format
+	workDir string // working directory for git commands
 }
 
 // NewClient creates a new GitHub client
 func NewClient(repo string) *Client {
 	return &Client{repo: repo}
+}
+
+// SetWorkDir sets the working directory for git operations
+func (c *Client) SetWorkDir(dir string) {
+	c.workDir = dir
 }
 
 // FetchIssue fetches a GitHub issue by number
@@ -48,11 +54,11 @@ func (c *Client) FetchIssue(issueNumber int) (*Issue, error) {
 	}
 
 	var rawIssue struct {
-		Number    int    `json:"number"`
-		Title     string `json:"title"`
-		Body      string `json:"body"`
-		State     string `json:"state"`
-		Labels    []struct {
+		Number int    `json:"number"`
+		Title  string `json:"title"`
+		Body   string `json:"body"`
+		State  string `json:"state"`
+		Labels []struct {
 			Name string `json:"name"`
 		} `json:"labels"`
 		Author struct {
@@ -109,10 +115,10 @@ func (i *Issue) ExtractRequirements() []string {
 
 	// Simple extraction: look for task lists, numbered lists, bullet points
 	lines := strings.Split(i.Body, "\n")
-	
+
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		// Task list items: - [ ] or - [x]
 		if strings.HasPrefix(trimmed, "- [ ]") || strings.HasPrefix(trimmed, "- [x]") {
 			req := strings.TrimPrefix(trimmed, "- [ ]")
@@ -123,7 +129,7 @@ func (i *Issue) ExtractRequirements() []string {
 			}
 			continue
 		}
-		
+
 		// Bullet points
 		if strings.HasPrefix(trimmed, "- ") || strings.HasPrefix(trimmed, "* ") {
 			req := strings.TrimPrefix(trimmed, "- ")
@@ -134,7 +140,7 @@ func (i *Issue) ExtractRequirements() []string {
 			}
 			continue
 		}
-		
+
 		// Numbered lists: 1. 2. etc
 		if len(trimmed) > 3 && trimmed[0] >= '0' && trimmed[0] <= '9' && trimmed[1] == '.' {
 			req := trimmed[3:]
@@ -156,7 +162,7 @@ func (i *Issue) ExtractRequirements() []string {
 // ParseReferences extracts issue/PR references from text
 func ParseReferences(text string) []string {
 	references := []string{}
-	
+
 	// Match #123 pattern
 	words := strings.Fields(text)
 	for _, word := range words {
@@ -178,7 +184,7 @@ func ParseReferences(text string) []string {
 func (i *Issue) CreateBranchName() string {
 	// Format: issue-123-short-description
 	title := strings.ToLower(i.Title)
-	
+
 	// Replace spaces and special chars with hyphens
 	title = strings.Map(func(r rune) rune {
 		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
@@ -186,20 +192,20 @@ func (i *Issue) CreateBranchName() string {
 		}
 		return '-'
 	}, title)
-	
+
 	// Remove consecutive hyphens
 	for strings.Contains(title, "--") {
 		title = strings.ReplaceAll(title, "--", "-")
 	}
-	
+
 	// Trim hyphens from ends
 	title = strings.Trim(title, "-")
-	
+
 	// Limit length
 	if len(title) > 50 {
 		title = title[:50]
 		title = strings.Trim(title, "-")
 	}
-	
+
 	return fmt.Sprintf("issue-%d-%s", i.Number, title)
 }
