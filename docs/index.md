@@ -111,59 +111,54 @@ chu plan "implement rate limiting"</code></pre>
 </div>
 
 <div class="section">
-  <h2 class="section-title">Features</h2>
+  <h2 class="section-title">Core Capabilities</h2>
   
-  <h3>Profile Management</h3>
-  <p>Switch between model configurations instantly. Budget profile with Groq Llama 3.1 8B. Quality profile with GPT-4. Local profile with Ollama.</p>
-  
-  <h3>Cost Optimization</h3>
+  <h3>Three Ways to Work</h3>
   <ul>
-    <li><strong>Router agent</strong>: Fast, cheap model (Llama 3.1 8B @ $0.05/M tokens)</li>
-    <li><strong>Query agent</strong>: Balanced model (GPT-OSS 120B @ $0.15/M)</li>
-    <li><strong>Editor agent</strong>: Quality model (DeepSeek R1 @ $0.14/M)</li>
-    <li><strong>Research agent</strong>: Context-heavy model (Grok 4.1 @ free tier)</li>
+    <li><strong>Autonomous Copilot</strong>: <code>chu do "task"</code> handles everything—analysis, planning, execution, validation</li>
+    <li><strong>Interactive Chat</strong>: <code>chu chat</code> for conversations with context awareness and follow-ups</li>
+    <li><strong>Structured Workflow</strong>: <code>chu research</code> → <code>chu plan</code> → <code>chu implement</code> for full control</li>
   </ul>
   
-  <h3>ML Intelligence</h3>
+  <h3>Special Modes</h3>
   <ul>
-    <li><strong>Intent classifier</strong>: 1ms routing, 89% accuracy, smart LLM fallback</li>
-    <li><strong>Complexity detector</strong>: Auto-triggers planning for complex tasks</li>
-    <li><strong>Pure Go inference</strong>: No Python runtime required</li>
+    <li><strong>TDD Mode</strong>: <code>chu tdd</code> for test-driven development workflow</li>
+    <li><strong>Code Review</strong>: <code>chu review</code> for automated bug detection and security analysis</li>
+    <li><strong>Task Execution</strong>: <code>chu run</code> for tasks with follow-up conversations</li>
+    <li><strong>Web Research</strong>: Built-in search and documentation lookup</li>
   </ul>
   
-  <h3>Context Optimization</h3>
+  <h3>Intelligence & Optimization</h3>
   <ul>
-    <li>Dependency graph analysis (Go, Python, JS/TS, Ruby, Rust)</li>
-    <li>PageRank file importance ranking</li>
-    <li>1-hop neighbor expansion</li>
-    <li>5x token reduction with better accuracy</li>
+    <li><strong>Multi-Agent Architecture</strong>: Router, Query, Editor, Research agents working together</li>
+    <li><strong>ML-Powered</strong>: Intent classification (1ms) and complexity detection with zero API calls</li>
+    <li><strong>Dependency Graph</strong>: Smart context selection with 5x token reduction (Go, Python, JS/TS, Ruby, Rust)</li>
+    <li><strong>Cost Optimized</strong>: Mix cheap/free models per agent ($0-5/month vs $20-30/month)</li>
   </ul>
   
-  <h3>Neovim Features</h3>
+  <h3>Developer Experience</h3>
   <ul>
-    <li>Floating chat window with syntax highlighting</li>
-    <li>Model search UI (193+ Ollama models)</li>
-    <li>Profile management interface</li>
-    <li>LSP-aware code context</li>
-    <li>Tree-sitter integration</li>
+    <li><strong>Profile Management</strong>: Switch between cost/speed/quality configurations instantly</li>
+    <li><strong>Model Flexibility</strong>: Groq, Ollama, OpenRouter, OpenAI, Anthropic, DeepSeek</li>
+    <li><strong>Neovim Integration</strong>: Floating chat, model search (300+ models), LSP/Tree-sitter aware</li>
+    <li><strong>Validation & Safety</strong>: File validation, success criteria, supervised mode</li>
   </ul>
 </div>
 
 <div class="section">
   <h2 class="section-title">Why Chuchu?</h2>
   
-  <p>Most AI coding assistants lock you into expensive subscriptions ($20-30/month) with black-box model selection and no validation. Chuchu gives you:</p>
+  <p>Chuchu isn't trying to beat Cursor or Copilot. It's trying to be different—and yours.</p>
   
   <ul>
-    <li><strong>Specialized agents</strong>: 4 agents working together with validation</li>
-    <li><strong>Safety first</strong>: File validation + success criteria prevent mistakes</li>
-    <li><strong>Full control</strong>: Supervised vs autonomous modes, any OpenAI-compatible provider</li>
-    <li><strong>Radically affordable</strong>: $0-5/month vs $20-30/month subscriptions</li>
-    <li><strong>Local option</strong>: Run completely offline with Ollama for $0</li>
-    <li><strong>TDD support</strong>: Write tests first when you want (<code>chu tdd</code>)</li>
+    <li><strong>Transparent</strong>: When it breaks, you can read and fix the code</li>
+    <li><strong>Hackable</strong>: Don't like something? Change it—it's just Go</li>
+    <li><strong>Model agnostic</strong>: Switch LLMs in 2 minutes (Groq, Ollama, OpenAI, etc.)</li>
+    <li><strong>Honest</strong>: E2E tests at 55%—no "95% accuracy" marketing</li>
+    <li><strong>Affordable</strong>: $2–5/month (Groq) or $0/month (Ollama)</li>
   </ul>
   
-  <p>Read the full story: <a href="/blog/2025-11-13-why-chuchu">Why Chuchu?</a></p>
+  <p><a href="/blog/2025-12-06-why-chuchu-isnt-trying-to-beat-anyone">Read the full positioning →</a> · <a href="/blog/2025-11-13-why-chuchu">Original vision →</a></p>
 </div>
 
 <div class="section">
