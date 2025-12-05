@@ -4,7 +4,7 @@ title: Model Comparison
 permalink: /compare/
 ---
 
-<link rel="stylesheet" href="{{ '/assets/css/compare.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/compare.css' | relative_url }}?v={{ site.github.build_revision | default: site.time | date: '%s' }}">
 
 <div class="compare-page">
 <h1>Model Comparison for Coding Tasks</h1>
@@ -109,7 +109,7 @@ permalink: /compare/
 </div>
 </div>
 
-<script src="{{ '/assets/js/compare.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/compare.js' | relative_url }}?v={{ site.github.build_revision | default: site.time | date: '%s' }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', init);
 </script>

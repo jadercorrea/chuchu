@@ -49,36 +49,38 @@ description: AI coding assistant with specialized agents and validation
 
 
 <div class="section">
-  <h2 class="section-title">Structured Workflow: Research → Plan → Implement</h2>
-  <p class="section-subtitle">Go from feature idea to tested code with AI assistance at each step</p>
+  <h2 class="section-title">Agent Orchestration: Analyzer → Planner → Editor → Validator</h2>
+  <p class="section-subtitle">Fast routing, focused context, safe edits, and verified results — end to end</p>
   
   <div class="workflow-steps">
     <div class="workflow-step">
-      <h3>Research</h3>
-      <p>Understand your codebase before making changes</p>
-      <pre><code>chu research "How does authentication work?"</code></pre>
-      <p>Chuchu searches semantically, reads relevant files, and documents findings in <code>~/.chuchu/research/</code></p>
+      <h3>Analyzer</h3>
+      <p>Scans the codebase, builds dependency graph and selects only the relevant files</p>
+      <pre><code>chu do "add authentication"</code></pre>
     </div>
     
     <div class="workflow-step">
-      <h3>Plan</h3>
-      <p>Create detailed implementation plan with phases</p>
-      <pre><code>chu plan "Add password reset feature"</code></pre>
-      <p>Generates step-by-step plan with clear goals, file changes, and test requirements</p>
+      <h3>Planner</h3>
+      <p>Creates a concrete plan with success criteria and allowed file list</p>
+      <pre><code>chu do "add authentication"</code></pre>
     </div>
     
     <div class="workflow-step">
-      <h3>Implement</h3>
-      <p>Execute plan interactively or autonomously</p>
-      <pre><code>chu implement plan.md
-chu implement plan.md --auto</code></pre>
-      <p>Interactive mode for control, autonomous mode for speed with automatic verification and retry</p>
+      <h3>Editor</h3>
+      <p>Applies changes incrementally with file validation and auto-recovery</p>
+      <pre><code>chu do "add authentication"</code></pre>
+    </div>
+    
+    <div class="workflow-step">
+      <h3>Validator</h3>
+      <p>Runs tests and checks success criteria before finishing</p>
+      <pre><code>chu do "add authentication"</code></pre>
     </div>
   </div>
   
   <p style="text-align: center; margin-top: 2rem;">
-    <a href="/workflow-guide" class="btn btn-primary">Complete Workflow Guide</a>
-    <a href="/blog/2025-11-24-complete-workflow-guide" class="btn btn-secondary">Read Tutorial</a>
+    <a href="/features#agent-based-architecture" class="btn btn-primary">Learn the Architecture</a>
+    <a href="/features#file-validation" class="btn btn-secondary">See Validation & Safety</a>
   </p>
 </div>
 
@@ -158,7 +160,14 @@ chu plan "implement rate limiting"</code></pre>
     <li><strong>Affordable</strong>: $2–5/month (Groq) or $0/month (Ollama)</li>
   </ul>
   
-  <p><a href="/blog/2025-12-06-why-chuchu-isnt-trying-to-beat-anyone">Read the full positioning →</a> · <a href="/blog/2025-11-13-why-chuchu">Original vision →</a></p>
+  <p>
+    <a href="/blog/2025-12-06-why-chuchu-isnt-trying-to-beat-anyone">Read the full positioning →</a>
+    · <a href="/blog/2025-11-13-why-chuchu">Original vision →</a>
+    · <a href="/blog/2025-12-01-agent-routing-vs-tool-search">Agent routing vs tool search →</a>
+    · <a href="/blog/2025-12-02-intelligent-model-selection">Intelligent model selection →</a>
+    · <a href="/blog/2025-12-03-dependency-graph-context-optimization">Dependency graph →</a>
+    · <a href="/blog/2025-12-04-chat-repl-conversational-coding">Chat REPL →</a>
+  </p>
 </div>
 
 <div class="section">

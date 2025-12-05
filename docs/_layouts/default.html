@@ -6,9 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ page.title }} - Chuchu</title>
   <meta name="description" content="{{ page.description | default: site.description }}" />
-  <link rel="icon" type="image/png" href="{{ '/assets/chuchu.png' | relative_url }}" />
+  {% assign bust = site.github.build_revision | default: site.time | date: '%s' %}
+  <link rel="icon" type="image/png" href="{{ '/assets/chuchu.png' | relative_url }}?v={{ bust }}" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/chuchu.png' | relative_url }}?v={{ bust }}" />
+  <link rel="shortcut icon" href="{{ '/assets/chuchu.png' | relative_url }}?v={{ bust }}" />
 
-  <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}" />
+  <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}?v={{ bust }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -19,8 +22,8 @@
 <body>
   <nav class="main-nav">
     <div class="nav-container">
-      <a href="{{ '/' | relative_url }}" class="nav-brand">
-        <img src="{{ '/assets/chuchu.png' | relative_url }}" alt="Chuchu" class="nav-logo" />
+<a href="{{ '/' | relative_url }}" class="nav-brand">
+        <img src="{{ '/assets/chuchu.png' | relative_url }}?v={{ bust }}" alt="Chuchu" class="nav-logo" />
         <span>Chuchu</span>
       </a>
       <div class="nav-links">

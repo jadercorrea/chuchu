@@ -1,0 +1,1 @@
+{% assign bust = site.github.build_revision | default: site.time | date: '%s' %}{{ include.path | relative_url }}?v={{ bust }}

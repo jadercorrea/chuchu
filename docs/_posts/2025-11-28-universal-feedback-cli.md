@@ -33,10 +33,10 @@ chu feedback hook install --shell=fish --with-diff
 ## See it in action
 
 ### Keyboard flow (Ctrl+g → run)
-![Two‑keystroke feedback (hook path)](../assets/feedback-hook-demo.gif)
+![Two‑keystroke feedback (hook path)](../assets/feedback-hook-demo.gif?v={{ site.github.build_revision | default: site.time | date: '%s' }})
 
 ### Programmatic flow (CLI submit)
-![Two‑keystroke feedback demo](../assets/feedback-demo.gif)
+![Two‑keystroke feedback demo](../assets/feedback-demo.gif?v={{ site.github.build_revision | default: site.time | date: '%s' }})
 
 ### How it’s used for training
 ```bash
