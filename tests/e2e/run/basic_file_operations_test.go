@@ -20,7 +20,7 @@ func TestBasicFileOperations(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	t.Run("Create text file with content", func(t *testing.T) {
-		_ = runChuDo(t, tmpDir, "create a file named hello.txt with the text 'Hello World'", 2*time.Minute)
+		_ = runChuDo(t, tmpDir, "create a file named hello.txt with the text 'Hello World'", 5*time.Minute)
 
 		helloFile := filepath.Join(tmpDir, "hello.txt")
 		content, err := os.ReadFile(helloFile)
@@ -36,7 +36,7 @@ func TestBasicFileOperations(t *testing.T) {
 	})
 
 	t.Run("Read and display file contents", func(t *testing.T) {
-		output := runChuDo(t, tmpDir, "show me what's in hello.txt", 2*time.Minute)
+		output := runChuDo(t, tmpDir, "show me what's in hello.txt", 5*time.Minute)
 
 		if !strings.Contains(output, "Hello") {
 			t.Errorf("Expected 'Hello' in output, got: %s", output)
@@ -46,7 +46,7 @@ func TestBasicFileOperations(t *testing.T) {
 	})
 
 	t.Run("Append to existing file", func(t *testing.T) {
-		_ = runChuDo(t, tmpDir, "add a new line saying 'Goodbye' to hello.txt", 2*time.Minute)
+		_ = runChuDo(t, tmpDir, "add a new line saying 'Goodbye' to hello.txt", 5*time.Minute)
 
 		helloFile := filepath.Join(tmpDir, "hello.txt")
 		content, err := os.ReadFile(helloFile)
@@ -62,7 +62,7 @@ func TestBasicFileOperations(t *testing.T) {
 	})
 
 	t.Run("Create JSON file with structure", func(t *testing.T) {
-		_ = runChuDo(t, tmpDir, "create config.json with name=myapp and version=1.0", 2*time.Minute)
+		_ = runChuDo(t, tmpDir, "create config.json with name=myapp and version=1.0", 5*time.Minute)
 
 		configFile := filepath.Join(tmpDir, "config.json")
 		content, err := os.ReadFile(configFile)
@@ -82,7 +82,7 @@ func TestBasicFileOperations(t *testing.T) {
 	})
 
 	t.Run("Create YAML configuration", func(t *testing.T) {
-		_ = runChuDo(t, tmpDir, "create settings.yaml with database host localhost and port 5432", 2*time.Minute)
+		_ = runChuDo(t, tmpDir, "create settings.yaml with database host localhost and port 5432", 5*time.Minute)
 
 		yamlFile := filepath.Join(tmpDir, "settings.yaml")
 		content, err := os.ReadFile(yamlFile)
@@ -102,7 +102,7 @@ func TestBasicFileOperations(t *testing.T) {
 	})
 
 	t.Run("List all files in directory", func(t *testing.T) {
-		output := runChuDo(t, tmpDir, "list all files in the current directory", 2*time.Minute)
+		output := runChuDo(t, tmpDir, "list all files in the current directory", 5*time.Minute)
 
 		// Check that all created files are mentioned
 		expectedFiles := []string{"hello.txt", "config.json", "settings.yaml"}

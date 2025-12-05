@@ -26,50 +26,50 @@ func TestWorkingDirectoryManagement(t *testing.T) {
 	t.Run("Navigate to frontend directory", func(t *testing.T) {
 		input := "/cd frontend\npwd\n/exit\n"
 		output := runChuRunWithInput(t, tmpDir, input, 1*time.Minute)
-		
+
 		if !strings.Contains(output, "frontend") {
 			t.Errorf("Expected 'frontend' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Changed directory to frontend")
 	})
 
 	t.Run("Set environment variable", func(t *testing.T) {
 		input := "/env NODE_ENV=development\n/env NODE_ENV\n/exit\n"
 		output := runChuRunWithInput(t, tmpDir, input, 1*time.Minute)
-		
+
 		if !strings.Contains(output, "NODE_ENV=development") {
 			t.Errorf("Expected 'NODE_ENV=development' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Set environment variable")
 	})
 
 	t.Run("List all environment variables", func(t *testing.T) {
 		input := "/env API_KEY=secret123\n/env DB_URL=postgres://localhost\n/env\n/exit\n"
 		output := runChuRunWithInput(t, tmpDir, input, 1*time.Minute)
-		
+
 		if !strings.Contains(output, "API_KEY=secret123") {
 			t.Errorf("Expected 'API_KEY=secret123' in output, got: %s", output)
 		}
 		if !strings.Contains(output, "DB_URL=postgres://localhost") {
 			t.Errorf("Expected 'DB_URL=postgres://localhost' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Listed environment variables")
 	})
 
 	t.Run("Change directory and verify pwd", func(t *testing.T) {
 		input := "/cd backend\npwd\nls\n/exit\n"
 		output := runChuRunWithInput(t, tmpDir, input, 1*time.Minute)
-		
+
 		if !strings.Contains(output, "backend") {
 			t.Errorf("Expected 'backend' in output, got: %s", output)
 		}
 		if !strings.Contains(output, "server.go") {
 			t.Errorf("Expected 'server.go' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Changed to backend and verified files")
 	})
 

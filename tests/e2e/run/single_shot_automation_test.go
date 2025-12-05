@@ -22,11 +22,11 @@ func TestSingleShotAutomation(t *testing.T) {
 
 	t.Run("Execute command and exit immediately", func(t *testing.T) {
 		output := runChuRun(t, tmpDir, "echo 'Build started'", "--raw", 1*time.Minute)
-		
+
 		if !strings.Contains(output, "Build started") {
 			t.Errorf("Expected 'Build started' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Single-shot execution works")
 	})
 
@@ -36,46 +36,46 @@ func TestSingleShotAutomation(t *testing.T) {
 		if err := os.WriteFile(readmePath, []byte("# Project\n"), 0644); err != nil {
 			t.Fatalf("Failed to create README.md: %v", err)
 		}
-		
+
 		srcDir := filepath.Join(tmpDir, "src")
 		if err := os.MkdirAll(srcDir, 0755); err != nil {
 			t.Fatalf("Failed to create src dir: %v", err)
 		}
-		
+
 		mainPath := filepath.Join(srcDir, "main.go")
 		if err := os.WriteFile(mainPath, []byte("package main\n"), 0644); err != nil {
 			t.Fatalf("Failed to create main.go: %v", err)
 		}
-		
+
 		output := runChuRun(t, tmpDir, "ls -R", "--raw", 1*time.Minute)
-		
+
 		if !strings.Contains(output, "README.md") {
 			t.Errorf("Expected 'README.md' in output, got: %s", output)
 		}
 		if !strings.Contains(output, "main.go") {
 			t.Errorf("Expected 'main.go' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Listed files recursively")
 	})
 
 	t.Run("Command with arguments", func(t *testing.T) {
 		output := runChuRun(t, tmpDir, "cat README.md", "--raw", 1*time.Minute)
-		
+
 		if !strings.Contains(output, "# Project") {
 			t.Errorf("Expected '# Project' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Command with arguments works")
 	})
 
 	t.Run("Verify no REPL banner in single-shot", func(t *testing.T) {
 		output := runChuRun(t, tmpDir, "pwd", "--raw", 1*time.Minute)
-		
+
 		if strings.Contains(output, "Chuchu Run REPL") {
 			t.Errorf("Expected no REPL banner in single-shot mode, got: %s", output)
 		}
-		
+
 		t.Logf("✓ No REPL banner shown")
 	})
 
