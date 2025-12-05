@@ -176,6 +176,8 @@ Rules:
 - Be specific about files to read/create
 - AVOID creating intermediate/temporary files - process data in memory when possible
 - Only create files that are part of the final task goal
+- For query/research intents: movements should RETRIEVE and DISPLAY information, NOT create files
+- For query tasks: use goals like "Retrieve", "Display", "Show", "Analyze" - NEVER "Create", "Write", "Generate file"
 
 Example:
 Task: "Use gh CLI to review and publish blog posts from open PRs in docs/_posts"

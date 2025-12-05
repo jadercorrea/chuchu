@@ -54,13 +54,26 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 		return fmt.Errorf("failed to analyze task: %w", err)
 	}
 
+	// Override intent if task is obviously a query (ML sometimes misclassifies)
+	if isObviousQuery(task) {
+		analysis.Intent = "query"
+	}
+
 	fmt.Printf("   Intent: %s\n", analysis.Intent)
 	fmt.Printf("   Complexity: %d/10\n", analysis.Complexity)
 
 	// 2. If query task with read-only movements, execute directly
 	if os.Getenv("CHUCHU_DEBUG") == "1" {
+		readOnly := isReadOnlyMovements(analysis.Movements)
 		fmt.Fprintf(os.Stderr, "[SYMPHONY] Intent=%s, #movements=%d, isReadOnly=%v\n",
-			analysis.Intent, len(analysis.Movements), isReadOnlyMovements(analysis.Movements))
+			analysis.Intent, len(analysis.Movements), readOnly)
+		if !readOnly && len(analysis.Movements) > 0 {
+			fmt.Fprintf(os.Stderr, "[SYMPHONY] Movements NOT read-only:")
+			for i, m := range analysis.Movements {
+				fmt.Fprintf(os.Stderr, "\n[SYMPHONY]   %d: %s", i+1, m.Goal)
+			}
+			fmt.Fprintf(os.Stderr, "\n")
+		}
 	}
 	if analysis.Intent == "query" && isReadOnlyMovements(analysis.Movements) {
 		fmt.Println("\nQuery task detected! Executing directly (no decomposition)...")
@@ -188,15 +201,58 @@ func generateID() string {
 func isReadOnlyMovements(movements []Movement) bool {
 	for _, m := range movements {
 		lower := strings.ToLower(m.Goal)
-		if strings.Contains(lower, "modify") ||
-			strings.Contains(lower, "write") ||
-			strings.Contains(lower, "create") ||
-			strings.Contains(lower, "update") ||
-			strings.Contains(lower, "delete") {
-			return false
+		
+		editPatterns := []string{
+			"modify the", "modify file",
+			"write to", "write the", "write file",
+			"create a", "create the", "create new", "create file",
+			"update the", "update file",
+			"delete the", "delete file",
+			"change the", "change file",
+			"edit the", "edit file",
+			"add to", "add the", "add new", "add file",
+			"remove from", "remove the", "remove file",
+			"refactor",
+			"implement",
+			"fix the code", "fix bug",
+		}
+		
+		for _, pattern := range editPatterns {
+			if strings.Contains(lower, pattern) {
+				return false
+			}
 		}
 	}
 	return true
+}
+
+// isObviousQuery checks if task is clearly a read-only query
+func isObviousQuery(task string) bool {
+	lower := strings.ToLower(strings.TrimSpace(task))
+	
+	// Check for question words at start
+	questionStarters := []string{
+		"what", "show", "list", "display", "tell", "which",
+		"how many", "where", "when", "who",
+	}
+	for _, starter := range questionStarters {
+		if strings.HasPrefix(lower, starter) {
+			return true
+		}
+	}
+	
+	// Check for common query patterns
+	queryPatterns := []string{
+		"git status", "git log", "git diff", "git branch",
+		"what changes", "show me", "list all",
+	}
+	for _, pattern := range queryPatterns {
+		if strings.Contains(lower, pattern) {
+			return true
+		}
+	}
+	
+	return false
 }
 
 // collapseDisplayMovements merges redundant display/show movements with their execution
