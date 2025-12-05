@@ -2,11 +2,16 @@
 layout: post
 title: "Claude Opus 4.5: 80.9% SWEBench Verified, 66% OSWorld, 50% Fewer Tokens Than Sonnet"
 date: 2025-12-05
-categories: [news, models]
-author: Chuchu Team
+author: Jader Correa
+description: "Anthropic released Claude Opus 4.5 with 80.9% SWEBench Verified, 66% OSWorld, and 50% fewer tokens than Sonnet. Here's what it means for Chuchu users."
+tags: [news, models, anthropic, benchmarks]
 ---
 
-80.9% on [SWEBench Verified](https://www.swebench.com/), 66% on [OSWorld](https://os-world.org/), 15% gain over Sonnet on [TerminalBench](https://terminalbench.com/). Released days after OpenAI GPT-5.1 and Google Gemini 3.
+# Claude Opus 4.5: 80.9% SWEBench Verified, 66% OSWorld, 50% Fewer Tokens Than Sonnet
+
+Anthropic just dropped Claude Opus 4.5, and the numbers are impressive: 80.9% on [SWEBench Verified](https://www.swebench.com/), 66% on [OSWorld](https://os-world.org/), and a 15% gain over Sonnet on [TerminalBench](https://terminalbench.com/). This comes days after OpenAI's GPT-5.1 and Google's Gemini 3 releases.
+
+For Chuchu users, this means another powerful option in our [model-agnostic architecture]({% post_url 2025-12-02-intelligent-model-selection %}). Let's break down what matters.
 
 ## Problem (with metrics)
 
@@ -115,3 +120,22 @@ Breakeven: At 15k tokens/task, Opus wins on cost+quality.
 ## Limitations (be honest)
 
 Real-world refactor (Simon Willis case): Same velocity as Sonnet post-preview (45 LoC/min both). Prompt injection: 12% success (down from 25%, still >Gemini 3's 18%). Computer use: 15% error rate on unseen UIs (e.g., custom terminals), 2-3x slower than human (45s/task). Fails 20% on >20-step horizons without human nudge. Gemini 3 leads raw IQ (GPQA 62% vs 59%) but trails instruction-follow (IFEval 92% Opus vs 87%). Sonnet better for 80% of tasks.
+
+---
+
+## References
+
+- Anthropic. (2025). Claude Opus 4.5 Release. *Anthropic Blog*.
+- [SWEBench Verified](https://www.swebench.com/) - Software Engineering Benchmark
+- [OSWorld](https://os-world.org/) - OS-level Task Benchmark
+- [TerminalBench](https://terminalbench.com/) - Terminal Command Benchmark
+
+---
+
+*Have questions about Claude Opus 4.5 or model selection? Join our [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions)*
+
+## See Also
+
+- [Intelligent Model Selection](2025-12-02-intelligent-model-selection) - How Chuchu chooses models
+- [OpenRouter Multi-Provider](2025-11-16-openrouter-multi-provider) - Access to 200+ models
+- [Why Chuchu?](2025-11-13-why-chuchu) - Model flexibility and affordability

@@ -266,7 +266,16 @@ chu do "add user authentication"
 
 ---
 
-**Read more**: 
-- [Anthropic's Advanced Tool Use](https://www.anthropic.com/engineering/advanced-tool-use)
-- [Chuchu ML-Powered Intelligence](/blog/2025-11-22-ml-powered-intelligence)
-- [Chuchu Auto-Recovery](/blog/2025-11-26-intelligent-auto-recovery)
+## References
+
+- Anthropic. (2025). [Advanced Tool Use](https://www.anthropic.com/engineering/advanced-tool-use). Engineering Blog.
+
+---
+
+*Have questions about agent routing vs tool search? Join our [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions)*
+
+## See Also
+
+- [ML-Powered Intelligence](2025-11-22-ml-powered-intelligence) - Chuchu's ML capabilities
+- [Intelligent Auto-Recovery](2025-11-26-intelligent-auto-recovery) - Auto-recovery system
+- [Context Engineering](2025-11-14-context-engineering-for-real-codebases) - Making AI work in real codebases

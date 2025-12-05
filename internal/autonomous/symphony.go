@@ -59,7 +59,7 @@ func (e *Executor) Execute(ctx context.Context, task string) error {
 
 	// 2. If query task with read-only movements, execute directly
 	if os.Getenv("CHUCHU_DEBUG") == "1" {
-		fmt.Fprintf(os.Stderr, "[SYMPHONY] Intent=%s, #movements=%d, isReadOnly=%v\n", 
+		fmt.Fprintf(os.Stderr, "[SYMPHONY] Intent=%s, #movements=%d, isReadOnly=%v\n",
 			analysis.Intent, len(analysis.Movements), isReadOnlyMovements(analysis.Movements))
 	}
 	if analysis.Intent == "query" && isReadOnlyMovements(analysis.Movements) {

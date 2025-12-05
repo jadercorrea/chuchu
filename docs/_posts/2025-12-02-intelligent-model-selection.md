@@ -2,9 +2,14 @@
 layout: post
 title: "Intelligent Model Selection: Cost-Optimized AI That Learns"
 date: 2025-12-02
-categories: [features, ml]
-author: Chuchu Team
+author: Jader Correa
+description: "Intelligent model selection that automatically chooses the best model based on availability, cost, context window, and speed. Learn from usage patterns and optimize costs."
+tags: [features, ml, cost-optimization, intelligence]
 ---
+
+# Intelligent Model Selection: Cost-Optimized AI That Learns
+
+In previous posts, we discussed [context engineering]({% post_url 2025-11-14-context-engineering-for-real-codebases %}) and [agent routing]({% post_url 2025-12-01-agent-routing-vs-tool-search %}). But there's another critical challenge: **choosing the right model for each task**.
 
 ## The Problem: Cloud AI Costs Add Up Fast
 
@@ -207,4 +212,12 @@ chu do "refactor auth module"
 chu stats
 ```
 
-The AI coding assistant that learns and optimizes itself. That's Chuchu.
+---
+
+*Have questions about model selection? Join our [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions)*
+
+## See Also
+
+- [Groq Optimal Configurations](2025-11-15-groq-optimal-configs) - Budget-friendly model setups
+- [OpenRouter Multi-Provider](2025-11-16-openrouter-multi-provider) - Access to 200+ models
+- [ML-Powered Intelligence](2025-11-22-ml-powered-intelligence) - ML capabilities in Chuchu

@@ -2,9 +2,14 @@
 layout: post
 title: "Chat REPL: Conversational Coding with Context Memory"
 date: 2025-12-04
-categories: [features, ux]
-author: Chuchu Team
+author: Jader Correa
+description: "A persistent REPL with conversation history, file context awareness, and token management. Natural follow-up questions that build on previous context."
+tags: [features, ux, chat, repl]
 ---
+
+# Chat REPL: Conversational Coding with Context Memory
+
+We've covered [context optimization]({% post_url 2025-11-14-context-engineering-for-real-codebases %}) and [smart file selection]({% post_url 2025-12-03-dependency-graph-context-optimization %}). But what about **maintaining context across multiple questions**?
 
 ## The Problem: One-Shot Interactions
 
@@ -612,4 +617,12 @@ Try it today:
 chu chat
 ```
 
-The AI coding assistant that actually remembers your conversation. That's Chuchu.
+---
+
+*Have questions about Chat REPL? Join our [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions)*
+
+## See Also
+
+- [Dependency Graph](2025-12-03-dependency-graph-context-optimization) - Smart file selection
+- [Context Engineering](2025-11-14-context-engineering-for-real-codebases) - Managing context windows
+- [Complete Workflow Guide](2025-11-24-complete-workflow-guide) - End-to-end workflows

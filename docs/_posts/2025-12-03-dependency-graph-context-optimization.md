@@ -2,9 +2,14 @@
 layout: post
 title: "Dependency Graph: 5x Token Reduction Through Smart Context"
 date: 2025-12-03
-categories: [features, optimization]
-author: Chuchu Team
+author: Jader Correa
+description: "Using dependency graphs and PageRank to achieve 5x token reduction while improving response quality. Smart context selection for AI coding assistants."
+tags: [features, optimization, context-management, performance]
 ---
+
+# Dependency Graph: 5x Token Reduction Through Smart Context
+
+In [Context Engineering]({% post_url 2025-11-14-context-engineering-for-real-codebases %}), we discussed managing context windows. Today, we're diving into **how** Chuchu achieves 5x token reduction through dependency graph analysis.
 
 ## The Problem: Context Overload
 
@@ -411,4 +416,18 @@ Try it today:
 chu chat "your question about the codebase"
 ```
 
-The AI coding assistant that reads your code structure, not just keywords. That's Chuchu.
+---
+
+## References
+
+- Page, L., Brin, S., Motwani, R., & Winograd, T. (1999). The PageRank Citation Ranking: Bringing Order to the Web. *Stanford InfoLab*.
+
+---
+
+*Have questions about dependency graphs? Join our [GitHub Discussions](https://github.com/jadercorrea/chuchu/discussions)*
+
+## See Also
+
+- [Context Engineering](2025-11-14-context-engineering-for-real-codebases) - Making AI work in real codebases
+- [Agent Routing vs Tool Search](2025-12-01-agent-routing-vs-tool-search) - Context reduction strategies
+- [Intelligent Model Selection](2025-12-02-intelligent-model-selection) - Cost optimization
