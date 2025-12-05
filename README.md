@@ -9,9 +9,17 @@ Chuchu (pronounced "shoo-shoo", Brazilian slang for something small and cute) is
 
 ## Why Chuchu?
 
-**Radically affordable**: Use Groq for $2-5/month or Ollama for **$0/month**. Compare that to $20-30/month subscriptions.
+**Chuchu isn't trying to beat Cursor or Copilot. It's trying to be different.**
 
-[Read the full story →](https://jadercorrea.github.io/chuchu/blog/2025-11-13-why-chuchu)
+- **Transparent**: When it breaks, you can read and fix the code
+- **Hackable**: Don't like something? Change it—it's just Go
+- **Model Agnostic**: Switch LLMs in 2 minutes (Groq, Ollama, OpenAI, etc)
+- **Honest**: E2E tests at 55% (not "95% accuracy" marketing)
+- **Affordable**: $2-5/month (Groq) or **$0/month** (Ollama)
+
+**Not better. Different. Yours.**
+
+[Read the full positioning →](https://jadercorrea.github.io/chuchu/blog/2025-12-06-why-chuchu-isnt-trying-to-beat-anyone) | [Original vision →](https://jadercorrea.github.io/chuchu/blog/2025-11-13-why-chuchu)
 
 ## Features
 
