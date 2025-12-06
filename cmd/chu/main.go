@@ -57,6 +57,7 @@ $0-5/month vs $20-30/month subscriptions.
   chu gen test <file>     - Generate unit tests for a file
   chu gen mock <file>     - Generate mocks for interfaces
   chu gen changelog       - Generate CHANGELOG from git commits
+  chu coverage [pkg]      - Analyze test coverage gaps
   chu tdd                 - Test-driven development mode
   chu feature "desc"      - Generate tests + implementation
   chu review [target]     - Code review for bugs, security, improvements

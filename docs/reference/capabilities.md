@@ -150,7 +150,7 @@ The following require human intervention:
 
 ---
 
-### 🟡 Test Generation (5/8 scenarios)
+### 🟡 Test Generation (6/8 scenarios)
 
 **Implemented:**
 
@@ -158,11 +158,11 @@ The following require human intervention:
 - ✅ Validate generated tests (compile + run)
 - ✅ Multi-language support (Go, TypeScript, Python)
 - ✅ Generate mock objects (`chu gen mock <file>`)
+- ✅ Identify coverage gaps (`chu coverage`)
 
 **Not yet implemented:**
 
 - Generate integration tests
-- Identify and fill coverage gaps
 - Snapshot testing
 
 **Example:**
@@ -174,8 +174,8 @@ chu gen test pkg/calculator/calculator.go
 
 **Limitations:**
 - Integration tests require coordinated setup
-- Coverage gap analysis not implemented
 - Mock generation currently Go-only
+- Coverage analysis currently Go-only
 
 ---
 
@@ -240,11 +240,12 @@ chu gen changelog v1.0.0    # From v1.0.0 to HEAD
 - Database migrations
 - Type system improvements
 
-**Phase 8: Test Generation (3 remaining scenarios)**
+**Phase 8: Test Generation (2 remaining scenarios)**
 - ✅ Auto-generate unit tests for new code (DONE)
 - ✅ Mock generation (DONE)
+- ✅ Coverage gap identification (DONE)
 - Integration test creation
-- Coverage gap identification
+- Snapshot testing
 
 **Phase 9: Documentation (2 remaining scenarios)**
 - ✅ CHANGELOG generation (DONE)
@@ -280,8 +281,9 @@ Skipped tests (t.Skip()) represent features not yet implemented.
 - ✅ PR review iteration
 - ✅ Unit test generation
 - ✅ Mock generation
+- ✅ Coverage gap identification
 - ✅ CHANGELOG generation
-- **Autonomy:** 43/64 (67%)
+- **Autonomy:** 44/64 (69%)
 - **MVAA Critical Path:** 17/17 (100%)
 
 ### Future Releases
