@@ -587,11 +587,138 @@ func attemptLintFix(workDir string, lintResults []*validation.LintResult) error 
 	return nil
 }
 
+var issueReviewCmd = &cobra.Command{
+	Use:   "review <pr-number>",
+	Short: "Address review comments on a PR",
+	Long: `Fetch review comments from a pull request and autonomously address them.
+
+This will:
+1. Fetch all unresolved review comments
+2. Analyze each comment
+3. Implement requested changes
+4. Commit and push updates`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		prNumber, err := strconv.Atoi(args[0])
+		if err != nil {
+			return fmt.Errorf("invalid PR number: %s", args[0])
+		}
+
+		repo, _ := cmd.Flags().GetString("repo")
+		if repo == "" {
+			repo = detectGitHubRepo()
+			if repo == "" {
+				return fmt.Errorf("could not detect GitHub repository. Use --repo flag")
+			}
+		}
+
+		fmt.Printf("🔍 Fetching review comments for PR #%d...\n", prNumber)
+
+		client := github.NewClient(repo)
+		workDir, _ := os.Getwd()
+		client.SetWorkDir(workDir)
+
+		comments, err := client.GetUnresolvedComments(prNumber)
+		if err != nil {
+			return fmt.Errorf("failed to fetch comments: %w", err)
+		}
+
+		if len(comments) == 0 {
+			fmt.Println("✅ No unresolved comments")
+			return nil
+		}
+
+		fmt.Printf("\n📝 Found %d unresolved comment(s):\n\n", len(comments))
+		for i, comment := range comments {
+			fmt.Printf("%d. [@%s] %s:%d\n", i+1, comment.Author, comment.Path, comment.Line)
+			fmt.Printf("   %s\n\n", comment.Body)
+		}
+
+		setup, err := config.LoadSetup()
+		if err != nil {
+			return fmt.Errorf("failed to load setup: %w", err)
+		}
+
+		backendName := setup.Defaults.Backend
+		backendCfg := setup.Backend[backendName]
+		var provider llm.Provider
+		if backendCfg.Type == "ollama" {
+			provider = llm.NewOllama(backendCfg.BaseURL)
+		} else {
+			provider = llm.NewChatCompletion(backendCfg.BaseURL, backendName)
+		}
+		queryModel := backendCfg.GetModelForAgent("query")
+		if queryModel == "" {
+			queryModel = backendCfg.DefaultModel
+		}
+		language := string(langdetect.DetectLanguage(workDir))
+		if language == "" || language == "unknown" {
+			language = setup.Defaults.Lang
+			if language == "" {
+				language = "go"
+			}
+		}
+
+		fmt.Println("🔧 Addressing review comments...")
+
+		for i, comment := range comments {
+			fmt.Printf("\n[%d/%d] Processing comment from @%s on %s\n", i+1, len(comments), comment.Author, comment.Path)
+
+			task := fmt.Sprintf(`Address review comment:
+File: %s (line %d)
+Comment: %s
+
+Please read the file, understand the context, and implement the requested change.`, 
+				comment.Path, comment.Line, comment.Body)
+
+			exec := modes.NewAutonomousExecutorWithBackend(provider, workDir, queryModel, language, backendName)
+			if err := exec.Execute(context.Background(), task); err != nil {
+				fmt.Printf("⚠️  Failed to address comment: %v\n", err)
+				continue
+			}
+
+			fmt.Println("✅ Comment addressed")
+		}
+
+		fmt.Println("\n📦 Committing changes...")
+
+		err = client.CommitChanges(github.CommitOptions{
+			Message: fmt.Sprintf("Address review comments on PR #%d", prNumber),
+			AllFiles: true,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to commit: %w", err)
+		}
+
+		fmt.Println("✅ Changes committed")
+
+		currentBranch := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+		currentBranch.Dir = workDir
+		branchOutput, err := currentBranch.Output()
+		if err != nil {
+			return fmt.Errorf("failed to get current branch: %w", err)
+		}
+
+		branchName := strings.TrimSpace(string(branchOutput))
+		fmt.Printf("🚀 Pushing %s...\n", branchName)
+
+		if err := client.PushBranch(branchName); err != nil {
+			return fmt.Errorf("failed to push: %w", err)
+		}
+
+		fmt.Printf("\n✨ Successfully addressed %d review comment(s)\n", len(comments))
+		fmt.Printf("   View PR: https://github.com/%s/pull/%d\n", repo, prNumber)
+
+		return nil
+	},
+}
+
 func init() {
 	issueCmd.AddCommand(issueFixCmd)
 	issueCmd.AddCommand(issueShowCmd)
 	issueCmd.AddCommand(issueCommitCmd)
 	issueCmd.AddCommand(issuePushCmd)
+	issueCmd.AddCommand(issueReviewCmd)
 
 	issueFixCmd.Flags().String("repo", "", "GitHub repository (owner/repo)")
 	issueFixCmd.Flags().Bool("draft", false, "Create draft pull request")
@@ -614,4 +741,6 @@ func init() {
 
 	issuePushCmd.Flags().String("repo", "", "GitHub repository (owner/repo)")
 	issuePushCmd.Flags().Bool("draft", false, "Create draft pull request")
+
+	issueReviewCmd.Flags().String("repo", "", "GitHub repository (owner/repo)")
 }
