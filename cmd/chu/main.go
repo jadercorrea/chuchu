@@ -90,6 +90,10 @@ $0-5/month vs $20-30/month subscriptions.
   chu security scan             - Scan for vulnerabilities
   chu security scan --fix       - Scan and auto-fix vulnerabilities
 
+## CONFIGURATION
+  chu cfg list                  - List configuration files
+  chu cfg update KEY VALUE      - Update config value across environments
+
 ## ADVANCED
   chu config get/set       - Direct config manipulation (advanced)
   chu ml list|train|test|eval|predict - Machine learning features

@@ -25,8 +25,8 @@ func TestSecurityScanner(t *testing.T) {
 		t.Fatal("expected non-nil report")
 	}
 
-	if !strings.Contains(string(report.Language), "go") && 
-	   !strings.Contains(string(report.Language), "unknown") {
+	if !strings.Contains(string(report.Language), "go") &&
+		!strings.Contains(string(report.Language), "unknown") {
 		t.Errorf("unexpected language: %s", report.Language)
 	}
 }

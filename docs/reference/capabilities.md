@@ -2,7 +2,7 @@
 
 **Last Updated:** December 2025  
 **Current Version:** 0.x (MVP)  
-**Overall Autonomy:** 51/64 scenarios (80%)
+**Overall Autonomy:** 52/64 scenarios (81%)
 
 This document describes what Chuchu can and cannot do autonomously. Updated with each major release.
 
@@ -132,7 +132,7 @@ Chuchu identifies:
 
 ## What Chuchu Cannot Do (Yet)
 
-### 🟡 Complex Code Modifications (5/12 scenarios)
+### 🟡 Complex Code Modifications (6/12 scenarios)
 
 **Implemented:**
 
@@ -141,12 +141,12 @@ Chuchu identifies:
 - ✅ Multi-file refactoring (`chu refactor signature <func> <new-sig>`)
 - ✅ Breaking changes coordination (`chu refactor breaking`)
 - ✅ Security vulnerability fixes (`chu security scan --fix`)
+- ✅ Configuration management (`chu cfg update KEY VALUE`)
 
 **Not yet implemented:**
 
 - **Type system changes** - Complex type definition updates
 - **Performance optimizations** - Profiling and bottleneck identification
-- **Configuration changes** - Environment-specific configurations
 - **Backward compatibility** - Maintaining old APIs while adding new
 
 **Examples:**

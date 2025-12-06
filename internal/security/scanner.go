@@ -48,7 +48,7 @@ func NewScanner(provider llm.Provider, model, workDir string) *Scanner {
 
 func (s *Scanner) ScanAndFix(ctx context.Context, autofix bool) (*SecurityReport, error) {
 	lang := langdetect.DetectLanguage(s.workDir)
-	
+
 	vulns, err := s.scanVulnerabilities(lang)
 	if err != nil {
 		return nil, fmt.Errorf("scan failed: %w", err)
@@ -96,7 +96,7 @@ func (s *Scanner) scanGo() ([]Vulnerability, error) {
 	cmd := exec.Command("govulncheck", "-json", "./...")
 	cmd.Dir = s.workDir
 	output, err := cmd.Output()
-	
+
 	if err != nil {
 		exitErr, ok := err.(*exec.ExitError)
 		if ok && len(exitErr.Stderr) > 0 {
@@ -109,7 +109,7 @@ func (s *Scanner) scanGo() ([]Vulnerability, error) {
 
 func (s *Scanner) parseGovulncheck(output string) ([]Vulnerability, error) {
 	var vulns []Vulnerability
-	
+
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if line == "" || !strings.Contains(line, "vulnerability") {
@@ -120,9 +120,9 @@ func (s *Scanner) parseGovulncheck(output string) ([]Vulnerability, error) {
 			parts := strings.Fields(line)
 			if len(parts) >= 2 {
 				vuln := Vulnerability{
-					ID:       extractID(line, "GO-"),
-					Severity: extractSeverity(line),
-					Package:  extractPackage(line),
+					ID:          extractID(line, "GO-"),
+					Severity:    extractSeverity(line),
+					Package:     extractPackage(line),
 					Description: line,
 				}
 				vulns = append(vulns, vuln)
@@ -137,7 +137,7 @@ func (s *Scanner) scanNode() ([]Vulnerability, error) {
 	cmd := exec.Command("npm", "audit", "--json")
 	cmd.Dir = s.workDir
 	output, err := cmd.Output()
-	
+
 	if err != nil {
 		exitErr, ok := err.(*exec.ExitError)
 		if ok {
@@ -150,7 +150,7 @@ func (s *Scanner) scanNode() ([]Vulnerability, error) {
 
 func (s *Scanner) parseNpmAudit(output string) ([]Vulnerability, error) {
 	var vulns []Vulnerability
-	
+
 	if !strings.Contains(output, "vulnerabilities") {
 		return vulns, nil
 	}
@@ -173,7 +173,7 @@ func (s *Scanner) scanPython() ([]Vulnerability, error) {
 	cmd := exec.Command("safety", "check", "--json")
 	cmd.Dir = s.workDir
 	output, err := cmd.Output()
-	
+
 	if err != nil {
 		exitErr, ok := err.(*exec.ExitError)
 		if ok {
@@ -186,7 +186,7 @@ func (s *Scanner) scanPython() ([]Vulnerability, error) {
 
 func (s *Scanner) parseSafety(output string) ([]Vulnerability, error) {
 	var vulns []Vulnerability
-	
+
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if strings.Contains(line, "vulnerability") || strings.Contains(line, "CVE") {
@@ -205,7 +205,7 @@ func (s *Scanner) scanRuby() ([]Vulnerability, error) {
 	cmd := exec.Command("bundle", "audit", "check")
 	cmd.Dir = s.workDir
 	output, err := cmd.Output()
-	
+
 	if err != nil {
 		exitErr, ok := err.(*exec.ExitError)
 		if ok {
@@ -218,7 +218,7 @@ func (s *Scanner) scanRuby() ([]Vulnerability, error) {
 
 func (s *Scanner) parseBundleAudit(output string) ([]Vulnerability, error) {
 	var vulns []Vulnerability
-	
+
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if strings.Contains(line, "CVE") || strings.Contains(line, "vulnerability") {
@@ -256,7 +256,7 @@ func (s *Scanner) fixGoVulnerability(ctx context.Context, vuln Vulnerability) er
 	cmd := exec.Command("go", "get", "-u", vuln.Package)
 	cmd.Dir = s.workDir
 	output, err := cmd.CombinedOutput()
-	
+
 	if err != nil {
 		return s.fixWithLLM(ctx, vuln, string(output))
 	}
@@ -344,7 +344,7 @@ func (s *Scanner) findVulnerableFiles(vuln Vulnerability) ([]string, error) {
 	}
 
 	pkgName := filepath.Base(vuln.Package)
-	
+
 	cmd := exec.Command("grep", "-rl", "--include=*.go", pkgName, s.workDir)
 	output, err := cmd.Output()
 	if err != nil {
@@ -364,7 +364,7 @@ func (s *Scanner) findVulnerableFiles(vuln Vulnerability) ([]string, error) {
 
 func (s *Scanner) extractCode(text string) string {
 	text = strings.TrimSpace(text)
-	
+
 	if strings.HasPrefix(text, "```go") {
 		text = strings.TrimPrefix(text, "```go\n")
 		text = strings.TrimSuffix(text, "```")
