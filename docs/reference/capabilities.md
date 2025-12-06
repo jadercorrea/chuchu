@@ -2,7 +2,7 @@
 
 **Last Updated:** December 2025  
 **Current Version:** 0.x (MVP)  
-**Overall Autonomy:** 38/64 scenarios (59%)
+**Overall Autonomy:** 49/64 scenarios (76%)
 
 This document describes what Chuchu can and cannot do autonomously. Updated with each major release.
 
@@ -132,16 +132,16 @@ Chuchu identifies:
 
 ## What Chuchu Cannot Do (Yet)
 
-### 🟡 Complex Code Modifications (2/12 scenarios)
+### 🟡 Complex Code Modifications (3/12 scenarios)
 
 **Implemented:**
 
 - ✅ Database migrations (`chu gen migration <name>`)
 - ✅ API changes coordination (`chu refactor api`)
+- ✅ Multi-file refactoring (`chu refactor signature <func> <new-sig>`)
 
 **Not yet implemented:**
 
-- **Multi-file refactoring** - Changing function signatures across 5+ files
 - **Breaking changes** - Updating all consumers of changed APIs
 - **Type system changes** - Complex type definition updates
 - **Performance optimizations** - Profiling and bottleneck identification
@@ -159,12 +159,18 @@ chu refactor api
 # Scans routes in handlers/controllers
 # Generates/updates handler functions
 # Creates/updates corresponding tests
+
+chu refactor signature processData "(ctx context.Context, data []byte) error"
+# Finds function definition
+# Updates all call sites across files
+# Preserves functionality
 ```
 
 **Limitations:**
 - Migration: Git working tree only, Go structs with tags, PostgreSQL SQL
 - API coordination: Go HTTP handlers, standard patterns (Get/Post/etc)
-- Manual review recommended for both
+- Signature refactoring: Go only, requires LLM for code generation
+- Manual review recommended for all
 
 **Why others not implemented:** These require deep architectural understanding and multi-step coordination. Coming in future releases.
 

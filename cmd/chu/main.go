@@ -82,7 +82,8 @@ $0-5/month vs $20-30/month subscriptions.
   chu profile use <backend>.<profile> - Switch profile
 
 ## REFACTORING
-  chu refactor api         - Coordinate API changes (routes, handlers, tests)
+  chu refactor api              - Coordinate API changes (routes, handlers, tests)
+  chu refactor signature <func> - Change function signature and update all call sites
 
 ## ADVANCED
   chu config get/set       - Direct config manipulation (advanced)
