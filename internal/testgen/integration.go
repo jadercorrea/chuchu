@@ -95,7 +95,7 @@ func (g *IntegrationTestGenerator) detectLanguage(path string) langdetect.Langua
 	if breakdown.Primary == "" {
 		return langdetect.Unknown
 	}
-	
+
 	switch breakdown.Primary {
 	case "Go":
 		return langdetect.Go
@@ -165,7 +165,7 @@ func (g *IntegrationTestGenerator) analyzeFile(filePath string) (*Component, err
 
 					name := typeSpec.Name.Name
 					compType := g.inferComponentType(name, structType)
-					
+
 					if compType != "" {
 						comp = &Component{
 							Name:         name,
@@ -191,7 +191,7 @@ func (g *IntegrationTestGenerator) analyzeFile(filePath string) (*Component, err
 
 func (g *IntegrationTestGenerator) inferComponentType(name string, structType *ast.StructType) string {
 	nameLower := strings.ToLower(name)
-	
+
 	if strings.Contains(nameLower, "handler") || strings.Contains(nameLower, "controller") {
 		return "handler"
 	}
@@ -220,7 +220,7 @@ func (g *IntegrationTestGenerator) inferComponentType(name string, structType *a
 
 func (g *IntegrationTestGenerator) extractDependencies(structType *ast.StructType) []string {
 	var deps []string
-	
+
 	for _, field := range structType.Fields.List {
 		if len(field.Names) == 0 {
 			continue

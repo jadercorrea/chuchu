@@ -205,28 +205,30 @@ Not implemented:
 
 ---
 
-### 🟡 Documentation Updates (1/3 scenarios)
+### 🟡 Documentation Updates (2/3 scenarios)
 
 **Implemented:**
 
 - ✅ Generate CHANGELOG entries (`chu gen changelog`)
+- ✅ Update README files (`chu docs update`)
 
 **Not yet implemented:**
 
-- Update README files
 - Update API documentation
 
-**Example:**
+**Examples:**
 ```bash
 chu gen changelog           # All commits since last tag
-chu gen changelog v1.0.0    # From v1.0.0 to HEAD
+chu docs update             # Analyze and preview README updates
+chu docs update --apply     # Apply updates automatically
 ```
 
 **Limitations:**
-- README and API docs require contextual understanding
-- Uses conventional commits format
+- README updates analyze recent commits (last 10)
+- API docs require schema/spec parsing
+- Uses conventional commits format for CHANGELOG
 
-**Workaround:** Use `chu chat` mode to draft README updates and API docs.
+**Workaround:** Use `chu chat` mode to draft API documentation.
 
 ---
 
@@ -247,9 +249,9 @@ chu gen changelog v1.0.0    # From v1.0.0 to HEAD
 - ✅ Coverage gap identification (DONE)
 - Snapshot testing
 
-**Phase 9: Documentation (2 remaining scenarios)**
+**Phase 9: Documentation (1 remaining scenario)**
 - ✅ CHANGELOG generation (DONE)
-- README updates
+- ✅ README updates (DONE)
 - API docs synchronization
 
 ---
@@ -284,7 +286,8 @@ Skipped tests (t.Skip()) represent features not yet implemented.
 - ✅ Mock generation
 - ✅ Coverage gap identification
 - ✅ CHANGELOG generation
-- **Autonomy:** 45/64 (70%)
+- ✅ README updates
+- **Autonomy:** 46/64 (72%)
 - **MVAA Critical Path:** 17/17 (100%)
 
 ### Future Releases
