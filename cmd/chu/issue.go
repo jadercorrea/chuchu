@@ -135,7 +135,7 @@ Examples:
 				} else if len(relevantFiles) > 0 {
 					fmt.Println("\nRelevant files identified:")
 					for i, file := range relevantFiles {
-						confLevel := "?"
+						var confLevel string
 						if file.Confidence >= 0.8 {
 							confLevel = "HIGH"
 						} else if file.Confidence >= 0.5 {
@@ -388,8 +388,8 @@ This will:
 					} else {
 						return fmt.Errorf("linting issues found (use --auto-fix to attempt automatic fixes)")
 					}
+				}
 			}
-		}
 		}
 
 		if checkCoverage {

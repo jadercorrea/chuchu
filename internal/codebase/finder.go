@@ -13,15 +13,15 @@ import (
 )
 
 type FileFinder struct {
-	workDir     string
-	queryAgent  *agents.QueryAgent
-	language    string
+	workDir    string
+	queryAgent *agents.QueryAgent
+	language   string
 }
 
 type RelevantFile struct {
-	Path        string
-	Reason      string
-	Confidence  float64
+	Path       string
+	Reason     string
+	Confidence float64
 }
 
 func NewFileFinder(provider llm.Provider, workDir, queryModel string) (*FileFinder, error) {
@@ -188,7 +188,7 @@ func parseFileRecommendations(response string) []RelevantFile {
 
 func (f *FileFinder) fallbackSearch(issueDescription string) ([]RelevantFile, error) {
 	keywords := extractKeywords(issueDescription)
-	
+
 	var files []RelevantFile
 	for _, keyword := range keywords {
 		pattern := fmt.Sprintf("*%s*.%s", keyword, getExtension(f.language))
@@ -196,7 +196,7 @@ func (f *FileFinder) fallbackSearch(issueDescription string) ([]RelevantFile, er
 		if err != nil {
 			continue
 		}
-		
+
 		for _, match := range matches {
 			relPath, _ := filepath.Rel(f.workDir, match)
 			files = append(files, RelevantFile{
@@ -204,27 +204,27 @@ func (f *FileFinder) fallbackSearch(issueDescription string) ([]RelevantFile, er
 				Reason:     fmt.Sprintf("Filename matches keyword: %s", keyword),
 				Confidence: 0.5,
 			})
-			
+
 			if len(files) >= 5 {
 				break
 			}
 		}
 	}
-	
+
 	return files, nil
 }
 
 func extractKeywords(text string) []string {
 	words := strings.Fields(strings.ToLower(text))
 	var keywords []string
-	
+
 	stopWords := map[string]bool{
 		"the": true, "a": true, "an": true, "and": true, "or": true,
 		"but": true, "in": true, "on": true, "at": true, "to": true,
 		"for": true, "of": true, "with": true, "by": true, "is": true,
 		"are": true, "was": true, "were": true, "be": true, "been": true,
 	}
-	
+
 	for _, word := range words {
 		if len(word) > 3 && !stopWords[word] {
 			keywords = append(keywords, word)
@@ -233,7 +233,7 @@ func extractKeywords(text string) []string {
 			}
 		}
 	}
-	
+
 	return keywords
 }
 
