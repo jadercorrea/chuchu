@@ -13,6 +13,7 @@ import (
 
 	"chuchu/internal/config"
 	"chuchu/internal/llm"
+	"chuchu/internal/mockgen"
 	"chuchu/internal/testgen"
 )
 
@@ -178,8 +179,135 @@ go 1.21
 		t.Skip("TODO: Implement - Identify untested paths")
 	})
 
-	t.Run("mock external dependencies", func(t *testing.T) {
-		t.Skip("TODO: Implement - Create test doubles")
+	t.Run("generate mocks for interfaces", func(t *testing.T) {
+		if os.Getenv("SKIP_E2E_LLM") != "" {
+			t.Skip("Skipping LLM-dependent E2E test")
+		}
+
+		tmpDir := t.TempDir()
+
+		// Create a simple interface file
+		interfaceCode := `package storage
+
+import "context"
+
+// Repository defines storage operations
+type Repository interface {
+	// Get retrieves an item by ID
+	Get(ctx context.Context, id string) (*Item, error)
+	// Save stores an item
+	Save(ctx context.Context, item *Item) error
+	// Delete removes an item
+	Delete(ctx context.Context, id string) error
+	// List returns all items
+	List(ctx context.Context) ([]*Item, error)
+}
+
+// Item represents a stored object
+type Item struct {
+	ID   string
+	Name string
+}
+`
+
+		sourceFile := filepath.Join(tmpDir, "repository.go")
+		if err := os.WriteFile(sourceFile, []byte(interfaceCode), 0644); err != nil {
+			t.Fatalf("Failed to create interface file: %v", err)
+		}
+
+		// Create go.mod
+		goMod := `module testrepo
+
+go 1.21
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(goMod), 0644); err != nil {
+			t.Fatalf("Failed to create go.mod: %v", err)
+		}
+
+		// Load config and create generator
+		setup, err := config.LoadSetup()
+		if err != nil {
+			t.Fatalf("Failed to load config: %v", err)
+		}
+
+		backendName := setup.Defaults.Backend
+		if backendName == "" {
+			backendName = "anthropic"
+		}
+		backendCfg := setup.Backend[backendName]
+
+		var provider llm.Provider
+		if backendCfg.Type == "ollama" {
+			provider = llm.NewOllama(backendCfg.BaseURL)
+		} else {
+			provider = llm.NewChatCompletion(backendCfg.BaseURL, backendName)
+		}
+
+		queryModel := backendCfg.GetModelForAgent("query")
+		if queryModel == "" {
+			queryModel = backendCfg.DefaultModel
+		}
+
+		generator := mockgen.NewMockGenerator(provider, queryModel, tmpDir)
+
+		// Generate mock
+		t.Log("Generating mock...")
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+
+		result, err := generator.GenerateMock(ctx, "repository.go")
+		if err != nil && result == nil {
+			t.Fatalf("Failed to generate mock: %v", err)
+		}
+
+		// Verify mock file was created
+		mockFile := filepath.Join(tmpDir, result.MockFile)
+		if _, err := os.Stat(mockFile); os.IsNotExist(err) {
+			t.Fatalf("Mock file was not created: %s", result.MockFile)
+		}
+
+		// Verify mock file has content
+		mockContent, err := os.ReadFile(mockFile)
+		if err != nil {
+			t.Fatalf("Failed to read mock file: %v", err)
+		}
+
+		if len(mockContent) == 0 {
+			t.Fatal("Mock file is empty")
+		}
+
+		mockStr := string(mockContent)
+		t.Logf("Generated mock file (%d bytes)", len(mockContent))
+
+		// Verify basic mock structure
+		if !strings.Contains(mockStr, "package storage") {
+			t.Error("Mock file missing package declaration")
+		}
+		if !strings.Contains(mockStr, "Mock") {
+			t.Error("Mock file missing mock struct")
+		}
+		if !strings.Contains(mockStr, "Get") || !strings.Contains(mockStr, "Save") {
+			t.Error("Mock file missing interface methods")
+		}
+
+		// Try to compile the mock
+		t.Log("Validating mock compiles...")
+		cmd := exec.Command("go", "build", ".")
+		cmd.Dir = tmpDir
+		output, compileErr := cmd.CombinedOutput()
+
+		if compileErr != nil {
+			t.Logf("Compilation output:\n%s", string(output))
+			t.Errorf("Generated mock does not compile: %v", compileErr)
+		} else {
+			t.Log("✓ Mock compiles successfully")
+		}
+
+		if result.Valid {
+			t.Log("✓ Mock generation succeeded")
+		} else {
+			t.Logf("⚠️  Mock generation completed but validation failed: %v", result.Error)
+		}
 	})
 
 	t.Run("snapshot testing", func(t *testing.T) {
