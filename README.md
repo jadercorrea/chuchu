@@ -46,7 +46,35 @@ Chuchu (pronounced "shoo-shoo", Brazilian slang for something small and cute) is
 
 ## Three Ways to Work with Chuchu
 
-### 1. 🤖 Autonomous Copilot (Fastest)
+### 1. 🤖 Autonomous GitHub Issue Resolution (NEW - MVP Complete!) 🎆
+
+Chuchu can now autonomously resolve GitHub issues end-to-end with 100% MVAA coverage:
+
+```bash
+# Complete autonomous workflow
+chu issue fix 123                    # Fetch issue, find files, implement
+chu issue commit 123 --auto-fix      # Test, lint, build, auto-fix failures
+chu issue push 123                   # Create PR, link to issue
+chu issue ci 42                      # Handle CI failures
+chu issue review 42                  # Address review comments
+# Iterate until approved!
+```
+
+**What Chuchu Does Autonomously:**
+- ✅ Fetches issue and extracts requirements
+- ✅ Finds relevant files (AI-powered)
+- ✅ Implements changes (Symphony orchestration)
+- ✅ Runs tests and auto-fixes failures
+- ✅ Runs linters and auto-fixes issues
+- ✅ Checks build, coverage, and security
+- ✅ Creates PR and links to issue
+- ✅ Handles CI failures with auto-fix
+- ✅ Addresses review comments autonomously
+
+**Supported Languages:** Go, TypeScript, Python, Elixir, Ruby  
+**[Complete Autonomous Issue Guide →](docs/autonomous-issues.md)**
+
+### 2. 🤖 Autonomous Copilot (Fastest)
 
 Let chuchu handle everything - analysis, planning, execution, and validation:
 

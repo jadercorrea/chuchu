@@ -25,44 +25,44 @@ func TestResearchAndPlanning(t *testing.T) {
 
 	t.Run("Research authentication system", func(t *testing.T) {
 		output := runChuResearch(t, tmpDir, "How does the authentication system work?", 5*time.Minute)
-		
+
 		if !strings.Contains(strings.ToLower(output), "auth") {
 			t.Errorf("Expected 'auth' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Researched authentication")
 	})
 
 	t.Run("Research user roles and permissions", func(t *testing.T) {
 		output := runChuResearch(t, tmpDir, "Explain the user roles and permission system", 5*time.Minute)
-		
+
 		// Just verify it runs successfully
 		if len(output) == 0 {
 			t.Error("Expected some output for roles research")
 		}
-		
+
 		t.Logf("✓ Researched roles and permissions")
 	})
 
 	t.Run("Create plan for adding JWT tokens", func(t *testing.T) {
 		output := runChuPlan(t, tmpDir, "Add JWT token-based authentication while keeping existing auth", 5*time.Minute)
-		
+
 		// Verify plan was created
 		if len(output) == 0 {
 			t.Error("Expected some output for JWT plan")
 		}
-		
+
 		t.Logf("✓ Created JWT plan")
 	})
 
 	t.Run("Plan for adding OAuth integration", func(t *testing.T) {
 		output := runChuPlan(t, tmpDir, "Integrate OAuth2 for third-party login", 5*time.Minute)
-		
+
 		// Verify plan was created
 		if len(output) == 0 {
 			t.Error("Expected some output for OAuth plan")
 		}
-		
+
 		t.Logf("✓ Created OAuth plan")
 	})
 

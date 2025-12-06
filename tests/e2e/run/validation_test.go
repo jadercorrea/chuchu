@@ -15,9 +15,9 @@ import (
 func TestTestExecutor(t *testing.T) {
 	t.Run("run go tests", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		setupGitRepo(t, tempDir)
-		
+
 		mainGo := filepath.Join(tempDir, "main.go")
 		require.NoError(t, os.WriteFile(mainGo, []byte(`package main
 
@@ -48,7 +48,7 @@ go 1.21
 
 		executor := validation.NewTestExecutor(tempDir)
 		result, err := executor.RunTests()
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.True(t, result.Success, "Tests should pass")
@@ -58,9 +58,9 @@ go 1.21
 
 	t.Run("detect failing go tests", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		setupGitRepo(t, tempDir)
-		
+
 		mainGo := filepath.Join(tempDir, "main.go")
 		require.NoError(t, os.WriteFile(mainGo, []byte(`package main
 
@@ -91,7 +91,7 @@ go 1.21
 
 		executor := validation.NewTestExecutor(tempDir)
 		result, err := executor.RunTests()
-		
+
 		require.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.False(t, result.Success, "Tests should fail")
@@ -102,9 +102,9 @@ go 1.21
 func TestLinterExecutor(t *testing.T) {
 	t.Run("run go linters", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		setupGitRepo(t, tempDir)
-		
+
 		mainGo := filepath.Join(tempDir, "main.go")
 		require.NoError(t, os.WriteFile(mainGo, []byte(`package main
 
@@ -123,10 +123,10 @@ go 1.21
 
 		executor := validation.NewLinterExecutor(tempDir)
 		results, err := executor.RunLinters()
-		
+
 		require.NoError(t, err)
 		assert.NotEmpty(t, results, "Should have at least one linter result")
-		
+
 		for _, result := range results {
 			assert.NotEmpty(t, result.Tool, "Tool name should be set")
 			t.Logf("Linter: %s, Success: %v, Issues: %d", result.Tool, result.Success, result.Issues)
@@ -135,9 +135,9 @@ go 1.21
 
 	t.Run("detect linter issues", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		setupGitRepo(t, tempDir)
-		
+
 		mainGo := filepath.Join(tempDir, "main.go")
 		require.NoError(t, os.WriteFile(mainGo, []byte(`package main
 
@@ -160,10 +160,10 @@ go 1.21
 
 		executor := validation.NewLinterExecutor(tempDir)
 		results, err := executor.RunLinters()
-		
+
 		require.NoError(t, err)
 		assert.NotEmpty(t, results)
-		
+
 		hasIssues := false
 		for _, result := range results {
 			if !result.Success || result.Issues > 0 {
@@ -171,7 +171,7 @@ go 1.21
 				t.Logf("Found issues in %s: %d", result.Tool, result.Issues)
 			}
 		}
-		
+
 		assert.True(t, hasIssues, "Should detect unused variable")
 	})
 }
@@ -179,9 +179,9 @@ go 1.21
 func TestValidationWorkflow(t *testing.T) {
 	t.Run("full validation workflow", func(t *testing.T) {
 		tempDir := t.TempDir()
-		
+
 		setupGitRepo(t, tempDir)
-		
+
 		mainGo := filepath.Join(tempDir, "main.go")
 		require.NoError(t, os.WriteFile(mainGo, []byte(`package main
 
@@ -227,7 +227,7 @@ go 1.21
 				t.Logf("Linter %s failed: %s", result.Tool, result.ErrorMessage)
 			}
 		}
-		
+
 		overallSuccess := testResult.Success && allLintsPassed
 		t.Logf("Overall validation success: %v", overallSuccess)
 	})

@@ -35,10 +35,10 @@ type ReviewComment struct {
 }
 
 type Review struct {
-	ID        string   `json:"id"`
-	Author    string   `json:"author"`
-	State     string   `json:"state"`
-	Body      string   `json:"body"`
+	ID        string `json:"id"`
+	Author    string `json:"author"`
+	State     string `json:"state"`
+	Body      string `json:"body"`
 	Comments  []ReviewComment
 	CreatedAt string `json:"createdAt"`
 }
@@ -240,8 +240,8 @@ func (c *Client) FetchPRReviews(prNumber int) ([]Review, error) {
 
 	var result struct {
 		Reviews []struct {
-			ID        string `json:"id"`
-			Author    struct {
+			ID     string `json:"id"`
+			Author struct {
 				Login string `json:"login"`
 			} `json:"author"`
 			State     string `json:"state"`

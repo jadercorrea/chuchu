@@ -9,8 +9,8 @@ import (
 )
 
 type BuildResult struct {
-	Success bool
-	Output  string
+	Success      bool
+	Output       string
 	ErrorMessage string
 }
 
@@ -45,13 +45,17 @@ func (be *BuildExecutor) runGoBuild() (*BuildResult, error) {
 	err := cmd.Run()
 	out := stdout.String() + stderr.String()
 	res := &BuildResult{Success: err == nil, Output: out}
-	if err != nil { res.ErrorMessage = err.Error() }
+	if err != nil {
+		res.ErrorMessage = err.Error()
+	}
 	return res, nil
 }
 
 func (be *BuildExecutor) runNodeBuild() (*BuildResult, error) {
 	pkg := filepath.Join(be.workDir, "package.json")
-	if !fileExists(pkg) { return &BuildResult{Success: true}, nil }
+	if !fileExists(pkg) {
+		return &BuildResult{Success: true}, nil
+	}
 	cmd := exec.Command("npm", "run", "build")
 	cmd.Dir = be.workDir
 	var stdout, stderr bytes.Buffer
@@ -60,7 +64,9 @@ func (be *BuildExecutor) runNodeBuild() (*BuildResult, error) {
 	err := cmd.Run()
 	out := stdout.String() + stderr.String()
 	res := &BuildResult{Success: err == nil, Output: out}
-	if err != nil { res.ErrorMessage = err.Error() }
+	if err != nil {
+		res.ErrorMessage = err.Error()
+	}
 	return res, nil
 }
 
@@ -73,7 +79,8 @@ func (be *BuildExecutor) runElixirBuild() (*BuildResult, error) {
 	err := cmd.Run()
 	out := stdout.String() + stderr.String()
 	res := &BuildResult{Success: err == nil, Output: out}
-	if err != nil { res.ErrorMessage = err.Error() }
+	if err != nil {
+		res.ErrorMessage = err.Error()
+	}
 	return res, nil
 }
-

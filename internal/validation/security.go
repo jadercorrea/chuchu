@@ -10,10 +10,10 @@ import (
 )
 
 type SecurityResult struct {
-	Success        bool
+	Success         bool
 	Vulnerabilities int
-	Output         string
-	ErrorMessage   string
+	Output          string
+	ErrorMessage    string
 }
 
 type SecurityScanner struct {

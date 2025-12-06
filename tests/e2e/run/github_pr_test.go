@@ -21,7 +21,7 @@ func TestGitHubBranchOperations(t *testing.T) {
 
 		client := github.NewClient("test/repo")
 		client.SetWorkDir(tempDir)
-		
+
 		err := client.CreateBranch("feature-test", "master")
 		require.NoError(t, err)
 
@@ -35,12 +35,12 @@ func TestGitHubBranchOperations(t *testing.T) {
 
 		client := github.NewClient("test/repo")
 		client.SetWorkDir(tempDir)
-		
+
 		err := client.CreateBranch("existing-branch", "master")
 		require.NoError(t, err)
 
 		runCommand(t, tempDir, "git", "checkout", "master")
-		
+
 		err = client.CreateBranch("existing-branch", "master")
 		require.NoError(t, err)
 
@@ -51,12 +51,12 @@ func TestGitHubBranchOperations(t *testing.T) {
 	t.Run("default to main branch", func(t *testing.T) {
 		tempDir := t.TempDir()
 		setupGitRepo(t, tempDir)
-		
+
 		runCommand(t, tempDir, "git", "branch", "-m", "master", "main")
 
 		client := github.NewClient("test/repo")
 		client.SetWorkDir(tempDir)
-		
+
 		err := client.CreateBranch("feature-from-main", "")
 		require.NoError(t, err)
 
@@ -72,13 +72,13 @@ func TestGitHubCommitOperations(t *testing.T) {
 
 		file1 := filepath.Join(tempDir, "file1.txt")
 		file2 := filepath.Join(tempDir, "file2.txt")
-		
+
 		require.NoError(t, os.WriteFile(file1, []byte("content 1"), 0644))
 		require.NoError(t, os.WriteFile(file2, []byte("content 2"), 0644))
 
 		client := github.NewClient("test/repo")
 		client.SetWorkDir(tempDir)
-		
+
 		err := client.CommitChanges(github.CommitOptions{
 			Message:   "Add files",
 			FilePaths: []string{"file1.txt", "file2.txt"},
@@ -95,13 +95,13 @@ func TestGitHubCommitOperations(t *testing.T) {
 
 		file1 := filepath.Join(tempDir, "file1.txt")
 		file2 := filepath.Join(tempDir, "file2.txt")
-		
+
 		require.NoError(t, os.WriteFile(file1, []byte("content 1"), 0644))
 		require.NoError(t, os.WriteFile(file2, []byte("content 2"), 0644))
 
 		client := github.NewClient("test/repo")
 		client.SetWorkDir(tempDir)
-		
+
 		err := client.CommitChanges(github.CommitOptions{
 			Message:  "Add all files",
 			AllFiles: true,
@@ -121,7 +121,7 @@ func TestGitHubCommitOperations(t *testing.T) {
 
 		client := github.NewClient("test/repo")
 		client.SetWorkDir(tempDir)
-		
+
 		err := client.CommitChanges(github.CommitOptions{
 			Message:     "Fix bug",
 			IssueNumber: 42,
@@ -140,7 +140,7 @@ func TestGitHubCommitOperations(t *testing.T) {
 
 		client := github.NewClient("test/repo")
 		client.SetWorkDir(tempDir)
-		
+
 		err := client.CommitChanges(github.CommitOptions{
 			Message:  "Empty commit",
 			AllFiles: true,
@@ -208,7 +208,7 @@ func TestGitHubFullWorkflow(t *testing.T) {
 
 		ghClient := github.NewClient("cli/cli")
 		ghClient.SetWorkDir(tempDir)
-		
+
 		issue, err := ghClient.FetchIssue(1)
 		require.NoError(t, err)
 

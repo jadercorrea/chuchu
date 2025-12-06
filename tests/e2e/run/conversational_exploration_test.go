@@ -24,44 +24,44 @@ func TestConversationalCodeExploration(t *testing.T) {
 
 	t.Run("Ask about User struct", func(t *testing.T) {
 		output := runChuDo(t, tmpDir, "Explain the User struct and its methods in main.go", 5*time.Minute)
-		
+
 		if !strings.Contains(output, "User") {
 			t.Errorf("Expected 'User' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Explained User struct")
 	})
 
 	t.Run("Ask about authorization logic", func(t *testing.T) {
 		output := runChuDo(t, tmpDir, "How does the AuthorizeAction function work in main.go?", 5*time.Minute)
-		
+
 		if !strings.Contains(output, "AuthorizeAction") {
 			t.Errorf("Expected 'AuthorizeAction' in output, got: %s", output)
 		}
-		
+
 		t.Logf("✓ Explained authorization logic")
 	})
 
 	t.Run("Ask about improvements", func(t *testing.T) {
 		output := runChuDo(t, tmpDir, "What improvements could be made to the authorization in main.go?", 5*time.Minute)
-		
+
 		// Just verify it runs successfully - improvements are subjective
 		if len(output) == 0 {
 			t.Error("Expected some output for improvements question")
 		}
-		
+
 		t.Logf("✓ Suggested improvements")
 	})
 
 	t.Run("Verify file context is being used", func(t *testing.T) {
 		output := runChuDo(t, tmpDir, "What parameters does the FullInfo method take in main.go?", 5*time.Minute)
-		
+
 		// FullInfo takes no parameters (receiver only)
 		// Verify the response understands this
 		if len(output) == 0 {
 			t.Error("Expected some output about FullInfo parameters")
 		}
-		
+
 		t.Logf("✓ Verified file context usage")
 	})
 

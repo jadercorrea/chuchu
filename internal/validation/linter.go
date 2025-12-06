@@ -29,7 +29,7 @@ func NewLinterExecutor(workDir string) *LinterExecutor {
 
 func (le *LinterExecutor) RunLinters() ([]*LintResult, error) {
 	lang := langdetect.DetectLanguage(le.workDir)
-	
+
 	switch lang {
 	case langdetect.Go:
 		return le.runGoLinters()
@@ -48,52 +48,52 @@ func (le *LinterExecutor) RunLinters() ([]*LintResult, error) {
 
 func (le *LinterExecutor) runGoLinters() ([]*LintResult, error) {
 	results := []*LintResult{}
-	
+
 	if commandExists("golangci-lint") {
 		result := le.runLinter("golangci-lint", []string{"run", "./..."})
 		result.Tool = "golangci-lint"
 		results = append(results, result)
 	}
-	
+
 	vetResult := le.runLinter("go", []string{"vet", "./..."})
 	vetResult.Tool = "go vet"
 	results = append(results, vetResult)
-	
+
 	return results, nil
 }
 
 func (le *LinterExecutor) runNodeLinters() ([]*LintResult, error) {
 	results := []*LintResult{}
-	
+
 	packageJSON := filepath.Join(le.workDir, "package.json")
 	if !fileExists(packageJSON) {
 		return results, nil
 	}
-	
+
 	if commandExists("eslint") {
 		result := le.runLinter("eslint", []string{".", "--ext", ".js,.jsx,.ts,.tsx"})
 		result.Tool = "eslint"
 		results = append(results, result)
 	}
-	
+
 	if fileExists(filepath.Join(le.workDir, "tsconfig.json")) && commandExists("tsc") {
 		result := le.runLinter("tsc", []string{"--noEmit"})
 		result.Tool = "tsc"
 		results = append(results, result)
 	}
-	
+
 	if commandExists("prettier") {
 		result := le.runLinter("prettier", []string{"--check", "."})
 		result.Tool = "prettier"
 		results = append(results, result)
 	}
-	
+
 	return results, nil
 }
 
 func (le *LinterExecutor) runPythonLinters() ([]*LintResult, error) {
 	results := []*LintResult{}
-	
+
 	if commandExists("ruff") {
 		result := le.runLinter("ruff", []string{"check", "."})
 		result.Tool = "ruff"
@@ -103,82 +103,82 @@ func (le *LinterExecutor) runPythonLinters() ([]*LintResult, error) {
 		result.Tool = "flake8"
 		results = append(results, result)
 	}
-	
+
 	if commandExists("mypy") {
 		result := le.runLinter("mypy", []string{"."})
 		result.Tool = "mypy"
 		results = append(results, result)
 	}
-	
+
 	if commandExists("black") {
 		result := le.runLinter("black", []string{"--check", "."})
 		result.Tool = "black"
 		results = append(results, result)
 	}
-	
+
 	return results, nil
 }
 
 func (le *LinterExecutor) runElixirLinters() ([]*LintResult, error) {
 	results := []*LintResult{}
-	
+
 	if commandExists("mix") {
 		credoResult := le.runLinter("mix", []string{"credo", "--strict"})
 		credoResult.Tool = "credo"
 		results = append(results, credoResult)
-		
+
 		dialyzerResult := le.runLinter("mix", []string{"dialyzer"})
 		dialyzerResult.Tool = "dialyzer"
 		results = append(results, dialyzerResult)
-		
+
 		formatResult := le.runLinter("mix", []string{"format", "--check-formatted"})
 		formatResult.Tool = "mix format"
 		results = append(results, formatResult)
 	}
-	
+
 	return results, nil
 }
 
 func (le *LinterExecutor) runRubyLinters() ([]*LintResult, error) {
 	results := []*LintResult{}
-	
+
 	if commandExists("rubocop") {
 		result := le.runLinter("rubocop", []string{})
 		result.Tool = "rubocop"
 		results = append(results, result)
 	}
-	
+
 	return results, nil
 }
 
 func (le *LinterExecutor) runLinter(command string, args []string) *LintResult {
 	cmd := exec.Command(command, args...)
 	cmd.Dir = le.workDir
-	
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	err := cmd.Run()
 	output := stdout.String() + stderr.String()
-	
+
 	result := &LintResult{
 		Success: err == nil,
 		Output:  output,
 	}
-	
+
 	if err != nil {
 		result.ErrorMessage = err.Error()
 	}
-	
+
 	result.parseIssues(output)
-	
+
 	return result
 }
 
 func (r *LintResult) parseIssues(output string) {
 	lines := strings.Split(output, "\n")
-	
+
 	for _, line := range lines {
 		lower := strings.ToLower(line)
 		if strings.Contains(lower, "error") || strings.Contains(lower, "✗") {
@@ -189,7 +189,7 @@ func (r *LintResult) parseIssues(output string) {
 			r.Issues++
 		}
 	}
-	
+
 	if strings.Contains(output, "0 issues") || strings.Contains(output, "no issues") {
 		r.Issues = 0
 		r.Errors = 0

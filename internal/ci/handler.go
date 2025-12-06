@@ -155,14 +155,14 @@ func (h *Handler) ParseCIFailure(log string) *CIFailure {
 	}
 
 	lines := strings.Split(log, "\n")
-	
+
 	for i, line := range lines {
 		if strings.Contains(strings.ToLower(line), "error") ||
 			strings.Contains(strings.ToLower(line), "fail") ||
 			strings.Contains(strings.ToLower(line), "fatal") {
-			
+
 			failure.Error = strings.TrimSpace(line)
-			
+
 			start := i - 5
 			if start < 0 {
 				start = 0
@@ -171,7 +171,7 @@ func (h *Handler) ParseCIFailure(log string) *CIFailure {
 			if end > len(lines) {
 				end = len(lines)
 			}
-			
+
 			snippet := lines[start:end]
 			failure.LogSnippet = strings.Join(snippet, "\n")
 			break
@@ -201,7 +201,7 @@ func (h *Handler) ParseCIFailure(log string) *CIFailure {
 
 func (h *Handler) WaitForCI(prNumber int, maxWaitMinutes int) error {
 	fmt.Printf("⏳ Waiting for CI checks (max %d minutes)...\n", maxWaitMinutes)
-	
+
 	for i := 0; i < maxWaitMinutes; i++ {
 		statuses, err := h.CheckPRStatus(prNumber)
 		if err != nil {

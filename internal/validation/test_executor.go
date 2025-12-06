@@ -29,7 +29,7 @@ func NewTestExecutor(workDir string) *TestExecutor {
 
 func (te *TestExecutor) RunTests() (*TestResult, error) {
 	lang := langdetect.DetectLanguage(te.workDir)
-	
+
 	switch lang {
 	case langdetect.Go:
 		return te.runGoTests()
@@ -49,150 +49,150 @@ func (te *TestExecutor) RunTests() (*TestResult, error) {
 func (te *TestExecutor) runGoTests() (*TestResult, error) {
 	cmd := exec.Command("go", "test", "./...", "-v")
 	cmd.Dir = te.workDir
-	
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	err := cmd.Run()
 	output := stdout.String() + stderr.String()
-	
+
 	result := &TestResult{
 		Success: err == nil,
 		Output:  output,
 	}
-	
+
 	result.parseGoOutput(output)
-	
+
 	if err != nil {
 		result.ErrorMessage = err.Error()
 	}
-	
+
 	return result, nil
 }
 
 func (te *TestExecutor) runNodeTests() (*TestResult, error) {
 	testCmd := "npm"
 	args := []string{"test"}
-	
+
 	if fileExists(filepath.Join(te.workDir, "yarn.lock")) {
 		testCmd = "yarn"
 	} else if fileExists(filepath.Join(te.workDir, "pnpm-lock.yaml")) {
 		testCmd = "pnpm"
 	}
-	
+
 	cmd := exec.Command(testCmd, args...)
 	cmd.Dir = te.workDir
-	
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	err := cmd.Run()
 	output := stdout.String() + stderr.String()
-	
+
 	result := &TestResult{
 		Success: err == nil,
 		Output:  output,
 	}
-	
+
 	result.parseJestOutput(output)
-	
+
 	if err != nil {
 		result.ErrorMessage = err.Error()
 	}
-	
+
 	return result, nil
 }
 
 func (te *TestExecutor) runPythonTests() (*TestResult, error) {
 	testCmd := "pytest"
 	args := []string{"-v"}
-	
+
 	if fileExists(filepath.Join(te.workDir, "manage.py")) {
 		testCmd = "python"
 		args = []string{"manage.py", "test"}
 	}
-	
+
 	cmd := exec.Command(testCmd, args...)
 	cmd.Dir = te.workDir
-	
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	err := cmd.Run()
 	output := stdout.String() + stderr.String()
-	
+
 	result := &TestResult{
 		Success: err == nil,
 		Output:  output,
 	}
-	
+
 	result.parsePytestOutput(output)
-	
+
 	if err != nil {
 		result.ErrorMessage = err.Error()
 	}
-	
+
 	return result, nil
 }
 
 func (te *TestExecutor) runElixirTests() (*TestResult, error) {
 	cmd := exec.Command("mix", "test")
 	cmd.Dir = te.workDir
-	
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	err := cmd.Run()
 	output := stdout.String() + stderr.String()
-	
+
 	result := &TestResult{
 		Success: err == nil,
 		Output:  output,
 	}
-	
+
 	result.parseElixirOutput(output)
-	
+
 	if err != nil {
 		result.ErrorMessage = err.Error()
 	}
-	
+
 	return result, nil
 }
 
 func (te *TestExecutor) runRubyTests() (*TestResult, error) {
 	testCmd := "rake"
 	args := []string{"test"}
-	
+
 	if fileExists(filepath.Join(te.workDir, "spec")) {
 		testCmd = "rspec"
 		args = []string{}
 	}
-	
+
 	cmd := exec.Command(testCmd, args...)
 	cmd.Dir = te.workDir
-	
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	err := cmd.Run()
 	output := stdout.String() + stderr.String()
-	
+
 	result := &TestResult{
 		Success: err == nil,
 		Output:  output,
 	}
-	
+
 	result.parseRSpecOutput(output)
-	
+
 	if err != nil {
 		result.ErrorMessage = err.Error()
 	}
-	
+
 	return result, nil
 }
 
@@ -207,7 +207,7 @@ func (r *TestResult) parseGoOutput(output string) {
 			r.Skipped++
 		}
 	}
-	
+
 	if strings.Contains(output, "PASS") && r.Failed == 0 {
 		r.Success = true
 	}

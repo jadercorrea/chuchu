@@ -35,7 +35,7 @@ func TestGitHubIssueIntegration(t *testing.T) {
 
 		issue, err := client.FetchIssue(1)
 		require.NoError(t, err, "Failed to fetch issue #1")
-		
+
 		assert.Equal(t, 1, issue.Number)
 		assert.NotEmpty(t, issue.Title)
 		assert.NotEmpty(t, issue.URL)
@@ -71,7 +71,7 @@ func TestIssueRequirementExtraction(t *testing.T) {
 		}
 
 		reqs := issue.ExtractRequirements()
-		
+
 		require.Len(t, reqs, 3)
 		assert.Equal(t, "Update token validation", reqs[0])
 		assert.Equal(t, "Add expiry check", reqs[1])
@@ -88,7 +88,7 @@ func TestIssueRequirementExtraction(t *testing.T) {
 		}
 
 		reqs := issue.ExtractRequirements()
-		
+
 		require.GreaterOrEqual(t, len(reqs), 3)
 		assert.Contains(t, reqs[0], "multiple file formats")
 		assert.Contains(t, reqs[1], "large file uploads")
@@ -105,7 +105,7 @@ func TestIssueRequirementExtraction(t *testing.T) {
 		}
 
 		reqs := issue.ExtractRequirements()
-		
+
 		require.Len(t, reqs, 3)
 		assert.Equal(t, "Extract common queries", reqs[0])
 		assert.Equal(t, "Add connection pooling", reqs[1])
@@ -119,7 +119,7 @@ func TestIssueRequirementExtraction(t *testing.T) {
 		}
 
 		reqs := issue.ExtractRequirements()
-		
+
 		require.Len(t, reqs, 1)
 		assert.Equal(t, "Fix memory leak in worker pool", reqs[0])
 	})
@@ -129,7 +129,7 @@ func TestIssueReferencesParsing(t *testing.T) {
 	t.Run("extract issue references", func(t *testing.T) {
 		text := "This fixes #123 and is related to #456"
 		refs := github.ParseReferences(text)
-		
+
 		require.Len(t, refs, 2)
 		assert.Contains(t, refs, "#123")
 		assert.Contains(t, refs, "#456")
@@ -138,7 +138,7 @@ func TestIssueReferencesParsing(t *testing.T) {
 	t.Run("handle references with punctuation", func(t *testing.T) {
 		text := "See #789, #101. Also check #202!"
 		refs := github.ParseReferences(text)
-		
+
 		require.Len(t, refs, 3)
 		assert.Contains(t, refs, "#789")
 		assert.Contains(t, refs, "#101")
@@ -148,7 +148,7 @@ func TestIssueReferencesParsing(t *testing.T) {
 	t.Run("ignore non-numeric references", func(t *testing.T) {
 		text := "Use #define and check #abc"
 		refs := github.ParseReferences(text)
-		
+
 		assert.Len(t, refs, 0)
 	})
 }
@@ -161,7 +161,7 @@ func TestIssueBranchNaming(t *testing.T) {
 		}
 
 		branch := issue.CreateBranchName()
-		
+
 		assert.Equal(t, "issue-123-fix-authentication-bug-in-login-flow", branch)
 	})
 
@@ -172,7 +172,7 @@ func TestIssueBranchNaming(t *testing.T) {
 		}
 
 		branch := issue.CreateBranchName()
-		
+
 		assert.Equal(t, "issue-456-update-api-v2-0-breaking-changes", branch)
 		assert.NotContains(t, branch, ":")
 		assert.NotContains(t, branch, "(")
@@ -186,7 +186,7 @@ func TestIssueBranchNaming(t *testing.T) {
 		}
 
 		branch := issue.CreateBranchName()
-		
+
 		assert.LessOrEqual(t, len(branch), 60)
 		assert.True(t, strings.HasPrefix(branch, "issue-789-"))
 		assert.False(t, strings.HasSuffix(branch, "-"))
@@ -199,7 +199,7 @@ func TestIssueBranchNaming(t *testing.T) {
 		}
 
 		branch := issue.CreateBranchName()
-		
+
 		assert.Equal(t, "issue-999-fix-multiple-spaces-issue", branch)
 		assert.NotContains(t, branch, "--")
 	})
@@ -223,7 +223,7 @@ func TestGitHubWorkflowIntegration(t *testing.T) {
 
 		output := runCommand(t, tempDir, "git", "checkout", "-b", branchName)
 		assert.Contains(t, output, "Switched to a new branch")
-		
+
 		currentBranch := strings.TrimSpace(runCommand(t, tempDir, "git", "branch", "--show-current"))
 		assert.Equal(t, branchName, currentBranch)
 	})
@@ -235,7 +235,7 @@ func TestGitHubWorkflowIntegration(t *testing.T) {
 
 		reqs := issue.ExtractRequirements()
 		assert.NotEmpty(t, reqs, "Should extract at least one requirement")
-		
+
 		for _, req := range reqs {
 			assert.NotEmpty(t, req, "Requirement should not be empty")
 		}
@@ -252,7 +252,7 @@ func TestGitHubCommitWithIssueReference(t *testing.T) {
 		require.NoError(t, err)
 
 		runCommand(t, tempDir, "git", "add", "fix.txt")
-		
+
 		commitMsg := "Fix authentication bug\n\nCloses #123"
 		runCommand(t, tempDir, "git", "commit", "-m", commitMsg)
 

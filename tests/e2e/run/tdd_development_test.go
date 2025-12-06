@@ -24,42 +24,42 @@ func TestTDDFeatureDevelopment(t *testing.T) {
 
 	t.Run("Generate tests for calculator", func(t *testing.T) {
 		output := runChuTDD(t, tmpDir, "Create a Calculator struct with Add, Subtract, Multiply, Divide methods for integers", 5*time.Minute)
-		
+
 		// Just verify it runs successfully
 		if len(output) == 0 {
 			t.Error("Expected some output for calculator TDD")
 		}
-		
+
 		t.Logf("✓ Generated calculator tests")
 	})
 
 	t.Run("Generate tests for string utility", func(t *testing.T) {
 		output := runChuTDD(t, tmpDir, "Write tests for a string utility with Reverse and ToUpperCase functions", 5*time.Minute)
-		
+
 		if len(output) == 0 {
 			t.Error("Expected some output for string utility TDD")
 		}
-		
+
 		t.Logf("✓ Generated string utility tests")
 	})
 
 	t.Run("Generate tests for validator", func(t *testing.T) {
 		output := runChuTDD(t, tmpDir, "Create a Validator with email and phone validation", 5*time.Minute)
-		
+
 		if len(output) == 0 {
 			t.Error("Expected some output for validator TDD")
 		}
-		
+
 		t.Logf("✓ Generated validator tests")
 	})
 
 	t.Run("Generate tests for cache", func(t *testing.T) {
 		output := runChuTDD(t, tmpDir, "Build a Cache with Get, Set, and Delete operations", 5*time.Minute)
-		
+
 		if len(output) == 0 {
 			t.Error("Expected some output for cache TDD")
 		}
-		
+
 		t.Logf("✓ Generated cache tests")
 	})
 
