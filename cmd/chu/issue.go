@@ -223,6 +223,7 @@ This will:
 		message, _ := cmd.Flags().GetString("message")
 		skipTests, _ := cmd.Flags().GetBool("skip-tests")
 		skipLint, _ := cmd.Flags().GetBool("skip-lint")
+		skipBuild, _ := cmd.Flags().GetBool("skip-build")
 		autoFix, _ := cmd.Flags().GetBool("auto-fix")
 		repo, _ := cmd.Flags().GetString("repo")
 
@@ -251,18 +252,36 @@ This will:
 
 		fmt.Println("✅ Changes committed")
 
+		if !skipBuild {
+			fmt.Println("\n🔨 Running build...")
+			buildExec := validation.NewBuildExecutor(workDir)
+			buildResult, err := buildExec.RunBuild()
+			if err != nil {
+				fmt.Printf("⚠️  Build check failed: %v\n", err)
+			} else if buildResult.Success {
+				fmt.Println("✅ Build successful")
+			} else {
+				fmt.Printf("❌ Build failed\n")
+				if buildResult.Output != "" {
+					fmt.Println("\nBuild output:")
+					fmt.Println(buildResult.Output)
+				}
+				return fmt.Errorf("build failed")
+			}
+		}
+
 		if !skipTests {
 			fmt.Println("\n🧪 Running tests...")
 			testExec := validation.NewTestExecutor(workDir)
 			result, err := testExec.RunTests()
-			
+
 			if err != nil {
 				fmt.Printf("⚠️  Tests encountered error: %v\n", err)
 			} else if result.Success {
 				fmt.Printf("✅ All tests passed (%d passed)\n", result.Passed)
 			} else {
 				fmt.Printf("❌ Tests failed (%d passed, %d failed)\n", result.Passed, result.Failed)
-				
+
 				if autoFix {
 					fmt.Println("\n🔧 Attempting auto-fix...")
 					if fixErr := attemptTestFix(workDir, result); fixErr != nil {
@@ -284,7 +303,7 @@ This will:
 			fmt.Println("\n🔍 Running linters...")
 			lintExec := validation.NewLinterExecutor(workDir)
 			results, err := lintExec.RunLinters()
-			
+
 			if err != nil {
 				fmt.Printf("⚠️  Linters encountered error: %v\n", err)
 			} else {
@@ -294,11 +313,11 @@ This will:
 						fmt.Printf("✅ %s: no issues\n", result.Tool)
 					} else {
 						allPassed = false
-						fmt.Printf("❌ %s: %d issues (%d errors, %d warnings)\n", 
+						fmt.Printf("❌ %s: %d issues (%d errors, %d warnings)\n",
 							result.Tool, result.Issues, result.Errors, result.Warnings)
 					}
 				}
-				
+
 				if !allPassed {
 					if autoFix {
 						fmt.Println("\n🔧 Attempting auto-fix...")
@@ -492,6 +511,7 @@ func init() {
 	issueCommitCmd.Flags().String("message", "", "Commit message")
 	issueCommitCmd.Flags().Bool("skip-tests", false, "Skip running tests")
 	issueCommitCmd.Flags().Bool("skip-lint", false, "Skip running linters")
+	issueCommitCmd.Flags().Bool("skip-build", false, "Skip build check")
 	issueCommitCmd.Flags().Bool("auto-fix", true, "Automatically fix test/lint failures")
 	issueCommitCmd.Flags().String("repo", "", "GitHub repository (owner/repo)")
 
