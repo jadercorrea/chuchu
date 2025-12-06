@@ -2,7 +2,7 @@
 
 **Last Updated:** December 2025  
 **Current Version:** 0.x (MVP)  
-**Overall Autonomy:** 53/64 scenarios (83%)
+**Overall Autonomy:** 54/64 scenarios (84%)
 
 This document describes what Chuchu can and cannot do autonomously. Updated with each major release.
 
@@ -244,16 +244,13 @@ Not implemented:
 
 ---
 
-### 🟡 Documentation Updates (2/3 scenarios)
+### ✅ Documentation Updates (3/3 scenarios) - 100% COMPLETE
 
 **Implemented:**
 
 - ✅ Generate CHANGELOG entries (`chu gen changelog`)
 - ✅ Update README files (`chu docs update`)
-
-**Not yet implemented:**
-
-- Update API documentation
+- ✅ Generate API documentation (`chu docs api`)
 
 **Examples:**
 ```bash

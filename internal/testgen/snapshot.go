@@ -25,7 +25,7 @@ func NewSnapshotGenerator(provider llm.Provider, model string) *SnapshotGenerato
 
 func (g *SnapshotGenerator) Generate(ctx context.Context, sourceFile string) (string, error) {
 	lang := langdetect.DetectFromFilename(sourceFile)
-	
+
 	content, err := os.ReadFile(sourceFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read source file: %w", err)
@@ -37,7 +37,7 @@ func (g *SnapshotGenerator) Generate(ctx context.Context, sourceFile string) (st
 	}
 
 	testFile := g.getTestFilename(sourceFile, lang)
-	
+
 	if err := os.WriteFile(testFile, []byte(testContent), 0644); err != nil {
 		return "", fmt.Errorf("failed to write test file: %w", err)
 	}
@@ -51,7 +51,7 @@ func (g *SnapshotGenerator) Generate(ctx context.Context, sourceFile string) (st
 
 func (g *SnapshotGenerator) generateSnapshotTests(ctx context.Context, sourceCode string, lang langdetect.Language, filename string) (string, error) {
 	instructions := g.getLanguageInstructions(lang)
-	
+
 	prompt := fmt.Sprintf(`Generate snapshot tests for this code:
 
 Language: %s
@@ -204,7 +204,7 @@ func (g *SnapshotGenerator) initRubySnapshots(testDir string) error {
 
 func (g *SnapshotGenerator) extractCode(text string) string {
 	text = strings.TrimSpace(text)
-	
+
 	markers := []string{"```go", "```typescript", "```python", "```ruby", "```ts", "```"}
 	for _, marker := range markers {
 		if strings.HasPrefix(text, marker) {

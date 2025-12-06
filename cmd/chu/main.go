@@ -61,6 +61,7 @@ $0-5/month vs $20-30/month subscriptions.
   chu gen migration <name>   - Generate DB migration from model changes
   chu gen changelog          - Generate CHANGELOG from git commits
   chu docs update            - Update README based on changes
+  chu docs api               - Generate API docs (Markdown/OpenAPI/Postman)
   chu coverage [pkg]         - Analyze test coverage gaps
   chu tdd                    - Test-driven development mode
   chu feature "desc"      - Generate tests + implementation
