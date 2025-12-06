@@ -72,8 +72,8 @@ Chuchu can run and validate code across multiple languages:
 - Security scanning (`govulncheck`, `npm audit`, `safety`)
 
 **Limitations:**
-- Cannot generate new tests yet (coming soon)
 - Coverage tracking only for Go and Python
+- Integration test generation not supported yet
 - Mock generation not supported
 
 ---
@@ -150,19 +150,32 @@ The following require human intervention:
 
 ---
 
-### ❌ Advanced Test Generation (5/8 scenarios missing)
+### 🟡 Test Generation (4/8 scenarios)
 
-Not yet implemented:
+**Implemented:**
 
-- Generate unit tests for new code
+- ✅ Generate unit tests for new code (`chu testgen unit <file>`)
+- ✅ Validate generated tests (compile + run)
+- ✅ Multi-language support (Go, TypeScript, Python)
+
+**Not yet implemented:**
+
 - Generate integration tests
 - Identify and fill coverage gaps
 - Create mock objects and test doubles
 - Snapshot testing
 
-**Why:** Test generation requires understanding of testing patterns, edge cases, and project conventions. High priority for next phase.
+**Example:**
+```bash
+chu gen test pkg/calculator/calculator.go
+# Generates: pkg/calculator/calculator_test.go
+# Validates: Compiles and runs
+```
 
-**Workaround:** Chuchu can run existing tests and fix failures, so manual test creation + automated fixing is possible.
+**Limitations:**
+- Integration tests require coordinated setup
+- Mock generation needs interface detection
+- Coverage gap analysis not implemented
 
 ---
 
@@ -216,9 +229,10 @@ Chuchu cannot automatically:
 - Database migrations
 - Type system improvements
 
-**Phase 8: Test Generation (5 scenarios)**
-- Auto-generate unit tests for new code
+**Phase 8: Test Generation (4 remaining scenarios)**
+- ✅ Auto-generate unit tests for new code (DONE)
 - Integration test creation
+- Coverage gap identification
 - Mock generation
 
 **Phase 9: Documentation (3 scenarios)**
@@ -253,7 +267,8 @@ Skipped tests (t.Skip()) represent features not yet implemented.
 - ✅ LLM-powered error recovery
 - ✅ CI failure handling
 - ✅ PR review iteration
-- **Autonomy:** 38/64 (59%)
+- ✅ Unit test generation
+- **Autonomy:** 41/64 (64%)
 - **MVAA Critical Path:** 17/17 (100%)
 
 ### Future Releases

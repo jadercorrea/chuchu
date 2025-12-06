@@ -54,6 +54,7 @@ $0-5/month vs $20-30/month subscriptions.
   chu implement plan.md   - Execute plan step-by-step
 
 ## SPECIALIZED TOOLS
+  chu gen test <file>     - Generate unit tests for a file
   chu tdd                 - Test-driven development mode
   chu feature "desc"      - Generate tests + implementation
   chu review [target]     - Code review for bugs, security, improvements

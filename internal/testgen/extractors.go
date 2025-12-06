@@ -12,7 +12,7 @@ func extractCode(response string) string {
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		if strings.HasPrefix(trimmed, "```") {
 			if inCodeBlock {
 				foundCodeBlock = true
@@ -21,7 +21,7 @@ func extractCode(response string) string {
 			inCodeBlock = true
 			continue
 		}
-		
+
 		if inCodeBlock {
 			code = append(code, line)
 		}
