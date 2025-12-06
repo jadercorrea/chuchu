@@ -36,7 +36,6 @@ func main() {
 		t.Fatalf("failed to write main.go: %v", err)
 	}
 
-
 	provider := &agents.MockProvider{
 		Response: `package main
 

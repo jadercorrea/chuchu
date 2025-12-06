@@ -229,7 +229,7 @@ func (r *SignatureRefactor) findUsages(funcName string) ([]FunctionUsage, error)
 
 	var usages []FunctionUsage
 	lines := strings.Split(string(output), "\n")
-	
+
 	for _, line := range lines {
 		if line == "" {
 			continue
@@ -274,7 +274,7 @@ New: func %s%s
 Source file content:
 %s
 
-Return ONLY the complete updated file content, no explanations.`, 
+Return ONLY the complete updated file content, no explanations.`,
 		r.formatSignature(fn), fn.Function, newSig, string(content))
 
 	resp, err := r.provider.Chat(ctx, llm.ChatRequest{
@@ -323,7 +323,7 @@ Update the call site to match the new signature. Return ONLY the complete update
 
 func (r *SignatureRefactor) extractCode(text string) string {
 	text = strings.TrimSpace(text)
-	
+
 	if strings.HasPrefix(text, "```go") {
 		text = strings.TrimPrefix(text, "```go\n")
 		text = strings.TrimSuffix(text, "```")
