@@ -15,6 +15,7 @@ import (
 	"chuchu/internal/langdetect"
 	"chuchu/internal/llm"
 	"chuchu/internal/modes"
+	"chuchu/internal/recovery"
 	"chuchu/internal/validation"
 )
 
@@ -222,6 +223,7 @@ This will:
 		message, _ := cmd.Flags().GetString("message")
 		skipTests, _ := cmd.Flags().GetBool("skip-tests")
 		skipLint, _ := cmd.Flags().GetBool("skip-lint")
+		autoFix, _ := cmd.Flags().GetBool("auto-fix")
 		repo, _ := cmd.Flags().GetString("repo")
 
 		if repo == "" {
@@ -253,16 +255,28 @@ This will:
 			fmt.Println("\n🧪 Running tests...")
 			testExec := validation.NewTestExecutor(workDir)
 			result, err := testExec.RunTests()
-
+			
 			if err != nil {
 				fmt.Printf("⚠️  Tests encountered error: %v\n", err)
 			} else if result.Success {
 				fmt.Printf("✅ All tests passed (%d passed)\n", result.Passed)
 			} else {
 				fmt.Printf("❌ Tests failed (%d passed, %d failed)\n", result.Passed, result.Failed)
-				fmt.Println("\nTest output:")
-				fmt.Println(result.Output)
-				return fmt.Errorf("tests failed")
+				
+				if autoFix {
+					fmt.Println("\n🔧 Attempting auto-fix...")
+					if fixErr := attemptTestFix(workDir, result); fixErr != nil {
+						fmt.Printf("⚠️  Auto-fix failed: %v\n", fixErr)
+						fmt.Println("\nTest output:")
+						fmt.Println(result.Output)
+						return fmt.Errorf("tests failed")
+					}
+					fmt.Println("✅ Tests fixed automatically")
+				} else {
+					fmt.Println("\nTest output:")
+					fmt.Println(result.Output)
+					return fmt.Errorf("tests failed (use --auto-fix to attempt automatic fixes)")
+				}
 			}
 		}
 
@@ -270,7 +284,7 @@ This will:
 			fmt.Println("\n🔍 Running linters...")
 			lintExec := validation.NewLinterExecutor(workDir)
 			results, err := lintExec.RunLinters()
-
+			
 			if err != nil {
 				fmt.Printf("⚠️  Linters encountered error: %v\n", err)
 			} else {
@@ -280,13 +294,22 @@ This will:
 						fmt.Printf("✅ %s: no issues\n", result.Tool)
 					} else {
 						allPassed = false
-						fmt.Printf("❌ %s: %d issues (%d errors, %d warnings)\n",
+						fmt.Printf("❌ %s: %d issues (%d errors, %d warnings)\n", 
 							result.Tool, result.Issues, result.Errors, result.Warnings)
 					}
 				}
-
+				
 				if !allPassed {
-					return fmt.Errorf("linting issues found")
+					if autoFix {
+						fmt.Println("\n🔧 Attempting auto-fix...")
+						if fixErr := attemptLintFix(workDir, results); fixErr != nil {
+							fmt.Printf("⚠️  Auto-fix failed: %v\n", fixErr)
+							return fmt.Errorf("linting issues found")
+						}
+						fmt.Println("✅ Lint issues fixed automatically")
+					} else {
+						return fmt.Errorf("linting issues found (use --auto-fix to attempt automatic fixes)")
+					}
 				}
 			}
 		}
@@ -386,6 +409,72 @@ func detectGitHubRepo() string {
 	return ""
 }
 
+func attemptTestFix(workDir string, testResult *validation.TestResult) error {
+	setup, err := config.LoadSetup()
+	if err != nil {
+		return err
+	}
+
+	backendName := setup.Defaults.Backend
+	backendCfg := setup.Backend[backendName]
+	var provider llm.Provider
+	if backendCfg.Type == "ollama" {
+		provider = llm.NewOllama(backendCfg.BaseURL)
+	} else {
+		provider = llm.NewChatCompletion(backendCfg.BaseURL, backendName)
+	}
+
+	model := backendCfg.GetModelForAgent("editor")
+	if model == "" {
+		model = backendCfg.DefaultModel
+	}
+
+	fixer := recovery.NewErrorFixer(provider, model, workDir)
+	fixResult, err := fixer.FixTestFailures(context.Background(), testResult, 2)
+	if err != nil {
+		return err
+	}
+
+	if !fixResult.Success {
+		return fmt.Errorf("could not fix test failures after %d attempts", fixResult.FixAttempts)
+	}
+
+	return nil
+}
+
+func attemptLintFix(workDir string, lintResults []*validation.LintResult) error {
+	setup, err := config.LoadSetup()
+	if err != nil {
+		return err
+	}
+
+	backendName := setup.Defaults.Backend
+	backendCfg := setup.Backend[backendName]
+	var provider llm.Provider
+	if backendCfg.Type == "ollama" {
+		provider = llm.NewOllama(backendCfg.BaseURL)
+	} else {
+		provider = llm.NewChatCompletion(backendCfg.BaseURL, backendName)
+	}
+
+	model := backendCfg.GetModelForAgent("editor")
+	if model == "" {
+		model = backendCfg.DefaultModel
+	}
+
+	fixer := recovery.NewErrorFixer(provider, model, workDir)
+	fixResult, err := fixer.FixLintIssues(context.Background(), lintResults, 2)
+	if err != nil {
+		return err
+	}
+
+	if !fixResult.Success {
+		return fmt.Errorf("could not fix lint issues after %d attempts", fixResult.FixAttempts)
+	}
+
+	return nil
+}
+
 func init() {
 	issueCmd.AddCommand(issueFixCmd)
 	issueCmd.AddCommand(issueShowCmd)
@@ -403,6 +492,7 @@ func init() {
 	issueCommitCmd.Flags().String("message", "", "Commit message")
 	issueCommitCmd.Flags().Bool("skip-tests", false, "Skip running tests")
 	issueCommitCmd.Flags().Bool("skip-lint", false, "Skip running linters")
+	issueCommitCmd.Flags().Bool("auto-fix", true, "Automatically fix test/lint failures")
 	issueCommitCmd.Flags().String("repo", "", "GitHub repository (owner/repo)")
 
 	issuePushCmd.Flags().String("repo", "", "GitHub repository (owner/repo)")
