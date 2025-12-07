@@ -2,7 +2,7 @@
 
 **Last Updated:** December 2025  
 **Current Version:** 0.x (MVP)  
-**Overall Autonomy:** 61/64 scenarios (95%)
+**Overall Autonomy:** 63/64 scenarios (98%)
 
 This document describes what Chuchu can and cannot do autonomously. Updated with each major release.
 
@@ -247,18 +247,15 @@ chu merge resolve
 
 ---
 
-### ✅ Advanced Git Operations (3/5 scenarios)
+### ✅ Advanced Git Operations (5/5 scenarios) - 100% COMPLETE
 
 **Implemented:**
 
 - ✅ Git bisect for bug hunting (`chu git bisect <good> <bad>`)
 - ✅ Cherry-picking commits (`chu git cherry-pick <commits...>`)
 - ✅ Branch rebasing (`chu git rebase [branch]`)
-
-**Not yet implemented:**
-
-- Interactive rebase (squash, reword)
-- Advanced branch strategies
+- ✅ Squash commits (`chu git squash <base-commit>`)
+- ✅ Reword commit messages (`chu git reword <commit>`)
 
 **Examples:**
 ```bash
@@ -274,12 +271,21 @@ chu git cherry-pick abc123 def456
 chu git rebase main
 # Rebases with AI-powered conflict resolution
 # Continues automatically after resolving
+
+chu git squash HEAD~3
+# Squashes last 3 commits into one
+# Generates intelligent commit message via LLM
+
+chu git reword HEAD
+# Suggests improved commit message
+# Follows best practices (subject + body)
 ```
 
 **Limitations:**
 - Bisect runs `go test ./...` by default (Go projects only)
 - Conflict resolution powered by LLM - review recommended
-- Cherry-pick and rebase assume standard Git workflows
+- Squash resets commits using `git reset --soft`
+- Reword suggests only (doesn't auto-apply)
 
 ---
 
