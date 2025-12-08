@@ -319,8 +319,9 @@ Provide a secure fix. Return ONLY the complete updated file content.`,
 			errorOutput, file, string(content))
 
 		resp, err := s.provider.Chat(ctx, llm.ChatRequest{
-			UserPrompt: prompt,
-			Model:      s.model,
+			SystemPrompt: "You are a security expert that fixes vulnerabilities safely and correctly.",
+			UserPrompt:   prompt,
+			Model:        s.model,
 		})
 
 		if err != nil {

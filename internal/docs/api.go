@@ -234,8 +234,9 @@ Include:
 Return ONLY the documentation, no explanations.`, endpointList, formatInstruction)
 
 	resp, err := g.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      g.model,
+		SystemPrompt: "You are an API documentation expert that generates comprehensive, professional documentation.",
+		UserPrompt:   prompt,
+		Model:        g.model,
 	})
 
 	if err != nil {

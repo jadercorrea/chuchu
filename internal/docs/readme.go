@@ -185,8 +185,9 @@ Rules:
 Return ONLY the complete updated README.md, no explanations.`, currentReadme, changesText)
 
 	resp, err := u.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      u.model,
+		SystemPrompt: "You are a README expert that updates documentation based on code changes.",
+		UserPrompt:   prompt,
+		Model:        u.model,
 	})
 
 	if err != nil {

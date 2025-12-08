@@ -296,8 +296,9 @@ Requirements:
 Return ONLY the complete Go test code, no explanations.`, pkgName, strings.Join(compDescriptions, "\n"), pkgName)
 
 	resp, err := g.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      g.model,
+		SystemPrompt: "You are an integration testing expert that generates comprehensive end-to-end tests.",
+		UserPrompt:   prompt,
+		Model:        g.model,
 	})
 
 	if err != nil {

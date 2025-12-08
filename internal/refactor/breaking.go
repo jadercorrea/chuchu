@@ -422,8 +422,9 @@ Provide:
 Format as markdown, be concise.`, changeDesc.String())
 
 	resp, err := c.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      c.model,
+		SystemPrompt: "You are a breaking change expert that creates detailed migration plans.",
+		UserPrompt:   prompt,
+		Model:        c.model,
 	})
 
 	if err != nil {
@@ -457,8 +458,9 @@ Update the code to use the new API. Return ONLY the complete updated file conten
 		consumer.Line, consumer.Usage, string(content))
 
 	resp, err := c.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      c.model,
+		SystemPrompt: "You are a code update expert that adapts code to new API changes.",
+		UserPrompt:   prompt,
+		Model:        c.model,
 	})
 
 	if err != nil {

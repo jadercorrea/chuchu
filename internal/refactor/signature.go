@@ -278,8 +278,9 @@ Return ONLY the complete updated file content, no explanations.`,
 		r.formatSignature(fn), fn.Function, newSig, string(content))
 
 	resp, err := r.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      r.model,
+		SystemPrompt: "You are a function signature refactoring expert that updates function definitions accurately.",
+		UserPrompt:   prompt,
+		Model:        r.model,
 	})
 
 	if err != nil {
@@ -309,8 +310,9 @@ Update the call site to match the new signature. Return ONLY the complete update
 		fn.Function, fn.Function, newSig, usage.Line, usage.CallSite, string(content))
 
 	resp, err := r.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      r.model,
+		SystemPrompt: "You are a function call site expert that updates function calls to match new signatures.",
+		UserPrompt:   prompt,
+		Model:        r.model,
 	})
 
 	if err != nil {

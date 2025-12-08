@@ -217,8 +217,9 @@ Be concise and actionable.`, typeInfo.TypeName, typeInfo.OldDef, typeInfo.File,
 		len(usages), strings.Join(usagesList[:min(10, len(usagesList))], "\n"))
 
 	resp, err := r.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      r.model,
+		SystemPrompt: "You are a type refactoring expert that analyzes impact and breaking changes.",
+		UserPrompt:   prompt,
+		Model:        r.model,
 	})
 
 	if err != nil {
@@ -247,8 +248,9 @@ Return ONLY the complete updated file content.`,
 		typeInfo.TypeName, typeInfo.OldDef, newDef, string(content))
 
 	resp, err := r.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      r.model,
+		SystemPrompt: "You are a type definition expert that updates type definitions accurately.",
+		UserPrompt:   prompt,
+		Model:        r.model,
 	})
 
 	if err != nil {
@@ -278,8 +280,9 @@ Update to be compatible with new type. Return ONLY the complete updated file.`,
 		typeInfo.TypeName, newDef, usage.Line, usage.Context, string(content))
 
 	resp, err := r.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      r.model,
+		SystemPrompt: "You are a type usage expert that updates code to be compatible with type changes.",
+		UserPrompt:   prompt,
+		Model:        r.model,
 	})
 
 	if err != nil {

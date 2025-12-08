@@ -233,8 +233,9 @@ Return ONLY the test function code, no explanations.`,
 		change.Method, change.Path, change.Handler, existingTests)
 
 	resp, err := c.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      c.model,
+		SystemPrompt: "You are an API testing expert that generates comprehensive test functions.",
+		UserPrompt:   prompt,
+		Model:        c.model,
 	})
 
 	if err != nil {
@@ -283,8 +284,9 @@ Return ONLY the handler function code, no explanations.`,
 		change.Method, change.Path, change.Handler)
 
 	resp, err := c.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      c.model,
+		SystemPrompt: "You are an API handler expert that generates well-structured HTTP handlers.",
+		UserPrompt:   prompt,
+		Model:        c.model,
 	})
 
 	if err != nil {
