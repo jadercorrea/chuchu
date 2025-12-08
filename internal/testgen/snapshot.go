@@ -67,8 +67,9 @@ Return ONLY the test file content, no explanations.`,
 		lang, filename, instructions, sourceCode)
 
 	resp, err := g.provider.Chat(ctx, llm.ChatRequest{
-		UserPrompt: prompt,
-		Model:      g.model,
+		SystemPrompt: "You are a snapshot testing expert that generates regression tests.",
+		UserPrompt:   prompt,
+		Model:        g.model,
 	})
 
 	if err != nil {
