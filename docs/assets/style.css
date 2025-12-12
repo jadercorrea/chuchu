@@ -6,14 +6,27 @@
 }
 
 :root {
-  --color-bg: #ffffff;
-  --color-text: #1a1a1a;
-  --color-text-muted: #666666;
-  --color-border: #e5e5e5;
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-code-bg: #f5f5f5;
-  --color-success: #16a34a;
+  /* Tokyo Night Palette */
+  --tokyo-bg: #1a1b26;
+  --tokyo-bg-dark: #16161e;
+  --tokyo-fg: #c0caf5;
+  --tokyo-fg-dark: #a9b1d6;
+  --tokyo-blue: #7aa2f7;
+  --tokyo-cyan: #7dcfff;
+  --tokyo-green: #9ece6a;
+  --tokyo-magenta: #bb9af7;
+  --tokyo-gutter: #3b4261;
+
+  /* Semantic Variables Mapped to Tokyo Night */
+  --color-bg: var(--tokyo-bg);
+  --color-text: var(--tokyo-fg);
+  --color-text-muted: var(--tokyo-fg-dark);
+  --color-border: var(--tokyo-gutter);
+  --color-primary: var(--tokyo-blue);
+  --color-primary-hover: var(--tokyo-cyan);
+  --color-code-bg: var(--tokyo-bg-dark);
+  --color-success: var(--tokyo-green);
+
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
   --nav-height: 64px;
@@ -230,17 +243,33 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   line-height: 1.3;
   margin-top: var(--spacing-lg);
   margin-bottom: var(--spacing-sm);
 }
 
-h1 { font-size: 40px; }
-h2 { font-size: 32px; }
-h3 { font-size: 24px; }
-h4 { font-size: 20px; }
+h1 {
+  font-size: 40px;
+}
+
+h2 {
+  font-size: 32px;
+}
+
+h3 {
+  font-size: 24px;
+}
+
+h4 {
+  font-size: 20px;
+}
 
 p {
   margin-bottom: var(--spacing-sm);
@@ -255,7 +284,8 @@ a:hover {
   text-decoration: underline;
 }
 
-strong, b {
+strong,
+b {
   font-weight: 600;
 }
 
@@ -284,7 +314,8 @@ pre code {
 }
 
 /* Lists */
-ul, ol {
+ul,
+ol {
   margin: var(--spacing-sm) 0;
   padding-left: var(--spacing-md);
 }
@@ -316,7 +347,8 @@ table {
   margin: var(--spacing-sm) 0;
 }
 
-th, td {
+th,
+td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid var(--color-border);
@@ -375,27 +407,27 @@ th {
   .hero h1 {
     font-size: 40px;
   }
-  
+
   .hero p {
     font-size: 18px;
   }
-  
+
   .nav-links {
     gap: var(--spacing-sm);
   }
-  
+
   .nav-links a {
     font-size: 13px;
   }
-  
+
   .features {
     grid-template-columns: 1fr;
   }
-  
+
   .hero-cta {
     flex-direction: column;
   }
-  
+
   .btn {
     width: 100%;
     text-align: center;
