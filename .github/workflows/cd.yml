@@ -150,14 +150,46 @@ jobs:
       - name: Run tests
         run: go test -v ./...
       
-      - name: Build binaries
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          install-only: true
+      
+      - name: Build with GoReleaser
+        run: goreleaser build --clean --snapshot
+        env:
+          GORELEASER_CURRENT_TAG: ${{ steps.version.outputs.tag }}
+      
+      - name: Create archives and checksums
         run: |
-          # Build for multiple platforms
-          GOOS=linux GOARCH=amd64 go build -o bin/gptcode-linux-amd64 ./cmd/gptcode
-          GOOS=linux GOARCH=arm64 go build -o bin/gptcode-linux-arm64 ./cmd/gptcode
-          GOOS=darwin GOARCH=amd64 go build -o bin/gptcode-darwin-amd64 ./cmd/gptcode
-          GOOS=darwin GOARCH=arm64 go build -o bin/gptcode-darwin-arm64 ./cmd/gptcode
-          GOOS=windows GOARCH=amd64 go build -o bin/gptcode-windows-amd64.exe ./cmd/gptcode
+          VERSION="${{ steps.version.outputs.tag }}"
+          mkdir -p release
+          
+          # Create archives for each platform
+          for dir in dist/gptcode_*/; do
+            if [ -d "$dir" ]; then
+              PLATFORM=$(basename "$dir" | sed 's/gptcode_//')
+              BINARY=$(find "$dir" -name 'gptcode*' -type f | head -1)
+              
+              if [[ "$PLATFORM" == *"windows"* ]]; then
+                # Zip for Windows
+                cd "$dir"
+                zip -j "../../release/gptcode_${VERSION#v}_${PLATFORM}.zip" gptcode*
+                cd ../..
+              else
+                # Tar.gz for Unix
+                tar -czvf "release/gptcode_${VERSION#v}_${PLATFORM}.tar.gz" -C "$dir" .
+              fi
+            fi
+          done
+          
+          # Generate checksums
+          cd release
+          sha256sum * > checksums.txt
+          cd ..
+          
+          echo "Release artifacts:"
+          ls -la release/
       
       - name: Generate changelog
         id: changelog
@@ -177,31 +209,67 @@ jobs:
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
       
-      - name: Create Release
+      - name: Checkout releases repo
+        uses: actions/checkout@v4
+        with:
+          repository: gptcode-cloud/cli-releases
+          token: ${{ secrets.RELEASES_REPO_TOKEN }}
+          path: releases-repo
+      
+      - name: Push release to public repo
+        run: |
+          VERSION="${{ steps.version.outputs.tag }}"
+          cd releases-repo
+          
+          # Configure git
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Create release directory
+          mkdir -p releases/$VERSION
+          cp ../release/* releases/$VERSION/
+          
+          # Update latest symlink info
+          echo "$VERSION" > LATEST
+          
+          # Commit and push
+          git add .
+          git commit -m "Release $VERSION" || echo "No changes to commit"
+          git push
+          
+          # Create and push tag
+          git tag -a "$VERSION" -m "Release $VERSION" || echo "Tag already exists"
+          git push origin "$VERSION" || echo "Tag already pushed"
+      
+      - name: Create GitHub Release on public repo
         uses: softprops/action-gh-release@v2
         with:
+          repository: gptcode-cloud/cli-releases
+          token: ${{ secrets.RELEASES_REPO_TOKEN }}
           tag_name: ${{ steps.version.outputs.tag }}
-          name: Release ${{ steps.version.outputs.tag }}
+          name: GPTCode ${{ steps.version.outputs.tag }}
           body: |
             ## Changes
             ${{ steps.changelog.outputs.changelog }}
             
             ## Installation
-            Download the appropriate binary for your system and add it to your PATH.
+            
+            ### Quick Install (macOS/Linux)
+            ```bash
+            curl -sSL https://raw.githubusercontent.com/gptcode-cloud/cli-releases/main/install.sh | sh
+            ```
+            
+            ### Manual Download
+            Download the appropriate binary for your system from the assets below.
             
             ### Verify Installation
             ```bash
-            chu --version
+            gptcode --version
             ```
             
             ${{ steps.version.outputs.auto_generated == 'true' && '> ⚡ Automated release triggered by CI' || '' }}
           files: |
-            bin/gptcode-linux-amd64
-            bin/gptcode-linux-arm64
-            bin/gptcode-darwin-amd64
-            bin/gptcode-darwin-arm64
-            bin/gptcode-windows-amd64.exe
+            release/*
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
