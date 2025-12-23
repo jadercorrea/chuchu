@@ -29,13 +29,17 @@ type Maestro struct {
 // NewMaestro creates a new Maestro orchestrator
 func NewMaestro(provider llm.Provider, cwd, model string) *Maestro {
 	checkpoints := NewCheckpointSystem(cwd)
+	recovery := NewRecoveryStrategy(3, checkpoints)
+	recovery.Verbose = os.Getenv("GPTCODE_DEBUG") == "1" // Enable verbose logging in debug mode
+	
+	// Initialize with no verifiers by default - will be set based on file types
 	return &Maestro{
 		Provider:    provider,
 		CWD:         cwd,
 		Model:       model,
 		Events:      events.NewEmitter(os.Stderr),
-		Verifiers:   []Verifier{NewBuildVerifier(cwd), NewTestVerifier(cwd)},
-		Recovery:    NewRecoveryStrategy(3, checkpoints),
+		Verifiers:   []Verifier{}, // Will be populated dynamically based on modified files
+		Recovery:    recovery,
 		Checkpoints: checkpoints,
 		MaxRetries:  3,
 	}
@@ -56,6 +60,9 @@ func (m *Maestro) ExecutePlan(ctx context.Context, planContent string) error {
 		var lastCheckpoint *Checkpoint
 		var err error
 
+		// Track history across attempts for context
+		var history []llm.ChatMessage
+
 		// Try execution with retries
 		for attempt := 0; attempt < m.MaxRetries; attempt++ {
 			if attempt > 0 {
@@ -65,7 +72,7 @@ func (m *Maestro) ExecutePlan(ctx context.Context, planContent string) error {
 			// Execute the step
 			m.CurrentStepIdx = stepIdx
 			before := m.gitChangedFiles()
-			err = m.executeStep(ctx, step)
+			err = m.executeStepWithHistory(ctx, step, history)
 			after := m.gitChangedFiles()
 			m.ModifiedFiles = diffStringSlices(before, after)
 			if err != nil {
@@ -88,6 +95,23 @@ func (m *Maestro) ExecutePlan(ctx context.Context, planContent string) error {
 				errorType := ClassifyError(verifyResult.Output)
 				_ = m.Events.Status(fmt.Sprintf("Error type: %s, attempting recovery...", errorType))
 
+				// Create recovery context with more information
+				recoveryCtx := &RecoveryContext{
+					ErrorType:     errorType,
+					ErrorOutput:   verifyResult.Output,
+					ModifiedFiles: m.ModifiedFiles,
+					StepIndex:     stepIdx,
+					Attempts:      attempt,
+					MaxAttempts:   m.MaxRetries,
+				}
+
+				// Try advanced recovery first
+				advancedPrompt, found := m.Recovery.AdvancedRecovery(recoveryCtx)
+				if !found {
+					// Fall back to basic error formatting
+					advancedPrompt = m.Recovery.GenerateFixPromptWithContext(recoveryCtx)
+				}
+
 				// For build errors, rollback if we have a checkpoint
 				if errorType == ErrorBuild && lastCheckpoint != nil {
 					_ = m.Events.Status("\u001b[35mRolling back to last checkpoint...\u001b[0m")
@@ -95,6 +119,13 @@ func (m *Maestro) ExecutePlan(ctx context.Context, planContent string) error {
 						_ = m.Events.Notify(fmt.Sprintf("Rollback failed: %v", rollbackErr), "error")
 					}
 				}
+
+				// Add recovery prompt to history for next attempt
+				recoveryMessage := llm.ChatMessage{
+					Role:    "user",
+					Content: advancedPrompt,
+				}
+				history = append(history, recoveryMessage)
 
 				err = fmt.Errorf("verification failed: %s", verifyResult.Error)
 				continue
@@ -152,6 +183,24 @@ func (m *Maestro) ExecuteStep(ctx context.Context, step PlanStep) error {
 	return m.executeStep(ctx, step)
 }
 
+func (m *Maestro) executeStepWithHistory(ctx context.Context, step PlanStep, history []llm.ChatMessage) error {
+	editorAgent := agents.NewEditor(m.Provider, m.CWD, m.Model)
+
+	statusCallback := func(status string) {
+		_ = m.Events.Status(status)
+	}
+
+	// If no history provided, create initial history
+	if len(history) == 0 {
+		history = []llm.ChatMessage{
+			{Role: "user", Content: fmt.Sprintf("Implement this step:\n\n# %s\n\n%s", step.Title, step.Content)},
+		}
+	}
+
+	_, _, err := editorAgent.Execute(ctx, history, statusCallback)
+	return err
+}
+
 func (m *Maestro) executeStep(ctx context.Context, step PlanStep) error {
 	editorAgent := agents.NewEditor(m.Provider, m.CWD, m.Model)
 
@@ -175,7 +224,10 @@ func (m *Maestro) executeStep(ctx context.Context, step PlanStep) error {
 
 // verify runs all verifiers
 func (m *Maestro) verify(ctx context.Context) (*VerificationResult, error) {
-	for _, verifier := range m.Verifiers {
+	// Dynamically select verifiers based on modified files
+	verifiers := m.selectVerifiers()
+	
+	for _, verifier := range verifiers {
 		result, err := verifier.Verify(ctx)
 		if err != nil {
 			return nil, err
@@ -186,6 +238,61 @@ func (m *Maestro) verify(ctx context.Context) (*VerificationResult, error) {
 	}
 
 	return &VerificationResult{Success: true}, nil
+}
+
+// selectVerifiers dynamically selects which verifiers to run based on modified files
+func (m *Maestro) selectVerifiers() []Verifier {
+	// Get current modified files
+	gitCmd := exec.Command("git", "--no-pager", "diff", "--name-only")
+	gitCmd.Dir = m.CWD
+	out, err := gitCmd.CombinedOutput()
+	if err != nil {
+		// If git fails, return default verifiers
+		return []Verifier{NewBuildVerifier(m.CWD), NewTestVerifier(m.CWD)}
+	}
+
+	modifiedFiles := strings.Split(strings.TrimSpace(string(out)), "\n")
+	
+	// Check if any modified file is a code file
+	hasCodeFiles := false
+	codeExtensions := map[string]bool{
+		".go": true, ".py": true, ".js": true, ".ts": true,
+		".jsx": true, ".tsx": true, ".java": true, ".c": true,
+		".cpp": true, ".rs": true, ".rb": true, ".ex": true,
+		".exs": true,
+	}
+
+	for _, file := range modifiedFiles {
+		if file == "" {
+			continue
+		}
+		for ext := range codeExtensions {
+			if strings.HasSuffix(file, ext) {
+				hasCodeFiles = true
+				break
+			}
+		}
+		if hasCodeFiles {
+			break
+		}
+	}
+
+	// Only add verifiers if code files were modified
+	var verifiers []Verifier
+	if hasCodeFiles {
+		verifiers = append(verifiers, NewBuildVerifier(m.CWD))
+		verifiers = append(verifiers, NewTestVerifier(m.CWD))
+	}
+	
+	// Add lint verifier if it was specifically requested
+	for _, originalVerifier := range m.Verifiers {
+		// Check if it's a LintVerifier by type assertion
+		if _, ok := originalVerifier.(*LintVerifier); ok {
+			verifiers = append(verifiers, originalVerifier)
+		}
+	}
+
+	return verifiers
 }
 
 func (m *Maestro) gitChangedFiles() []string {
