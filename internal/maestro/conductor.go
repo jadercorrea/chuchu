@@ -18,6 +18,7 @@ type Conductor struct {
 	setup    *config.Setup
 	cwd      string
 	language string
+	Recovery *RecoveryStrategy
 }
 
 // NewConductor creates a new Maestro conductor
@@ -27,11 +28,18 @@ func NewConductor(
 	cwd string,
 	language string,
 ) *Conductor {
+	// Create a recovery strategy with a temporary checkpoint system
+	// The conductor doesn't use checkpoints like the Maestro orchestrator does
+	tempCheckpoints := NewCheckpointSystem(cwd)
+	recovery := NewRecoveryStrategy(3, tempCheckpoints)
+	recovery.Verbose = os.Getenv("GPTCODE_DEBUG") == "1"
+
 	return &Conductor{
 		selector: selector,
 		setup:    setup,
 		cwd:      cwd,
 		language: language,
+		Recovery: recovery,
 	}
 }
 
@@ -109,10 +117,27 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 		if err != nil {
 			if attempt < maxAttempts {
 				fmt.Printf("[WARNING] Execution error: %v\n", err)
-				feedback := c.formatExecutionError(err)
+
+				// Use enhanced recovery system
+				recoveryCtx := &RecoveryContext{
+					ErrorType:     ErrorUnknown, // Will be classified by formatExecutionError
+					ErrorOutput:   err.Error(),
+					ModifiedFiles: modifiedFiles,
+					StepIndex:     -1, // Not applicable in conductor
+					Attempts:      attempt,
+					MaxAttempts:   maxAttempts,
+				}
+
+				// Try advanced recovery first
+				advancedPrompt, found := c.Recovery.AdvancedRecovery(recoveryCtx)
+				if !found {
+					// Fall back to basic error formatting
+					advancedPrompt = c.formatExecutionError(err)
+				}
+
 				history = append(history, llm.ChatMessage{
 					Role:    "user",
-					Content: feedback,
+					Content: advancedPrompt,
 				})
 				continue
 			}
@@ -152,10 +177,27 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 		if err != nil {
 			if attempt < maxAttempts {
 				fmt.Printf("[WARNING] Validation error: %v\n", err)
-				feedback := c.formatValidationError(err)
+
+				// Use enhanced recovery system
+				recoveryCtx := &RecoveryContext{
+					ErrorType:     ErrorUnknown, // Will be classified by formatValidationError
+					ErrorOutput:   err.Error(),
+					ModifiedFiles: modifiedFiles,
+					StepIndex:     -1, // Not applicable in conductor
+					Attempts:      attempt,
+					MaxAttempts:   maxAttempts,
+				}
+
+				// Try advanced recovery first
+				advancedPrompt, found := c.Recovery.AdvancedRecovery(recoveryCtx)
+				if !found {
+					// Fall back to basic error formatting
+					advancedPrompt = c.formatValidationError(err)
+				}
+
 				history = append(history, llm.ChatMessage{
 					Role:    "user",
-					Content: feedback,
+					Content: advancedPrompt,
 				})
 				continue
 			}
@@ -166,10 +208,27 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 			if attempt < maxAttempts {
 				issuesStr := strings.Join(review.Issues, "\n")
 				fmt.Printf("[WARNING] Validation failed:\n%s\n", issuesStr)
-				feedback := c.formatValidationIssues(review.Issues)
+
+				// Use enhanced recovery system
+				recoveryCtx := &RecoveryContext{
+					ErrorType:     ErrorUnknown, // Will be classified by formatValidationIssues
+					ErrorOutput:   issuesStr,
+					ModifiedFiles: modifiedFiles,
+					StepIndex:     -1, // Not applicable in conductor
+					Attempts:      attempt,
+					MaxAttempts:   maxAttempts,
+				}
+
+				// Try advanced recovery first
+				advancedPrompt, found := c.Recovery.AdvancedRecovery(recoveryCtx)
+				if !found {
+					// Fall back to basic error formatting
+					advancedPrompt = c.formatValidationIssues(review.Issues)
+				}
+
 				history = append(history, llm.ChatMessage{
 					Role:    "user",
-					Content: feedback,
+					Content: advancedPrompt,
 				})
 				continue
 			}
