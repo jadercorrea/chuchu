@@ -1,0 +1,45 @@
+{
+  "features": [
+    "action_encoded",
+    "language_encoded",
+    "complexity_encoded",
+    "log_cost",
+    "log_context",
+    "has_coder_tag",
+    "has_instant_tag",
+    "model_size"
+  ],
+  "coefficients": [
+    [
+      0.9166797545076555,
+      0.7552097242159239,
+      0.4653352648503612,
+      1.329854875066683,
+      -0.3696973390984952,
+      0.22774190417820253,
+      -0.042255398778647,
+      0.13500277100143443
+    ]
+  ],
+  "intercept": [
+    1.956324783316379
+  ],
+  "encoders": {
+    "action": {
+      "edit": 0,
+      "plan": 1,
+      "research": 2,
+      "review": 3,
+      "route": 4
+    },
+    "language": {
+      "go": 0,
+      "python": 1,
+      "typescript": 2
+    },
+    "complexity": {
+      "complex": 0,
+      "simple": 1
+    }
+  }
+}

@@ -28,6 +28,12 @@ var AvailableModels = map[string]ModelInfo{
 		Path:        "ml/intent",
 		SetupScript: "setup_and_train.sh",
 	},
+	"recommender": {
+		Name:        "recommender",
+		Description: "Model recommender (predicts model success for tasks)",
+		Path:        "ml/recommender",
+		SetupScript: "setup_and_train.sh",
+	},
 }
 
 // ModelInfo contains metadata about a trainable model

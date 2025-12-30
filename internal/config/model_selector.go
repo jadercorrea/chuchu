@@ -54,10 +54,11 @@ type ModelUsage struct {
 }
 
 type ModelSelector struct {
-	catalog  map[string][]ModelInfo
-	feedback []ModelFeedback
-	usage    map[string]map[string]ModelUsage
-	setup    *Setup
+	catalog     map[string][]ModelInfo
+	feedback    []ModelFeedback
+	usage       map[string]map[string]ModelUsage
+	setup       *Setup
+	recommender *RecommenderModel
 }
 
 func NewModelSelector(setup *Setup) (*ModelSelector, error) {
@@ -78,6 +79,16 @@ func NewModelSelector(setup *Setup) (*ModelSelector, error) {
 
 	if err := selector.loadUsage(); err != nil {
 		fmt.Fprintf(os.Stderr, "[WARN] Could not load usage: %v\n", err)
+	}
+
+	workDir, _ := os.Getwd()
+	if recommender, err := LoadRecommender(workDir); err == nil {
+		selector.recommender = recommender
+		if os.Getenv("GPTCODE_DEBUG") == "1" {
+			fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] Loaded ML recommender\n")
+		}
+	} else if os.Getenv("GPTCODE_DEBUG") == "1" {
+		fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] No ML recommender: %v\n", err)
 	}
 
 	return selector, nil
@@ -135,7 +146,6 @@ func (ms *ModelSelector) loadCatalog() error {
 				model.TokensPerSec = int(tps)
 			}
 
-			// Default capabilities to true for backward compatibility
 			model.Capabilities.SupportsTools = true
 			model.Capabilities.SupportsFileOperations = true
 			model.Capabilities.SupportsCodeExecution = false
@@ -163,22 +173,17 @@ func (ms *ModelSelector) loadCatalog() error {
 }
 
 func (ms *ModelSelector) loadFeedback() error {
-	// Try to load from feedback system first (new location)
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
 
-	// Import feedback package to use existing system
-	// For now, we'll load directly from the feedback directory
 	feedbackDir := filepath.Join(home, ".gptcode", "feedback")
 	entries, err := os.ReadDir(feedbackDir)
 	if err != nil {
-		// Feedback dir doesn't exist yet, that's OK
 		return nil
 	}
 
-	// Load all feedback events
 	for _, entry := range entries {
 		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
 			continue
@@ -195,7 +200,6 @@ func (ms *ModelSelector) loadFeedback() error {
 			continue
 		}
 
-		// Convert feedback events to model feedback format
 		for _, event := range rawEvents {
 			fb := ms.convertFeedbackEvent(event)
 			if fb.ModelID != "" && fb.Action != "" {
@@ -207,16 +211,13 @@ func (ms *ModelSelector) loadFeedback() error {
 	return nil
 }
 
-// convertFeedbackEvent converts a feedback event to ModelFeedback
 func (ms *ModelSelector) convertFeedbackEvent(event map[string]interface{}) ModelFeedback {
 	fb := ModelFeedback{}
 
-	// Extract model
 	if val, ok := event["model"].(string); ok {
 		fb.ModelID = val
 	}
 
-	// Map agent to action
 	if agent, ok := event["agent"].(string); ok {
 		switch strings.ToLower(agent) {
 		case "editor":
@@ -230,12 +231,10 @@ func (ms *ModelSelector) convertFeedbackEvent(event map[string]interface{}) Mode
 		}
 	}
 
-	// Determine success from sentiment
 	if sentiment, ok := event["sentiment"].(string); ok {
 		fb.Success = sentiment == "good"
 	}
 
-	// Try to extract language from task
 	fb.Language = "unknown"
 	if task, ok := event["task"].(string); ok {
 		taskLower := strings.ToLower(task)
@@ -249,7 +248,6 @@ func (ms *ModelSelector) convertFeedbackEvent(event map[string]interface{}) Mode
 			fb.Language = "elixir"
 		}
 
-		// Determine complexity
 		fb.Complexity = "simple"
 		if strings.Contains(taskLower, "refactor") ||
 			strings.Contains(taskLower, "reorganize") ||
@@ -460,25 +458,14 @@ func (ms *ModelSelector) scoreModel(model ModelInfo, action ActionType, language
 		}
 	}
 
-	if complexity == "simple" {
-		if strings.Contains(strings.ToLower(model.ID), "instant") ||
-			strings.Contains(strings.ToLower(model.ID), "8b") ||
-			strings.Contains(strings.ToLower(model.ID), "3b") {
-			score += 15
-		}
-	}
-
-	if complexity == "complex" || complexity == "multistep" {
-		if strings.Contains(strings.ToLower(model.ID), "70b") ||
-			strings.Contains(strings.ToLower(model.ID), "large") {
-			score += 20
-		}
-	}
-
-	if action == ActionEdit || action == ActionReview {
-		if strings.Contains(strings.ToLower(model.ID), "coder") ||
-			strings.Contains(strings.ToLower(model.ID), "code") {
-			score += 25
+	if ms.recommender != nil {
+		successProb := ms.recommender.PredictSuccess(
+			model.ID, action, language, complexity,
+			model.ContextWindow, model.CostPer1M,
+		)
+		score += successProb * 50
+		if os.Getenv("GPTCODE_DEBUG") == "1" {
+			fmt.Fprintf(os.Stderr, "[MODEL_SELECTOR] ML prediction for %s: %.2f%%\n", model.ID, successProb*100)
 		}
 	}
 
