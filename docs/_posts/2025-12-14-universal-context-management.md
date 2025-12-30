@@ -363,7 +363,7 @@ Quick reference, not a novel.
 
 ```bash
 # GPTCode CLI includes context management
-go install github.com/jadercorrea/gptcode/cmd/gptcode@latest
+go install github.com/gptcode-cloud/cli/cmd/gptcode@latest
 ```
 
 ### Initialize
@@ -476,7 +476,7 @@ gptcode context init
 
 ```bash
 # Install
-go install github.com/jadercorrea/gptcode/cmd/gptcode@latest
+go install github.com/gptcode-cloud/cli/cmd/gptcode@latest
 
 # Initialize
 cd ~/your-project
@@ -500,6 +500,6 @@ gptcode context sync
 
 **Read the full guide:** [Context Management Documentation](/docs/guides/context-management.md)
 
-**Questions?** Open an issue on [GitHub](https://github.com/jadercorrea/gptcode/issues)
+**Questions?** Open an issue on [GitHub](https://github.com/gptcode-cloud/cli/issues)
 
-**Share your setup:** Join the [Discussion](https://github.com/jadercorrea/gptcode/discussions)
+**Share your setup:** Join the [Discussion](https://github.com/gptcode-cloud/cli/issues)

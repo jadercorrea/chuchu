@@ -140,4 +140,4 @@ Check the [E2E test results](https://github.com/gptcode-cloud/cli/actions) for c
 
 ---
 
-Questions or issues? [Open an issue](https://github.com/gptcode-cloud/cli/issues) or [join the discussion](https://github.com/gptcode-cloud/cli/discussions).
+Questions or issues? [Open an issue](https://github.com/gptcode-cloud/cli/issues) or [join the discussion](https://github.com/gptcode-cloud/cli/issues).

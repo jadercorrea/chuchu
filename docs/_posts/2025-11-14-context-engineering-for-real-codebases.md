@@ -328,4 +328,4 @@ But the foundation is always the same: **manage your context window like your pr
 
 ---
 
-*Have questions about context engineering? Join the discussion in [GitHub Discussions](https://github.com/jadercorrea/gptcode/discussions)*
+*Have questions about context engineering? Join the discussion in [GitHub Discussions](https://github.com/gptcode-cloud/cli/issues)*

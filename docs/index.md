@@ -9,7 +9,7 @@ description: AI coding assistant with specialized agents and validation
   <p>Transparent, Autonomous, and Local. <strong>Bring Your Own Keys</strong>. Run with Groq, OpenAI, or locally with Ollama. No subscriptions, full control.</p>
   <div class="hero-cta">
     <a href="#quick-start" class="btn btn-primary">Get Started</a>
-    <a href="https://github.com/jadercorrea/gptcode" class="btn btn-secondary">View on GitHub</a>
+    <a href="https://github.com/gptcode-cloud/cli" class="btn btn-secondary">View on GitHub</a>
   </div>
 </div>
 
@@ -94,7 +94,7 @@ description: AI coding assistant with specialized agents and validation
   
   <div class="quick-start">
     <h3>1. Install CLI</h3>
-    <pre><code>go install github.com/jadercorrea/gptcode/cmd/gptcode@latest
+    <pre><code>go install github.com/gptcode-cloud/cli/cmd/gptcode@latest
 gptcode setup</code></pre>
     
     <h3>2. Add Neovim Plugin</h3>

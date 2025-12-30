@@ -11,7 +11,7 @@ Please be respectful, inclusive, and constructive in all interactions. We're bui
 ### Reporting Bugs
 
 Before creating a bug report:
-1. Check [existing issues](https://github.com/jadercorrea/gptcode/issues)
+1. Check [existing issues](https://github.com/gptcode-cloud/cli/issues)
 2. Use the latest version of GPTCode
 
 When reporting:
@@ -24,7 +24,7 @@ When reporting:
 ### Suggesting Features
 
 We love feature ideas! Before suggesting:
-1. Check [Discussions](https://github.com/jadercorrea/gptcode/discussions) for similar ideas
+1. Check [Discussions](https://github.com/gptcode-cloud/cli/issues) for similar ideas
 2. Consider if it aligns with GPTCode's goals (affordable, TDD-first, terminal-native)
 
 When suggesting:
@@ -37,8 +37,8 @@ When suggesting:
 
 1. **Fork and clone**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/gptcode
-   cd gptcode
+   git clone https://github.com/YOUR_USERNAME/cli
+   cd cli
    ```
 
 2. **Create a branch**
@@ -184,7 +184,7 @@ fix stuff
 
 ## Questions?
 
-- Ask in [Discussions](https://github.com/jadercorrea/gptcode/discussions)
+- Ask in [Discussions](https://github.com/gptcode-cloud/cli/issues)
 - Tag issues with `question` label
 - Reach out to maintainers
 

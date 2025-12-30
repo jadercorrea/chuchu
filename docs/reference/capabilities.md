@@ -388,12 +388,12 @@ Skipped tests (t.Skip()) represent features not yet implemented.
 
 ### Future Releases
 
-Track progress at: https://github.com/jadercorrea/gptcode/milestones
+Track progress at: https://github.com/gptcode-cloud/cli/milestones
 
 ---
 
 ## Reporting Issues
 
-Found a limitation not listed here? [Open an issue](https://github.com/jadercorrea/gptcode/issues/new?labels=capability)
+Found a limitation not listed here? [Open an issue](https://github.com/gptcode-cloud/cli/issues/new?labels=capability)
 
-See something marked as "not working" that actually works for you? [Let us know](https://github.com/jadercorrea/gptcode/discussions)!
+See something marked as "not working" that actually works for you? [Let us know](https://github.com/gptcode-cloud/cli/issues)!

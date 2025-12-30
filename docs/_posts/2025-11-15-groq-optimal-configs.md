@@ -383,4 +383,4 @@ gptcode profile show groq.budget   # Show specific profile details
 
 ---
 
-*Questions or better configurations? Share on [GitHub Discussions](https://github.com/jadercorrea/gptcode/discussions)!*
+*Questions or better configurations? Share on [GitHub Discussions](https://github.com/gptcode-cloud/cli/issues)!*
