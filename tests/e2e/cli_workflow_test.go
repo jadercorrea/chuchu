@@ -9,7 +9,21 @@ import (
 	"gptcode/internal/modes"
 )
 
+func hasLLMConfig() bool {
+	keys := []string{"GROQ_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "OPENROUTER_API_KEY"}
+	for _, key := range keys {
+		if os.Getenv(key) != "" {
+			return true
+		}
+	}
+	return false
+}
+
 func TestCLIWorkflowPlanImplement(t *testing.T) {
+	if !hasLLMConfig() {
+		t.Skip("Skipping: no LLM API key configured")
+	}
+
 	tempDir, err := os.MkdirTemp("", "gptcode_e2e_test")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
@@ -58,7 +72,7 @@ func main() {
 				break
 			}
 		}
-		
+
 		if !planFound {
 			t.Error("No plan file was created")
 		}

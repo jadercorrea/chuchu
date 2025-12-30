@@ -27,6 +27,7 @@ jobs:
       - name: Run tests
         env:
           CI: true
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
       
       - name: Upload coverage

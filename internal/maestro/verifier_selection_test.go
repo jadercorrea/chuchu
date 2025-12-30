@@ -195,6 +195,12 @@ func TestVerifyWithDynamicSelection(t *testing.T) {
 	err = execCommand(tempDir, "git", "init")
 	require.NoError(t, err)
 
+	err = execCommand(tempDir, "git", "config", "user.name", "test")
+	require.NoError(t, err)
+
+	err = execCommand(tempDir, "git", "config", "user.email", "test@example.com")
+	require.NoError(t, err)
+
 	err = execCommand(tempDir, "git", "add", ".")
 	require.NoError(t, err)
 
