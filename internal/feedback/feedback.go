@@ -354,3 +354,96 @@ func GetBestModels(agent string, minSamples int) []string {
 
 	return best
 }
+
+type AnonymizedEvent struct {
+	Date       string  `json:"date"`
+	Sentiment  string  `json:"sentiment"`
+	Backend    string  `json:"backend"`
+	Model      string  `json:"model"`
+	Agent      string  `json:"agent"`
+	Language   string  `json:"language,omitempty"`
+	Complexity string  `json:"complexity,omitempty"`
+}
+
+func Anonymize(events []Event) []AnonymizedEvent {
+	var anonymized []AnonymizedEvent
+	
+	for _, e := range events {
+		if e.Model == "" || e.Agent == "" {
+			continue
+		}
+		
+		var action string
+		switch strings.ToLower(e.Agent) {
+		case "editor":
+			action = "edit"
+		case "reviewer", "validator":
+			action = "review"
+		case "planner":
+			action = "plan"
+		case "research":
+			action = "research"
+		default:
+			action = e.Agent
+		}
+		
+		complexity := "simple"
+		if strings.Contains(strings.ToLower(e.Context), "complex") ||
+			strings.Contains(strings.ToLower(e.Task), "refactor") ||
+			strings.Contains(strings.ToLower(e.Task), "reorganize") {
+			complexity = "complex"
+		}
+		
+		var lang string
+		taskLower := strings.ToLower(e.Task)
+		if strings.Contains(taskLower, ".go") {
+			lang = "go"
+		} else if strings.Contains(taskLower, ".py") {
+			lang = "python"
+		} else if strings.Contains(taskLower, ".ts") || strings.Contains(taskLower, ".js") {
+			lang = "typescript"
+		} else if strings.Contains(taskLower, ".rs") {
+			lang = "rust"
+		} else if strings.Contains(taskLower, ".rb") {
+			lang = "ruby"
+		} else if strings.Contains(taskLower, ".ex") || strings.Contains(taskLower, ".exs") {
+			lang = "elixir"
+		}
+		
+		anonymized = append(anonymized, AnonymizedEvent{
+			Date:       e.Timestamp.Format("2006-01-02"),
+			Sentiment:  string(e.Sentiment),
+			Backend:    e.Backend,
+			Model:      e.Model,
+			Agent:      action,
+			Language:   lang,
+			Complexity: complexity,
+		})
+	}
+	
+	return anonymized
+}
+
+func ExportAnonymized(outputPath string) error {
+	events, err := LoadAll()
+	if err != nil {
+		return fmt.Errorf("failed to load feedback: %w", err)
+	}
+	
+	if len(events) == 0 {
+		return fmt.Errorf("no feedback events found")
+	}
+	
+	anonymized := Anonymize(events)
+	
+	data, err := json.MarshalIndent(anonymized, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal anonymized feedback: %w", err)
+	}
+	
+	if err := os.WriteFile(outputPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write export file: %w", err)
+	}
+	
+	return nil
+}

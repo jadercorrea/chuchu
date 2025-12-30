@@ -951,6 +951,67 @@ var feedbackStatsCmd = &cobra.Command{
 	},
 }
 
+var feedbackExportCmd = &cobra.Command{
+	Use:   "export [output-file]",
+	Short: "Export anonymized feedback for sharing",
+	Long: `Export feedback events with sensitive information removed.
+
+Removed fields:
+- Task descriptions
+- Context/code snippets  
+- File paths
+- Responses (wrong/correct)
+
+Kept fields (safe for sharing):
+- Model ID
+- Action (edit/review/plan/research)
+- Language
+- Complexity
+- Success/failure
+- Backend
+- Date (without time)
+
+Example:
+  gptcode feedback export feedback-export.json`,
+	Args: cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		outputPath := "feedback-export.json"
+		if len(args) > 0 {
+			outputPath = args[0]
+		}
+
+		events, err := feedback.LoadAll()
+		if err != nil {
+			return fmt.Errorf("failed to load feedback: %w", err)
+		}
+
+		if len(events) == 0 {
+			return fmt.Errorf("no feedback events found")
+		}
+
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		if dryRun {
+			anonymized := feedback.Anonymize(events)
+			fmt.Printf("\n Preview of anonymized data (%d events):\n\n", len(anonymized))
+			encoder := json.NewEncoder(os.Stdout)
+			encoder.SetIndent("", "  ")
+			if err := encoder.Encode(anonymized[:min(5, len(anonymized))]); err != nil {
+				return fmt.Errorf("failed to encode preview: %w", err)
+			}
+			fmt.Printf("\n...and %d more events\n", max(0, len(anonymized)-5))
+			fmt.Printf("\nRun without --dry-run to export to %s\n", outputPath)
+			return nil
+		}
+
+		if err := feedback.ExportAnonymized(outputPath); err != nil {
+			return fmt.Errorf("failed to export feedback: %w", err)
+		}
+
+		fmt.Printf("[OK] Exported %d anonymized feedback events to %s\n", len(events), outputPath)
+		return nil
+	},
+}
+
 var feedbackSubmitCmd = &cobra.Command{
 	Use:   "submit",
 	Short: "Submit feedback event via flags or JSON",
@@ -1093,6 +1154,7 @@ func init() {
 	feedbackCmd.AddCommand(feedbackGoodCmd)
 	feedbackCmd.AddCommand(feedbackBadCmd)
 	feedbackCmd.AddCommand(feedbackStatsCmd)
+	feedbackCmd.AddCommand(feedbackExportCmd)
 	feedbackCmd.AddCommand(feedbackSubmitCmd)
 	feedbackCmd.AddCommand(feedbackHookCmd)
 
@@ -1137,6 +1199,8 @@ func init() {
 	feedbackSubmitCmd.Flags().StringSlice("files", nil, "Related files")
 	feedbackSubmitCmd.Flags().Bool("capture-diff", false, "Also capture git diff to file and link it")
 	feedbackSubmitCmd.Flags().String("sentiment", "", "good|bad")
+
+	feedbackExportCmd.Flags().Bool("dry-run", false, "Preview anonymized data without exporting")
 
 	modelsCmd.AddCommand(modelsUpdateCmd)
 	modelsCmd.AddCommand(modelsSearchCmd)
