@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,20 +10,79 @@ import (
 	"gptcode/internal/modes"
 )
 
-func hasLLMConfig() bool {
-	keys := []string{"GROQ_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "OPENROUTER_API_KEY"}
-	for _, key := range keys {
-		if os.Getenv(key) != "" {
-			return true
+func setupTestConfig(t *testing.T) func() {
+	t.Helper()
+
+	groqKey := os.Getenv("GROQ_API_KEY")
+	if groqKey == "" {
+		t.Skip("Skipping: GROQ_API_KEY not set")
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("Failed to get home dir: %v", err)
+	}
+
+	gptcodeDir := filepath.Join(homeDir, ".gptcode")
+	configFile := filepath.Join(gptcodeDir, "config.yml")
+	keysFile := filepath.Join(gptcodeDir, "keys.yaml")
+
+	// Backup existing config if exists
+	var backupConfig []byte
+	hadConfig := false
+	if content, err := os.ReadFile(configFile); err == nil {
+		backupConfig = content
+		hadConfig = true
+	}
+
+	// Backup existing keys if exists
+	var backupKeys []byte
+	hadKeys := false
+	if content, err := os.ReadFile(keysFile); err == nil {
+		backupKeys = content
+		hadKeys = true
+	}
+
+	// Create .gptcode directory
+	os.MkdirAll(gptcodeDir, 0755)
+
+	// Write config with groq as default backend
+	config := `defaults:
+  backend: groq
+  model: llama-3.1-8b-instant
+backend:
+  groq:
+    type: groq
+    default_model: llama-3.1-8b-instant
+`
+	if err := os.WriteFile(configFile, []byte(config), 0644); err != nil {
+		t.Fatalf("Failed to write config: %v", err)
+	}
+
+	// Write API key to keys.yaml (where GetAPIKey reads from)
+	keys := fmt.Sprintf("groq: %s\n", groqKey)
+	if err := os.WriteFile(keysFile, []byte(keys), 0600); err != nil {
+		t.Fatalf("Failed to write keys: %v", err)
+	}
+
+	// Return cleanup function
+	return func() {
+		if hadConfig {
+			os.WriteFile(configFile, backupConfig, 0644)
+		} else {
+			os.Remove(configFile)
+		}
+		if hadKeys {
+			os.WriteFile(keysFile, backupKeys, 0600)
+		} else {
+			os.Remove(keysFile)
 		}
 	}
-	return false
 }
 
 func TestCLIWorkflowPlanImplement(t *testing.T) {
-	if !hasLLMConfig() {
-		t.Skip("Skipping: no LLM API key configured")
-	}
+	cleanup := setupTestConfig(t)
+	defer cleanup()
 
 	tempDir, err := os.MkdirTemp("", "gptcode_e2e_test")
 	if err != nil {
