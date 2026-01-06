@@ -13,9 +13,10 @@ type BuildOptions struct {
 }
 
 type Builder struct {
-	ProfilePath string
-	SystemPath  string
-	Store       MemoryStore
+	ProfilePath  string
+	SystemPath   string
+	Store        MemoryStore
+	SkillsLoader *SkillsLoader
 }
 
 func NewDefaultBuilder(store MemoryStore) *Builder {
@@ -23,9 +24,10 @@ func NewDefaultBuilder(store MemoryStore) *Builder {
 	profile := filepath.Join(home, ".gptcode", "profile.yaml")
 	system := filepath.Join(home, ".gptcode", "system_prompt.md")
 	return &Builder{
-		ProfilePath: profile,
-		SystemPath:  system,
-		Store:       store,
+		ProfilePath:  profile,
+		SystemPath:   system,
+		Store:        store,
+		SkillsLoader: NewSkillsLoader(),
 	}
 }
 
@@ -35,6 +37,24 @@ func (b *Builder) BuildSystemPrompt(opts BuildOptions) string {
 	mem := ""
 	if b.Store != nil {
 		mem = b.Store.LastRelevant(opts.Lang)
+	}
+
+	// Load language-specific skill if available
+	skill := ""
+	if b.SkillsLoader != nil && opts.Lang != "" {
+		skill = b.SkillsLoader.LoadForLanguage(opts.Lang)
+	}
+
+	// Build the prompt with optional skill section
+	skillSection := ""
+	if skill != "" {
+		skillSection = fmt.Sprintf(`
+---
+
+# Language-Specific Guidelines (%s)
+
+%s
+`, opts.Lang, skill)
 	}
 
 	return fmt.Sprintf(`%s
@@ -50,7 +70,7 @@ func (b *Builder) BuildSystemPrompt(opts BuildOptions) string {
 # Relevant Memory
 
 %s
-
+%s
 ---
 
 # Current Session Context
@@ -58,7 +78,7 @@ func (b *Builder) BuildSystemPrompt(opts BuildOptions) string {
 Language: %s
 Mode: %s
 Hint: %s
-`, base, profile, mem, opts.Lang, opts.Mode, opts.Hint)
+`, base, profile, mem, skillSection, opts.Lang, opts.Mode, opts.Hint)
 }
 
 func mustReadFile(path string) string {
@@ -72,3 +92,4 @@ func mustReadFile(path string) string {
 type MemoryStore interface {
 	LastRelevant(lang string) string
 }
+
