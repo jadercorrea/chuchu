@@ -3,7 +3,7 @@
 # Multi-layer validation: Syntax → Review → Tests → Analysis
 # Usage: ./training_loop_v2.sh [NUM_ISSUES] [--dry-run]
 
-set -e
+# Note: removed set -e to allow error handling in functions
 
 GPTCODE_BIN="/Users/jadercorrea/workspace/gptcode/cli/gptcode"
 SANDBOX_DIR="/Users/jadercorrea/workspace/gptcode/cli/training-sandbox"
@@ -56,6 +56,7 @@ RESET
         echo "  ⚠️  jq update failed, skipping"
         rm -f "$temp_file"
     fi
+    return 0
 }
 
 # Set start time
