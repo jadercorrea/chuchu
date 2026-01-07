@@ -11,6 +11,9 @@ collections:
   posts:
     output: true
     permalink: /blog/:year-:month-:day-:title
+  skills:
+    output: true
+    permalink: /skills/:name
 
 markdown: kramdown
 highlighter: rouge
@@ -33,6 +36,11 @@ defaults:
       type: "posts"
     values:
       layout: "post"
+  - scope:
+      path: ""
+      type: "skills"
+    values:
+      layout: "skill"
   - scope:
       path: ""
     values:
