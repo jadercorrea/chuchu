@@ -208,53 +208,50 @@ func (o *AgentObserver) Emit(event Event) {
 	}
 }
 
-// printEvent outputs event details to console
+// printEvent outputs event details to console (verbose mode)
 func (o *AgentObserver) printEvent(event Event) {
 	switch e := event.(type) {
 	case *ToolCallEvent:
 		if e.Error != "" {
-			fmt.Printf("  [TOOL] %s → ERROR: %s\n", e.Name, e.Error)
+			fmt.Printf("  [TOOL] %-15s ERROR: %s\n", e.Name, e.Error)
 		} else {
-			result := e.Result
-			if len(result) > 80 {
-				result = result[:80] + "..."
-			}
-			fmt.Printf("  [TOOL] %s (%.1fs)\n", e.Name, e.Duration.Seconds())
+			fmt.Printf("  [TOOL] %-15s %.2fs\n", e.Name, e.Duration.Seconds())
 		}
 	case *FileModifiedEvent:
 		switch e.Operation {
 		case "create":
-			fmt.Printf("  [FILE] + %s (%d bytes)\n", e.Path, e.Bytes)
+			fmt.Printf("  [FILE] + %-30s %s\n", e.Path, formatBytes(e.Bytes))
 		case "modify":
-			fmt.Printf("  [FILE] ~ %s (%d bytes)\n", e.Path, e.Bytes)
+			fmt.Printf("  [FILE] ~ %-30s %s\n", e.Path, formatBytes(e.Bytes))
 		case "delete":
 			fmt.Printf("  [FILE] - %s\n", e.Path)
 		}
 	case *LLMRequestEvent:
-		fmt.Printf("  [LLM] %s: %d→%d tokens (%.1fs)\n",
-			e.Model, e.TokensIn, e.TokensOut, e.Duration.Seconds())
+		fmt.Printf("  [LLM]  %-15s in:%s out:%s (%.2fs)\n",
+			e.Model, formatNumber(e.TokensIn), formatNumber(e.TokensOut), e.Duration.Seconds())
 	case *AgentEvent:
 		if e.Phase == "start" {
 			fmt.Printf("  [AGENT] %s started\n", e.Name)
 		} else {
-			status := "✓"
+			status := "OK"
 			if !e.Success {
-				status = "✗"
+				status = "FAILED"
 			}
-			fmt.Printf("  [AGENT] %s ended %s\n", e.Name, status)
+			fmt.Printf("  [AGENT] %s ended: %s\n", e.Name, status)
 		}
 	case *MovementEvent:
 		if e.Phase == "start" {
-			fmt.Printf("\n→ Movement: %s\n", e.Name)
+			fmt.Printf("\n  >> Movement: %s\n", e.Name)
 		} else {
-			status := "✓"
+			status := "OK"
 			if !e.Success {
-				status = "✗"
+				status = "FAILED"
 			}
-			fmt.Printf("← Movement complete %s\n", status)
+			fmt.Printf("  << Movement complete: %s\n", status)
 		}
 	}
 }
+
 
 // Summary returns the execution summary
 func (o *AgentObserver) Summary() *ExecutionSummary {
@@ -354,64 +351,164 @@ func (o *AgentObserver) AllModifiedFiles() []string {
 	return result
 }
 
-// PrintSummary outputs a formatted summary to console
+// PrintSummary outputs a professional formatted summary to console
 func (o *AgentObserver) PrintSummary() {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+
 	summary := o.Summary()
 
-	fmt.Println("\n" + strings.Repeat("─", 50))
-	fmt.Println("📊 EXECUTION SUMMARY")
-	fmt.Println(strings.Repeat("─", 50))
-
-	// Duration
-	fmt.Printf("⏱️  Duration: %.1fs\n", summary.Duration.Seconds())
-
-	// Files
-	totalFiles := len(summary.FilesCreated) + len(summary.FilesModified)
-	if totalFiles > 0 {
-		fmt.Printf("\n📁 Files Changed: %d\n", totalFiles)
-		for _, f := range summary.FilesCreated {
-			bytes := o.filesCreated[f]
-			fmt.Printf("   ✚ %s (%d bytes)\n", f, bytes)
-		}
-		for _, f := range summary.FilesModified {
-			bytes := o.filesModified[f]
-			fmt.Printf("   ✎ %s (%d bytes)\n", f, bytes)
-		}
-		for _, f := range summary.FilesDeleted {
-			fmt.Printf("   ✖ %s\n", f)
-		}
-	} else {
-		fmt.Println("\n📁 Files Changed: 0")
-	}
-
-	// Tool calls
-	if len(summary.ToolCalls) > 0 {
-		fmt.Println("\n🔧 Tool Calls:")
-		for tool, count := range summary.ToolCalls {
-			fmt.Printf("   • %s: %d\n", tool, count)
-		}
-	}
-
-	// LLM stats
-	if summary.LLMCalls > 0 {
-		fmt.Printf("\n🤖 LLM: %d calls, %d tokens in, %d tokens out\n",
-			summary.LLMCalls, summary.TokensIn, summary.TokensOut)
-	}
-
-	// Errors
-	if len(summary.Errors) > 0 {
-		fmt.Printf("\n⚠️  Errors: %d\n", len(summary.Errors))
-		for _, err := range summary.Errors {
-			fmt.Printf("   • %s\n", err)
-		}
-	}
-
-	// Final status
+	// Header
 	fmt.Println()
-	if summary.Success {
-		fmt.Println("✅ Status: SUCCESS")
-	} else {
-		fmt.Println("❌ Status: FAILED")
+	fmt.Println(strings.Repeat("=", 60))
+	fmt.Println("                    EXECUTION SUMMARY")
+	fmt.Println(strings.Repeat("=", 60))
+
+	// Timing
+	fmt.Println()
+	fmt.Println("TIMING")
+	fmt.Println(strings.Repeat("-", 40))
+	fmt.Printf("  Total Duration:     %.2fs\n", summary.Duration.Seconds())
+
+	// Calculate average per tool call if available
+	totalToolCalls := 0
+	for _, count := range summary.ToolCalls {
+		totalToolCalls += count
 	}
-	fmt.Println(strings.Repeat("─", 50))
+	if totalToolCalls > 0 {
+		avgPerCall := summary.Duration.Seconds() / float64(totalToolCalls)
+		fmt.Printf("  Avg per Tool Call:  %.2fs\n", avgPerCall)
+	}
+
+	// Files Section
+	fmt.Println()
+	fmt.Println("FILE CHANGES")
+	fmt.Println(strings.Repeat("-", 40))
+	
+	totalFiles := len(o.filesCreated) + len(o.filesModified) + len(o.filesDeleted)
+	var totalBytes int64
+	for _, b := range o.filesCreated {
+		totalBytes += b
+	}
+	for _, b := range o.filesModified {
+		totalBytes += b
+	}
+
+	if totalFiles > 0 {
+		fmt.Printf("  Files Created:      %d\n", len(o.filesCreated))
+		fmt.Printf("  Files Modified:     %d\n", len(o.filesModified))
+		fmt.Printf("  Files Deleted:      %d\n", len(o.filesDeleted))
+		fmt.Printf("  Total Bytes:        %s\n", formatBytes(totalBytes))
+		
+		if len(o.filesCreated) > 0 {
+			fmt.Println()
+			fmt.Println("  Created:")
+			for path, bytes := range o.filesCreated {
+				fmt.Printf("    + %-35s %s\n", path, formatBytes(bytes))
+			}
+		}
+		if len(o.filesModified) > 0 {
+			fmt.Println()
+			fmt.Println("  Modified:")
+			for path, bytes := range o.filesModified {
+				fmt.Printf("    ~ %-35s %s\n", path, formatBytes(bytes))
+			}
+		}
+		if len(o.filesDeleted) > 0 {
+			fmt.Println()
+			fmt.Println("  Deleted:")
+			for _, path := range o.filesDeleted {
+				fmt.Printf("    - %s\n", path)
+			}
+		}
+	} else {
+		fmt.Println("  No files changed")
+	}
+
+	// Tool Calls Section
+	fmt.Println()
+	fmt.Println("TOOL USAGE")
+	fmt.Println(strings.Repeat("-", 40))
+	
+	if totalToolCalls > 0 {
+		fmt.Printf("  Total Calls:        %d\n", totalToolCalls)
+		fmt.Println()
+		fmt.Println("  Breakdown:")
+		for tool, count := range summary.ToolCalls {
+			pct := float64(count) / float64(totalToolCalls) * 100
+			fmt.Printf("    %-20s %3d  (%5.1f%%)\n", tool, count, pct)
+		}
+	} else {
+		fmt.Println("  No tool calls recorded")
+	}
+
+	// LLM Section
+	fmt.Println()
+	fmt.Println("LLM USAGE")
+	fmt.Println(strings.Repeat("-", 40))
+	
+	if summary.LLMCalls > 0 || summary.TokensIn > 0 || summary.TokensOut > 0 {
+		fmt.Printf("  API Calls:          %d\n", summary.LLMCalls)
+		fmt.Printf("  Tokens In:          %s\n", formatNumber(summary.TokensIn))
+		fmt.Printf("  Tokens Out:         %s\n", formatNumber(summary.TokensOut))
+		fmt.Printf("  Total Tokens:       %s\n", formatNumber(summary.TokensIn+summary.TokensOut))
+		
+		// Estimate cost (rough approximation)
+		if summary.TokensIn+summary.TokensOut > 0 {
+			// Assuming average cost of $0.001 per 1K tokens (varies by model)
+			estimatedCost := float64(summary.TokensIn+summary.TokensOut) / 1000.0 * 0.001
+			fmt.Printf("  Est. Cost:          $%.4f\n", estimatedCost)
+		}
+	} else {
+		fmt.Println("  No LLM calls recorded")
+	}
+
+	// Errors Section
+	if len(summary.Errors) > 0 {
+		fmt.Println()
+		fmt.Println("ERRORS")
+		fmt.Println(strings.Repeat("-", 40))
+		fmt.Printf("  Count:              %d\n", len(summary.Errors))
+		for i, err := range summary.Errors {
+			if i >= 5 {
+				fmt.Printf("  ... and %d more\n", len(summary.Errors)-5)
+				break
+			}
+			// Truncate long errors
+			if len(err) > 60 {
+				err = err[:57] + "..."
+			}
+			fmt.Printf("  [%d] %s\n", i+1, err)
+		}
+	}
+
+	// Final Status
+	fmt.Println()
+	fmt.Println(strings.Repeat("=", 60))
+	if summary.Success {
+		fmt.Println("  STATUS: SUCCESS")
+	} else {
+		fmt.Println("  STATUS: FAILED")
+	}
+	fmt.Println(strings.Repeat("=", 60))
+}
+
+// formatBytes formats bytes into human-readable format
+func formatBytes(bytes int64) string {
+	if bytes < 1024 {
+		return fmt.Sprintf("%d B", bytes)
+	} else if bytes < 1024*1024 {
+		return fmt.Sprintf("%.1f KB", float64(bytes)/1024)
+	}
+	return fmt.Sprintf("%.1f MB", float64(bytes)/(1024*1024))
+}
+
+// formatNumber formats numbers with K/M suffixes
+func formatNumber(n int) string {
+	if n < 1000 {
+		return fmt.Sprintf("%d", n)
+	} else if n < 1000000 {
+		return fmt.Sprintf("%.1fK", float64(n)/1000)
+	}
+	return fmt.Sprintf("%.1fM", float64(n)/1000000)
 }
