@@ -105,3 +105,139 @@ description: Our company's TypeScript conventions
 ## Contributing Skills
 
 Want to add a skill for your favorite language? [Open a PR](https://github.com/gptcode/cli/tree/main/docs/_skills) with your skill markdown file.
+
+---
+
+## Using gt Skills in Other Tools
+
+The skills that power `gt` can also be used in other AI coding tools. Here's how to apply them in your favorite environment:
+
+### VS Code (GitHub Copilot)
+
+GitHub Copilot supports custom instructions via files in your project:
+
+**Project-wide instructions:**
+```bash
+# Export a gt skill to Copilot format
+gt skills show ruby > .github/copilot-instructions.md
+```
+
+The file `.github/copilot-instructions.md` is automatically read by Copilot before every interaction.
+
+**Reusable prompts:**
+```bash
+# Create a prompt for TDD workflow
+gt skills show tdd-bug-fix > .github/prompts/tdd.prompt.md
+```
+
+Use in Copilot Chat by referencing the prompt.
+
+### Cursor
+
+Cursor has strong support for project rules via `.cursorrules`:
+
+```bash
+# Export skills directly to Cursor format
+gt skills show go > .cursorrules
+
+# Or combine multiple skills
+gt skills show go >> .cursorrules
+gt skills show tdd-bug-fix >> .cursorrules
+```
+
+Cursor reads `.cursorrules` automatically and applies them to **every** interaction—no need to ask.
+
+### Replit (Agent / Ghostwriter)
+
+Replit doesn't auto-load rule files yet, but you can use a convention:
+
+```bash
+# Export to a RULES file
+gt skills show python > RULES.md
+```
+
+**Tips for Replit:**
+1. Keep `RULES.md` **open in an editor tab**—Ghostwriter prioritizes open files
+2. When using Replit Agent, start with: *"Read RULES.md and follow strictly"*
+
+### Google Gemini (AI Studio / API)
+
+For Gemini, use skills as system instructions:
+
+```bash
+# Show skill content to copy
+gt skills show typescript
+```
+
+Paste the content into:
+- **AI Studio**: System Instructions field
+- **API**: `system_instruction` parameter in your request
+
+```python
+# Example with Gemini API
+import google.generativeai as genai
+
+model = genai.GenerativeModel(
+    'gemini-pro',
+    system_instruction=open('typescript-skill.md').read()
+)
+```
+
+### Claude (Anthropic Console / API)
+
+Claude supports system prompts where you can inject skills:
+
+```bash
+# Export for Claude
+gt skills show elixir > claude-system.md
+```
+
+Use in:
+- **claude.ai**: Start conversation with "Follow these guidelines:" + paste skill
+- **API**: Set as `system` parameter
+
+```python
+# Example with Claude API
+import anthropic
+
+client = anthropic.Anthropic()
+message = client.messages.create(
+    model="claude-3-opus-20240229",
+    system=open('elixir-skill.md').read(),
+    messages=[{"role": "user", "content": "Create a GenServer"}]
+)
+```
+
+### Antigravity (Gemini in IDE)
+
+If you're using Google's Antigravity (Gemini IDE integration):
+
+1. Create `.gemini/settings.json` in your project:
+```json
+{
+  "customInstructions": "See .gemini/skills/ for coding guidelines"
+}
+```
+
+2. Export skills to `.gemini/skills/`:
+```bash
+mkdir -p .gemini/skills
+gt skills show python > .gemini/skills/python.md
+gt skills show tdd-bug-fix > .gemini/skills/tdd.md
+```
+
+---
+
+## Quick Reference
+
+| Tool | Config Location | Auto-loaded? |
+|------|-----------------|--------------|
+| **gt** | Built-in | ✅ Yes |
+| **VS Code Copilot** | `.github/copilot-instructions.md` | ✅ Yes |
+| **Cursor** | `.cursorrules` | ✅ Yes (strong) |
+| **Replit** | `RULES.md` (convention) | ❌ Manual |
+| **Gemini** | System instruction | ❌ Manual |
+| **Claude** | System prompt | ❌ Manual |
+| **Antigravity** | `.gemini/skills/` | ⚡ Partial |
+
+> 💡 **Pro tip**: Commit your skills files to git so your whole team benefits from consistent AI-generated code!
