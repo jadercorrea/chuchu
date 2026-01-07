@@ -59,8 +59,29 @@ gt do --supervised "refactor module"
 
 - Model management:
 ```bash
-gt model list
-gt model recommend editor
+gt model list                           # see all available models
+gt model recommend editor               # get recommendation
+gt model set groq/compound              # set default model
+```
+
+## Recommended Models by Backend
+
+> **Important**: Not all models support tool calling. Use these recommended models for best results:
+
+| Backend | Model | Context | Best For |
+|---------|-------|---------|----------|
+| **Groq** | `groq/compound` | 128k | General use, tool calling ✅ |
+| **Groq** | `llama-3.3-70b-versatile` | 128k | Fast, large context |
+| **OpenRouter** | `openrouter/auto` | varies | Auto-routing, best model per task |
+| **Ollama** | `qwen2.5-coder:32b` | 32k | Local, tool calling ✅ |
+| **Ollama** | `llama3.3:70b` | 128k | Local, large context |
+
+```bash
+# Set your default model
+gt model set groq/compound
+
+# Or for local
+gt model set qwen2.5-coder:32b
 ```
 
 ## Troubleshooting

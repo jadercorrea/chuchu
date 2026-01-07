@@ -245,6 +245,88 @@ Examples:
 	},
 }
 
+var modelSetCmd = &cobra.Command{
+	Use:   "set <model-name>",
+	Short: "Set default model for your backend",
+	Long: `Set the default model for your configured backend.
+
+This updates your ~/.gptcode/config.yaml with the specified model.
+The model must be available in the catalog for your backend.
+
+Recommended models by backend:
+  groq:       groq/compound         (128k context, tool calling)
+  groq:       llama-3.3-70b-versatile (128k context, fast)
+  openrouter: openrouter/auto       (auto-routing across models)
+  ollama:     qwen2.5-coder:32b     (local, tool calling)
+  ollama:     llama3.3:70b          (local, large context)
+
+Examples:
+  gptcode model set groq/compound
+  gptcode model set llama-3.3-70b-versatile
+  gptcode model set openrouter/auto`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		modelName := args[0]
+		return setDefaultModel(modelName)
+	},
+}
+
+func setDefaultModel(modelName string) error {
+	setup, err := config.LoadSetup()
+	if err != nil {
+		return fmt.Errorf("failed to load setup: %w", err)
+	}
+
+	// Verify model exists in catalog
+	catalogData, err := catalog.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[WARN] Could not load catalog: %v\n", err)
+		fmt.Println("Proceeding anyway - model may not be validated")
+	} else {
+		found := false
+		var allModels []catalog.ModelOutput
+		allModels = append(allModels, catalogData.Groq.Models...)
+		allModels = append(allModels, catalogData.OpenRouter.Models...)
+		allModels = append(allModels, catalogData.Ollama.Models...)
+		allModels = append(allModels, catalogData.OpenAI.Models...)
+		allModels = append(allModels, catalogData.DeepSeek.Models...)
+
+		for _, m := range allModels {
+			if m.ID == modelName || m.Name == modelName {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			fmt.Fprintf(os.Stderr, "[WARN] Model '%s' not found in catalog\n", modelName)
+			fmt.Println("Run 'gptcode model list' to see available models")
+			fmt.Println("Proceeding anyway - model may work if backend supports it")
+		}
+	}
+
+	// Update config
+	setup.Defaults.Model = modelName
+
+	// Also update backend-specific default if applicable
+	backendName := setup.Defaults.Backend
+	if backendConfig, ok := setup.Backend[backendName]; ok {
+		backendConfig.DefaultModel = modelName
+		setup.Backend[backendName] = backendConfig
+	}
+
+	// Save config
+	if err := config.SaveSetup(setup); err != nil {
+		return fmt.Errorf("failed to save config: %w", err)
+	}
+
+	fmt.Printf("✅ Default model set to: %s\n", modelName)
+	fmt.Printf("   Backend: %s\n", backendName)
+	fmt.Println("\nYou can now use 'gptcode do \"task\"' and it will use this model.")
+
+	return nil
+}
+
 func updateSingleModel(modelName string) error {
 	fmt.Printf("Updating model: %s\n", modelName)
 
@@ -393,5 +475,6 @@ func init() {
 	modelCmd.AddCommand(modelRecommendCmd)
 	modelCmd.AddCommand(modelInstallCmd)
 	modelCmd.AddCommand(modelUpdateCmd)
+	modelCmd.AddCommand(modelSetCmd)
 	rootCmd.AddCommand(modelCmd)
 }
