@@ -10,6 +10,7 @@ type BuildOptions struct {
 	Lang string
 	Mode string
 	Hint string
+	Task string // Task description for product skill detection
 }
 
 type Builder struct {
@@ -39,22 +40,58 @@ func (b *Builder) BuildSystemPrompt(opts BuildOptions) string {
 		mem = b.Store.LastRelevant(opts.Lang)
 	}
 
-	// Load language-specific skill if available
-	skill := ""
-	if b.SkillsLoader != nil && opts.Lang != "" {
-		skill = b.SkillsLoader.LoadForLanguage(opts.Lang)
-	}
+	// Build skills section with multiple skills
+	skillsSection := ""
+	if b.SkillsLoader != nil {
+		var skillContents []string
 
-	// Build the prompt with optional skill section
-	skillSection := ""
-	if skill != "" {
-		skillSection = fmt.Sprintf(`
+		// 1. Load language-specific skill
+		if opts.Lang != "" {
+			langSkill := b.SkillsLoader.LoadForLanguage(opts.Lang)
+			if langSkill != "" {
+				skillContents = append(skillContents, fmt.Sprintf("## Language: %s\n\n%s", opts.Lang, langSkill))
+			}
+		}
+
+		// 2. Load product skills based on task keywords
+		productSkills := b.SkillsLoader.LoadProductSkillsForTask(opts.Task)
+		skillContents = append(skillContents, productSkills...)
+
+		// 3. For autonomous mode, always include production-ready skill
+		if opts.Mode == "autonomous" || opts.Mode == "do" {
+			prodSkill := b.SkillsLoader.LoadByName("production-ready")
+			if prodSkill != "" {
+				// Check if not already added
+				alreadyAdded := false
+				for _, s := range skillContents {
+					if len(s) > 100 && s[:100] == prodSkill[:min(100, len(prodSkill))] {
+						alreadyAdded = true
+						break
+					}
+				}
+				if !alreadyAdded {
+					skillContents = append(skillContents, prodSkill)
+				}
+			}
+		}
+
+		// Combine all skills
+		if len(skillContents) > 0 {
+			combined := ""
+			for i, skill := range skillContents {
+				if i > 0 {
+					combined += "\n\n---\n\n"
+				}
+				combined += skill
+			}
+			skillsSection = fmt.Sprintf(`
 ---
 
-# Language-Specific Guidelines (%s)
+# Product Engineering Skills
 
 %s
-`, opts.Lang, skill)
+`, combined)
+		}
 	}
 
 	return fmt.Sprintf(`%s
@@ -77,8 +114,16 @@ func (b *Builder) BuildSystemPrompt(opts BuildOptions) string {
 
 Language: %s
 Mode: %s
+Task: %s
 Hint: %s
-`, base, profile, mem, skillSection, opts.Lang, opts.Mode, opts.Hint)
+`, base, profile, mem, skillsSection, opts.Lang, opts.Mode, opts.Task, opts.Hint)
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func mustReadFile(path string) string {
