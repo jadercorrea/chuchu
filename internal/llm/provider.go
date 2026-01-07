@@ -12,6 +12,7 @@ type ChatRequest struct {
 	Model        string
 	Messages     []ChatMessage
 	Tools        []interface{}
+	Intent       string // Task intent: "query", "edit", "plan", "research" - used for loop detection
 }
 
 type ChatMessage struct {

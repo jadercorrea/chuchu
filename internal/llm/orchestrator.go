@@ -36,8 +36,15 @@ func (o *OrchestratorProvider) Chat(ctx context.Context, req ChatRequest) (*Chat
 		fmt.Fprintf(os.Stderr, "\n[ORCHESTRATOR] Starting autonomous execution loop\n")
 	}
 
-	maxIterations := 10
-	toolCallHistory := make(map[string]int)
+	// Extract intent from request for intent-aware loop detection
+	intent := "edit" // Default to edit
+	if req.Intent != "" {
+		intent = req.Intent
+	}
+
+	// Initialize Claude Code-style loop detector
+	loopDetector := NewLoopDetector(intent)
+
 	conversation := append([]ChatMessage{}, req.Messages...)
 
 	if req.UserPrompt != "" {
@@ -47,9 +54,20 @@ func (o *OrchestratorProvider) Chat(ctx context.Context, req ChatRequest) (*Chat
 		})
 	}
 
-	for iteration := 0; iteration < maxIterations; iteration++ {
+	for {
+		// Check if we should continue (intent-aware limits)
+		shouldContinue, reason := loopDetector.ShouldContinue()
+		if !shouldContinue {
+			if os.Getenv("GPTCODE_DEBUG") == "1" {
+				fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Stopping: %s\n", reason)
+			}
+			return &ChatResponse{
+				Text: fmt.Sprintf("Task stopped: %s. Stats: %s", reason, loopDetector.GetStats()),
+			}, nil
+		}
+
 		if os.Getenv("GPTCODE_DEBUG") == "1" {
-			fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Iteration %d/%d\n", iteration+1, maxIterations)
+			fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Iteration %d (%s)\n", loopDetector.Iteration, loopDetector.GetStats())
 		}
 
 		executorReq := ChatRequest{
@@ -90,24 +108,24 @@ func (o *OrchestratorProvider) Chat(ctx context.Context, req ChatRequest) (*Chat
 		})
 
 		for _, tc := range resp.ToolCalls {
-			toolKey := fmt.Sprintf("%s:%s", tc.Name, tc.Arguments)
-			toolCallHistory[toolKey]++
-
-			if toolCallHistory[toolKey] > 1 {
+			// Claude Code-style tool loop detection
+			isLoop, loopReason := loopDetector.RecordToolCall(tc.Name, tc.Arguments)
+			if isLoop {
 				if os.Getenv("GPTCODE_DEBUG") == "1" {
-					fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Tool %s called %d times with same args - forcing stop\n", tc.Name, toolCallHistory[toolKey])
+					fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] %s\n", loopReason)
 				}
 
+				// Return last tool result if available
 				for i := len(conversation) - 1; i >= 0; i-- {
 					if conversation[i].Role == "tool" && conversation[i].Name == tc.Name {
 						return &ChatResponse{
-							Text: conversation[i].Content,
+							Text: fmt.Sprintf("Loop detected: %s. Last result: %s", loopReason, conversation[i].Content),
 						}, nil
 					}
 				}
 
 				return &ChatResponse{
-					Text: "Task completed.",
+					Text: fmt.Sprintf("Loop detected: %s", loopReason),
 				}, nil
 			}
 
@@ -173,34 +191,26 @@ func (o *OrchestratorProvider) Chat(ctx context.Context, req ChatRequest) (*Chat
 				Name:       tc.Name,
 				ToolCallID: tc.ID,
 			})
+
+			// Track file modifications for progress detection
+			if tc.Name == "write_file" || tc.Name == "patch_file" || tc.Name == "create_file" {
+				loopDetector.RecordFileModification()
+			}
+			if tc.Name == "read_file" || tc.Name == "list_dir" || tc.Name == "grep" {
+				loopDetector.RecordReadOperation()
+			}
 		}
 
-		if iteration >= 2 {
+		// Check for content loops (repeated responses)
+		if isLoop, reason := loopDetector.RecordResponse(resp.Text); isLoop {
 			if os.Getenv("GPTCODE_DEBUG") == "1" {
-				fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] Reached iteration limit - forcing final answer\n")
+				fmt.Fprintf(os.Stderr, "[ORCHESTRATOR] %s\n", reason)
 			}
-
-			finalReq := ChatRequest{
-				SystemPrompt: req.SystemPrompt + "\n\nCRITICAL: You have already called tools. Now provide your FINAL ANSWER based on the tool results. DO NOT call any more tools. Just answer the question directly.",
-				Model:        o.customModel,
-				Messages:     conversation,
-				Tools:        nil,
-			}
-
-			finalResp, err := o.customExecutor.Chat(ctx, finalReq)
-			if err != nil {
-				return nil, err
-			}
-
 			return &ChatResponse{
-				Text: finalResp.Text,
+				Text: fmt.Sprintf("Content loop detected: %s", reason),
 			}, nil
 		}
 	}
-
-	return &ChatResponse{
-		Text: "Maximum iterations reached. Task may be incomplete.",
-	}, nil
 }
 
 func (o *OrchestratorProvider) ChatStream(ctx context.Context, req ChatRequest, callback func(chunk string)) error {
