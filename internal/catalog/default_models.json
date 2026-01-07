@@ -1,0 +1,373 @@
+{
+  "groq": {
+    "models": [
+      {
+        "id": "groq/compound",
+        "name": "groq/compound",
+        "tags": [
+          "free",
+          "128k-context",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 131072,
+        "pricing_prompt_per_m_tokens": 0,
+        "pricing_completion_per_m_tokens": 0,
+        "installed": false,
+        "feedback_score": 0,
+        "capabilities": {
+          "supports_tools": false,
+          "supports_file_operations": false,
+          "notes": "Uses Compound API with web_search/code_interpreter - not compatible with file tools"
+        }
+      },
+      {
+        "id": "groq/compound-mini",
+        "name": "groq/compound-mini",
+        "tags": [
+          "free",
+          "128k-context",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 131072,
+        "pricing_prompt_per_m_tokens": 0,
+        "pricing_completion_per_m_tokens": 0,
+        "installed": false,
+        "feedback_score": 0,
+        "capabilities": {
+          "supports_tools": false,
+          "supports_file_operations": false,
+          "notes": "Uses Compound API with web_search/code_interpreter - not compatible with file tools"
+        }
+      },
+      {
+        "id": "qwen/qwen3-32b",
+        "name": "qwen/qwen3-32b",
+        "tags": [
+          "cheap",
+          "128k-context",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 131072,
+        "pricing_prompt_per_m_tokens": 0.29,
+        "pricing_completion_per_m_tokens": 0.59,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "llama-3.3-70b-versatile",
+        "name": "llama-3.3-70b-versatile",
+        "tags": [
+          "128k-context",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 131072,
+        "pricing_prompt_per_m_tokens": 0.59,
+        "pricing_completion_per_m_tokens": 0.79,
+        "installed": false,
+        "feedback_score": 0,
+        "capabilities": {
+          "supports_tools": true,
+          "supports_file_operations": true,
+          "notes": "Tool calling capable"
+        }
+      }
+    ]
+  },
+  "openrouter": {
+    "models": [
+      {
+        "id": "openrouter/auto",
+        "name": "Auto Router",
+        "tags": [
+          "cheap",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": -1000000,
+        "pricing_completion_per_m_tokens": -1000000,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "openai/gpt-4.1-nano",
+        "name": "OpenAI: GPT-4.1 Nano",
+        "tags": [
+          "cheap",
+          "coding",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.09999999999999999,
+        "pricing_completion_per_m_tokens": 0.39999999999999997,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "openai/gpt-4o-mini",
+        "name": "OpenAI: GPT-4o-mini",
+        "tags": [
+          "cheap",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.15,
+        "pricing_completion_per_m_tokens": 0.6,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "openai/gpt-4o-mini-2024-07-18",
+        "name": "OpenAI: GPT-4o-mini (2024-07-18)",
+        "tags": [
+          "cheap",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.15,
+        "pricing_completion_per_m_tokens": 0.6,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "openai/gpt-4o-mini-search-preview",
+        "name": "OpenAI: GPT-4o-mini Search Preview",
+        "tags": [
+          "cheap",
+          "web-search",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor",
+          "research"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.15,
+        "pricing_completion_per_m_tokens": 0.6,
+        "installed": false,
+        "feedback_score": 0
+      }
+    ]
+  },
+  "ollama": {
+    "models": [
+      {
+        "id": "codellama",
+        "name": "codellama",
+        "tags": [
+          "free",
+          "coding",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 8192,
+        "pricing_prompt_per_m_tokens": 0,
+        "pricing_completion_per_m_tokens": 0,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "llama3.3",
+        "name": "llama3.3",
+        "tags": [
+          "free",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 8192,
+        "pricing_prompt_per_m_tokens": 0,
+        "pricing_completion_per_m_tokens": 0,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "phind-codellama",
+        "name": "phind-codellama",
+        "tags": [
+          "free",
+          "coding",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 8192,
+        "pricing_prompt_per_m_tokens": 0,
+        "pricing_completion_per_m_tokens": 0,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "qwen2.5-coder",
+        "name": "qwen2.5-coder",
+        "tags": [
+          "free",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 8192,
+        "pricing_prompt_per_m_tokens": 0,
+        "pricing_completion_per_m_tokens": 0,
+        "installed": false,
+        "feedback_score": 0
+      }
+    ]
+  },
+  "openai": {
+    "models": [
+      {
+        "id": "openai/gpt-4o-mini",
+        "name": "OpenAI: GPT-4o-mini",
+        "tags": [
+          "cheap",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.15,
+        "pricing_completion_per_m_tokens": 0.6,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "openai/gpt-4o-mini-2024-07-18",
+        "name": "OpenAI: GPT-4o-mini (2024-07-18)",
+        "tags": [
+          "cheap",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.15,
+        "pricing_completion_per_m_tokens": 0.6,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "openai/gpt-4o-mini-search-preview",
+        "name": "OpenAI: GPT-4o-mini Search Preview",
+        "tags": [
+          "cheap",
+          "web-search",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor",
+          "research"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.15,
+        "pricing_completion_per_m_tokens": 0.6,
+        "installed": false,
+        "feedback_score": 0
+      }
+    ]
+  },
+  "deepseek": {
+    "models": [
+      {
+        "id": "deepseek/deepseek-chat-v3.1",
+        "name": "DeepSeek: DeepSeek V3.1",
+        "tags": [
+          "cheap",
+          "coding",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.15,
+        "pricing_completion_per_m_tokens": 0.75,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "deepseek/deepseek-chat-v3-0324",
+        "name": "DeepSeek: DeepSeek V3 0324",
+        "tags": [
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.19,
+        "pricing_completion_per_m_tokens": 0.87,
+        "installed": false,
+        "feedback_score": 0
+      },
+      {
+        "id": "deepseek/deepseek-chat",
+        "name": "DeepSeek: DeepSeek V3",
+        "tags": [
+          "coding",
+          "versatile"
+        ],
+        "recommended_for": [
+          "query",
+          "editor",
+          "editor"
+        ],
+        "context_window": 0,
+        "pricing_prompt_per_m_tokens": 0.3,
+        "pricing_completion_per_m_tokens": 1.2,
+        "installed": false,
+        "feedback_score": 0
+      }
+    ]
+  }
+}

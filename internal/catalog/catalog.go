@@ -20,7 +20,14 @@ func Load() (*OutputJSON, error) {
 	path := GetCatalogPath()
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read catalog: %w", err)
+		// Fallback to embedded default catalog
+		if os.Getenv("GPTCODE_DEBUG") == "1" {
+			fmt.Fprintln(os.Stderr, "[CATALOG] User catalog not found, using embedded default_models.json")
+		}
+		data = defaultModelsJSON
+		if len(data) == 0 {
+			return nil, fmt.Errorf("no catalog available: user catalog not found and embedded catalog is empty")
+		}
 	}
 
 	var catalog OutputJSON

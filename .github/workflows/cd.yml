@@ -49,6 +49,9 @@ jobs:
           # Models will be saved to ~/.gptcode/models_catalog.json
           mkdir -p ~/.gptcode
           ./bin/gptcode model update --all || echo "Model update completed with warnings"
+          
+          # Copy to default_models.json for embedding in binary
+          cp ~/.gptcode/models_catalog.json internal/catalog/default_models.json
       
       - name: Export models for web
         run: |
