@@ -35,14 +35,6 @@ cat > "$RESULTS_FILE" << 'EOF'
 }
 EOF
 
-safe_jq_update ".started_at = \"$(date -Iseconds)\"" "$RESULTS_FILE"
-
-echo "🚀 Training Loop v2 - Self-Improving"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Issues: $NUM_ISSUES"
-echo "Results: $RESULTS_FILE"
-echo ""
-
 # Safe jq update function with error handling
 safe_jq_update() {
     local filter="$1"
@@ -65,6 +57,15 @@ RESET
         rm -f "$temp_file"
     fi
 }
+
+# Set start time
+jq ".started_at = \"$(date -Iseconds)\"" "$RESULTS_FILE" > /tmp/r.json && mv /tmp/r.json "$RESULTS_FILE"
+
+echo "🚀 Training Loop v2 - Self-Improving"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Issues: $NUM_ISSUES"
+echo "Results: $RESULTS_FILE"
+echo ""
 
 # Detect test runner for a repo
 detect_test_runner() {
