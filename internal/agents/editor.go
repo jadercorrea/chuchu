@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gptcode/internal/llm"
+	"gptcode/internal/observability"
 	"gptcode/internal/tools"
 )
 
@@ -16,6 +17,7 @@ type EditorAgent struct {
 	cwd          string
 	model        string
 	allowedFiles []string
+	observer     observability.Observer
 }
 
 func NewEditor(provider llm.Provider, cwd string, model string) *EditorAgent {
@@ -24,6 +26,18 @@ func NewEditor(provider llm.Provider, cwd string, model string) *EditorAgent {
 		cwd:          cwd,
 		model:        model,
 		allowedFiles: nil,
+		observer:     nil,
+	}
+}
+
+// NewEditorWithObserver creates an editor with an observer for tracking
+func NewEditorWithObserver(provider llm.Provider, cwd string, model string, observer observability.Observer) *EditorAgent {
+	return &EditorAgent{
+		provider:     provider,
+		cwd:          cwd,
+		model:        model,
+		allowedFiles: nil,
+		observer:     observer,
 	}
 }
 
@@ -296,7 +310,7 @@ func (e *EditorAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 						}
 					}
 
-					result := tools.ExecuteToolFromLLM(llmCall, e.cwd)
+					result := tools.ExecuteToolWithObserver(llmCall, e.cwd, e.observer)
 					if len(result.ModifiedFiles) > 0 {
 						modifiedFiles = append(modifiedFiles, result.ModifiedFiles...)
 					}
@@ -386,7 +400,7 @@ func (e *EditorAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 				}
 			}
 
-			result := tools.ExecuteToolFromLLM(llmCall, e.cwd)
+			result := tools.ExecuteToolWithObserver(llmCall, e.cwd, e.observer)
 			if len(result.ModifiedFiles) > 0 {
 				modifiedFiles = append(modifiedFiles, result.ModifiedFiles...)
 			}

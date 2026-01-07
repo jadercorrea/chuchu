@@ -24,7 +24,8 @@ type Conductor struct {
 	language     string
 	Recovery     *RecoveryStrategy
 	Tracer       observability.Tracer
-	loopDetector *llm.LoopDetector // Centralized Claude Code-style loop detection
+	Observer     *observability.AgentObserver // For tracking and summary
+	loopDetector *llm.LoopDetector            // Centralized Claude Code-style loop detection
 }
 
 // NewConductor creates a new Maestro conductor
@@ -40,6 +41,8 @@ func NewConductor(
 	recovery := NewRecoveryStrategy(3, tempCheckpoints)
 	recovery.Verbose = os.Getenv("GPTCODE_DEBUG") == "1"
 	tracer := observability.NewTracer()
+	observer := observability.NewObserver()
+	observer.SetVerbose(os.Getenv("GPTCODE_DEBUG") == "1")
 
 	return &Conductor{
 		selector: selector,
@@ -48,6 +51,7 @@ func NewConductor(
 		language: language,
 		Recovery: recovery,
 		Tracer:   tracer,
+		Observer: observer,
 	}
 }
 
@@ -156,9 +160,9 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 			fmt.Fprintf(os.Stderr, "[MAESTRO] Editor: %s/%s\n", editBackend, editModel)
 		}
 
-		// Create editor with selected model
+		// Create editor with selected model and observer
 		editProvider := c.createProvider(editBackend)
-		editor := agents.NewEditor(editProvider, c.cwd, editModel)
+		editor := agents.NewEditorWithObserver(editProvider, c.cwd, editModel, c.Observer)
 
 		// Execute with editor
 		fmt.Println("Executing changes...")
@@ -220,9 +224,13 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 			c.recordFeedback(editBackend, editModel, "editor", task, true)
 
 			fmt.Printf("\n[OK] Task complete!\n")
-			fmt.Printf("   Modified: %d files\n", len(modifiedFiles))
 			if result != "" {
 				fmt.Printf("   %s\n", result)
+			}
+
+			// Print detailed execution summary
+			if c.Observer != nil {
+				c.Observer.PrintSummary()
 			}
 
 			// Record success metrics
@@ -347,9 +355,13 @@ func (c *Conductor) ExecuteTask(ctx context.Context, task string, complexity str
 		c.recordFeedback(reviewBackend, reviewModel, "reviewer", task, true)
 
 		fmt.Printf("\n[OK] Task complete!\n")
-		fmt.Printf("   Modified: %d files\n", len(modifiedFiles))
 		if result != "" {
 			fmt.Printf("   %s\n", result)
+		}
+
+		// Print detailed execution summary
+		if c.Observer != nil {
+			c.Observer.PrintSummary()
 		}
 
 		// Record success metrics

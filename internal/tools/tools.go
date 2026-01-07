@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"gptcode/internal/observability"
 )
 
 type Tool struct {
@@ -427,4 +430,57 @@ func writeFile(call ToolCall, workdir string) ToolResult {
 		Result:        fmt.Sprintf("File written successfully: %s (%d bytes)", path, len(content)),
 		ModifiedFiles: []string{path},
 	}
+}
+
+// ExecuteToolWithObserver wraps ExecuteToolFromLLM and emits events to the observer
+func ExecuteToolWithObserver(call LLMToolCall, workdir string, observer observability.Observer) ToolResult {
+	start := time.Now()
+
+	// Execute the tool
+	result := ExecuteToolFromLLM(call, workdir)
+
+	// Emit events if observer is provided
+	if observer != nil {
+		// Emit tool call event
+		truncatedResult := result.Result
+		if len(truncatedResult) > 200 {
+			truncatedResult = truncatedResult[:200] + "..."
+		}
+
+		observer.Emit(&observability.ToolCallEvent{
+			BaseEvent: observability.BaseEvent{Time: time.Now()},
+			Name:      call.Name,
+			Arguments: call.Arguments,
+			Result:    truncatedResult,
+			Duration:  time.Since(start),
+			Error:     result.Error,
+		})
+
+		// Emit file modification events
+		for _, file := range result.ModifiedFiles {
+			// Determine operation type (create vs modify)
+			operation := "modify"
+			fullPath := filepath.Join(workdir, file)
+			if info, err := os.Stat(fullPath); err == nil {
+				// Check if file was just created (very recent)
+				if time.Since(info.ModTime()) < time.Second*2 {
+					operation = "create"
+				}
+			}
+
+			var bytes int64
+			if info, err := os.Stat(fullPath); err == nil {
+				bytes = info.Size()
+			}
+
+			observer.Emit(&observability.FileModifiedEvent{
+				BaseEvent: observability.BaseEvent{Time: time.Now()},
+				Path:      file,
+				Operation: operation,
+				Bytes:     bytes,
+			})
+		}
+	}
+
+	return result
 }
