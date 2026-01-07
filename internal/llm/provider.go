@@ -24,8 +24,15 @@ type ChatMessage struct {
 }
 
 type ChatResponse struct {
-	Text      string
-	ToolCalls []ChatToolCall
+	Text       string
+	ToolCalls  []ChatToolCall
+	TokenUsage *TokenUsage
+}
+
+type TokenUsage struct {
+	PromptTokens     int
+	CompletionTokens int
+	TotalTokens      int
 }
 
 type ChatToolCall struct {

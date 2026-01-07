@@ -113,6 +113,11 @@ type chatCompletionResponse struct {
 			ToolCalls []ToolCall `json:"tool_calls"`
 		} `json:"message"`
 	} `json:"choices"`
+	Usage *struct {
+		PromptTokens     int `json:"prompt_tokens"`
+		CompletionTokens int `json:"completion_tokens"`
+		TotalTokens      int `json:"total_tokens"`
+	} `json:"usage"`
 	Error *struct {
 		Message string `json:"message"`
 	} `json:"error"`
@@ -360,6 +365,15 @@ func (c *ChatCompletionProvider) Chat(ctx context.Context, req ChatRequest) (*Ch
 				Name:      tc.Function.Name,
 				Arguments: tc.Function.Arguments,
 			}
+		}
+	}
+
+	// Populate token usage if available
+	if apiResp.Usage != nil {
+		response.TokenUsage = &TokenUsage{
+			PromptTokens:     apiResp.Usage.PromptTokens,
+			CompletionTokens: apiResp.Usage.CompletionTokens,
+			TotalTokens:      apiResp.Usage.TotalTokens,
 		}
 	}
 

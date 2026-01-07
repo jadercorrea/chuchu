@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"gptcode/internal/llm"
 	"gptcode/internal/observability"
@@ -254,14 +255,27 @@ func (e *EditorAgent) Execute(ctx context.Context, history []llm.ChatMessage, st
 	// Set to 10 to allow complex tasks: 3-4 discovery calls + 2-3 reads + 2-3 writes
 	maxToolChainDepth := 10
 	for iteration := 0; iteration < maxToolChainDepth; iteration++ {
+		llmStart := time.Now()
 		resp, err := e.provider.Chat(ctx, llm.ChatRequest{
 			SystemPrompt: editorPrompt,
 			Messages:     messages,
 			Tools:        toolDefs,
 			Model:        e.model,
 		})
+		llmDuration := time.Since(llmStart)
 		if err != nil {
 			return "", nil, err
+		}
+
+		// Emit LLM request event to observer
+		if e.observer != nil && resp.TokenUsage != nil {
+			e.observer.Emit(&observability.LLMRequestEvent{
+				BaseEvent: observability.BaseEvent{Time: time.Now()},
+				Model:     e.model,
+				TokensIn:  resp.TokenUsage.PromptTokens,
+				TokensOut: resp.TokenUsage.CompletionTokens,
+				Duration:  llmDuration,
+			})
 		}
 
 		if os.Getenv("GPTCODE_DEBUG") == "1" {
