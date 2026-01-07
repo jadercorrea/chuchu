@@ -72,6 +72,16 @@ With skills, `gt` produces **production-ready** code:
 | [Production Ready](/skills/production-ready) | Product | Error handling, feature flags, health checks |
 | [QA Automation](/skills/qa-automation) | Product | E2E, visual regression, a11y, performance |
 
+### Ops
+
+| Skill | Category | Description |
+|-------|----------|-------------|
+| [Security](/skills/security) | Security | OWASP, input validation, auth, XSS/CSRF prevention |
+| [DevOps](/skills/devops) | DevOps | Docker, Kubernetes, Terraform, CI/CD pipelines |
+| [SysOps](/skills/sysops) | SysOps | Shell scripting, systemd, Linux administration |
+| [SecOps](/skills/secops) | SecOps | Vulnerability scanning, incident response, WAF |
+| [MLOps](/skills/mlops) | MLOps | Model serving, experiment tracking, feature stores |
+
 ## Installing Skills
 
 ```bash

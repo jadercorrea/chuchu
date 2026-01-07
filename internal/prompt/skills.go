@@ -80,6 +80,63 @@ var productSkillKeywords = map[string]string{
 	"accessibility": "qa-automation.md",
 	"visual":     "qa-automation.md",
 	"screenshot": "qa-automation.md",
+
+	// Security
+	"security":       "security.md",
+	"auth":           "security.md",
+	"authentication": "security.md",
+	"authorization":  "security.md",
+	"owasp":          "security.md",
+	"xss":            "security.md",
+	"csrf":           "security.md",
+	"injection":      "security.md",
+	"sanitize":       "security.md",
+	"validate":       "security.md",
+	"password":       "security.md",
+	"token":          "security.md",
+	"jwt":            "security.md",
+
+	// DevOps
+	"devops":     "devops.md",
+	"docker":     "devops.md",
+	"dockerfile": "devops.md",
+	"kubernetes": "devops.md",
+	"k8s":        "devops.md",
+	"helm":       "devops.md",
+	"terraform":  "devops.md",
+	"ci/cd":      "devops.md",
+	"pipeline":   "devops.md",
+	"github actions": "devops.md",
+
+	// SysOps
+	"sysops":   "sysops.md",
+	"bash":     "sysops.md",
+	"shell":    "sysops.md",
+	"linux":    "sysops.md",
+	"systemd":  "sysops.md",
+	"cron":     "sysops.md",
+	"ssh":      "sysops.md",
+	"firewall": "sysops.md",
+	"nginx":    "sysops.md",
+
+	// SecOps
+	"secops":        "secops.md",
+	"vulnerability": "secops.md",
+	"incident":      "secops.md",
+	"waf":           "secops.md",
+	"siem":          "secops.md",
+	"audit":         "secops.md",
+	"compliance":    "secops.md",
+
+	// MLOps
+	"mlops":      "mlops.md",
+	"ml":         "mlops.md",
+	"model":      "mlops.md",
+	"training":   "mlops.md",
+	"inference":  "mlops.md",
+	"mlflow":     "mlops.md",
+	"experiment": "mlops.md",
+	"feature store": "mlops.md",
 }
 
 // workflowSkillMap maps workflow types to skill files
@@ -194,6 +251,9 @@ func (sl *SkillsLoader) GetSkillCategories() map[string][]string {
 		"product": {
 			"design-system", "product-metrics",
 			"production-ready", "qa-automation",
+		},
+		"ops": {
+			"security", "devops", "sysops", "secops", "mlops",
 		},
 	}
 }
